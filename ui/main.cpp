@@ -30,30 +30,33 @@
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
+	QApplication app(argc, argv);
 
-    Usbpp::Context context;
-    Litro::CameraList cameras(Litro::getCameras(context));
+	Usbpp::Context context;
+	Litro::CameraList cameras(Litro::getCameras(context));
 
-    // get list of cameras
-    QStringList cameraList;
-    for (Litro::Camera &camera : cameras) {
-        Litro::CameraInformation info(camera.getCameraInformation());
-        QString name = QString(info.vendor.c_str()).trimmed() + " "
-                + QString(info.product.c_str()).trimmed() + " "
-                + QString(info.revision.c_str()).trimmed();
-        cameraList.append(name);
-    }
+	// get list of cameras
+	QStringList cameraList;
+	for (Litro::Camera &camera : cameras) {
+		Litro::CameraInformation info(camera.getCameraInformation());
+		QString name = QString(info.vendor.c_str()).trimmed() + " "
+				+ QString(info.product.c_str()).trimmed() + " "
+				+ QString(info.revision.c_str()).trimmed();
+		cameraList.append(name);
+	}
 
-    // get list of files
-    ImageListModel imageList(cameras);
-    // TODO: make it work for more cameras etc..
-    imageList.changeCamera(0);
+	// get list of files
+	ImageListModel imageList(cameras);
 
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("cameraListModel", QVariant::fromValue(cameraList));
-    engine.rootContext()->setContextProperty("imageGridModel", &imageList);
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
+	// preselect the first camera
+	if (cameras.size() > 0) {
+		imageList.changeCamera(0);
+	}
 
-    return app.exec();
+	QQmlApplicationEngine engine;
+	engine.rootContext()->setContextProperty("cameraListModel", QVariant::fromValue(cameraList));
+	engine.rootContext()->setContextProperty("imageGridModel", &imageList);
+	engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
+
+	return app.exec();
 }
