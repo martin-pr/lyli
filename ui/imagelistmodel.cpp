@@ -1,5 +1,5 @@
 /*
- * This file is part of Litro-Qt, a GUI to control Lytro camera
+ * This file is part of Lyli-Qt, a GUI to control Lytro camera
  * Copyright (C) 2015  Lukas Jirkovsky <l.jirkovsky @at@ gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@
 #include <algorithm>
 #include <fstream>
 
-ImageListModel::ImageListModel(Litro::CameraList &cameraList, QObject *parent) : QAbstractListModel(parent),
+ImageListModel::ImageListModel(Lyli::CameraList &cameraList, QObject *parent) : QAbstractListModel(parent),
     m_cameraList(cameraList),
     m_camera(nullptr),
     m_selectionType(SelectionType::SINGLE)
@@ -72,11 +72,11 @@ int ImageListModel::rowCount(const QModelIndex &parent) const {
 }
 
 QVariant ImageListModel::data(const QModelIndex &index, int role) const {
-    if (! index.isValid() || static_cast<Litro::FileList::size_type>(index.row()) >= m_fileList.size()) {
+    if (! index.isValid() || static_cast<Lyli::FileList::size_type>(index.row()) >= m_fileList.size()) {
         return QVariant();
     }
 
-    Litro::FileListEntry entry(m_fileList[index.row()]);
+    Lyli::FileListEntry entry(m_fileList[index.row()]);
     switch (role) {
         case Qt::DisplayRole:
         case IdRole:
@@ -91,7 +91,7 @@ QVariant ImageListModel::data(const QModelIndex &index, int role) const {
 }
 
 bool ImageListModel::setData(const QModelIndex &index, const QVariant &value, int role) {
-    if (index.isValid() && static_cast<Litro::FileList::size_type>(index.row()) < m_fileList.size()) {
+    if (index.isValid() && static_cast<Lyli::FileList::size_type>(index.row()) < m_fileList.size()) {
         switch (role) {
             case SelectRole:
                 if (m_selectionType != SelectionType::ADDITIVE) {
@@ -144,7 +144,7 @@ void ImageListModel::selectAll(bool selected) {
 }
 
 void ImageListModel::downloadAll(const QUrl &outputDirectory) {
-    for (Litro::FileListEntry entry : m_fileList) {
+    for (Lyli::FileListEntry entry : m_fileList) {
         downloadFile(outputDirectory.toLocalFile(), entry.id);
     }
 }

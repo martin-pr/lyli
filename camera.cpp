@@ -1,8 +1,8 @@
 /*
- * This file is part of Litro, an application to control Lytro camera
+ * This file is part of Lyli, an application to control Lytro camera
  * Copyright (C) 2015  Lukas Jirkovsky <l.jirkovsky @at@ gmail.com>
  *
- * Litro is free software: you can redistribute it and/or modify
+ * Lyli is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, version 3 of the License
  *
@@ -50,7 +50,7 @@ void printbuf(unsigned char *dataBuffer, std::size_t len) {
 }
 #endif
 
-namespace Litro {
+namespace Lyli {
 
 class Camera::Impl {
 public:

@@ -1,10 +1,10 @@
-# Litro
+# Lyli
 
-Litro (*Li*nux Ly*tro*) aims to provide an open source alternative to the Lytro Desktop.
+Lyli (*Ly*tro *Li*nux) aims to provide an open source alternative to the Lytro Desktop.
 
-The application has been tested only with the original Litro camera, although the Lytro Illum
+The application has been tested only with the original Lytro camera, although the Lytro Illum
 may work, too.
 
 ## License
-Most of the Litro is licensed under LGPL v3, only the Qt GUI (in the ui/ subdirectory)
+Most of the Lyli is licensed under LGPL v3, only the Qt GUI (in the ui/ subdirectory)
 is licensed under GPL v3.

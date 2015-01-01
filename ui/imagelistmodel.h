@@ -1,5 +1,5 @@
 /*
- * This file is part of Litro-Qt, a GUI to control Lytro camera
+ * This file is part of Lyli-Qt, a GUI to control Lytro camera
  * Copyright (C) 2015  Lukas Jirkovsky <l.jirkovsky @at@ gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -37,7 +37,7 @@ public:
         SelectRole
     };
 
-    ImageListModel(Litro::CameraList &cameraList, QObject *parent = 0);
+    ImageListModel(Lyli::CameraList &cameraList, QObject *parent = 0);
     ~ImageListModel();
 
     Qt::ItemFlags flags(const QModelIndex &index) const;
@@ -59,10 +59,10 @@ public slots:
     void changeCamera(int id);
 
 private:
-    Litro::CameraList &m_cameraList;
-    Litro::Camera *m_camera;
+    Lyli::CameraList &m_cameraList;
+    Lyli::Camera *m_camera;
 
-    Litro::FileList m_fileList;
+    Lyli::FileList m_fileList;
     std::vector<bool> m_selected;
 
     enum class SelectionType {

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.4)
-project(litro CXX)
+project(lyli CXX)
 
 ################
 # Dependencies #
@@ -26,11 +26,11 @@ include_directories(${LIBUSB_INCLUDE_DIRS})
 
 add_subdirectory(usbpp)
 
-add_library(litroiface STATIC camera.cpp filelistparser.cpp)
-target_link_libraries(litroiface usbpp)
+add_library(lyliiface STATIC camera.cpp filelistparser.cpp)
+target_link_libraries(lyliiface usbpp)
 
-add_executable(litro main.cpp)
-target_link_libraries(litro usbpp litroiface)
+add_executable(lyli main.cpp)
+target_link_libraries(lyli usbpp lyliiface)
 
 if (Qt5Core_FOUND AND Qt5Qml_FOUND AND Qt5Quick_FOUND AND Qt5Widgets_FOUND)
 	add_subdirectory(ui)

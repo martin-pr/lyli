@@ -1,8 +1,8 @@
 /*
- * This file is part of Litro, an application to control Lytro camera
+ * This file is part of Lyli, an application to control Lytro camera
  * Copyright (C) 2015  Lukas Jirkovsky <l.jirkovsky @at@ gmail.com>
  *
- * Litro is free software: you can redistribute it and/or modify
+ * Lyli is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, version 3 of the License
  *
@@ -15,14 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LITRO_FILELIST_PARSER_H_
-#define LITRO_FILELIST_PARSER_H_
+#ifndef LYLI_FILELIST_PARSER_H_
+#define LYLI_FILELIST_PARSER_H_
 
 #include "camera.h"
 
 #include "usbpp/buffer.h"
 
-namespace Litro {
+namespace Lyli {
 
 FileList parseFileList(const Usbpp::ByteBuffer &buffer);
 

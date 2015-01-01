@@ -1,8 +1,8 @@
 /*
- * This file is part of Litro, an application to control Lytro camera
+ * This file is part of Lyli, an application to control Lytro camera
  * Copyright (C) 2015  Lukas Jirkovsky <l.jirkovsky @at@ gmail.com>
  *
- * Litro is free software: you can redistribute it and/or modify
+ * Lyli is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, version 3 of the License
  *
@@ -36,25 +36,25 @@ void showHelp() {
 	std::cout << "\t     \t The image is downloaded to the current directory" << std::endl;
 }
 
-void waitForCamera(Litro::Camera &camera) {
+void waitForCamera(Lyli::Camera &camera) {
 	std::cout << "waiting until the camera is ready" << std::endl;
 	camera.waitReady();
 	std::cout << "camera ready" << std::endl;
 }
 
-void getCameraInformation(Litro::Camera &camera) {
-	Litro::CameraInformation info(camera.getCameraInformation());
+void getCameraInformation(Lyli::Camera &camera) {
+	Lyli::CameraInformation info(camera.getCameraInformation());
 	
 	std::cout << "Vendor: " << info.vendor << std::endl;
 	std::cout << "Product: " << info.product << std::endl;
 	std::cout << "Revision: " << info.revision << std::endl;
 }
 
-void listFiles(Litro::Camera &camera) {
-	Litro::FileList fileList(camera.getFileList());
+void listFiles(Lyli::Camera &camera) {
+	Lyli::FileList fileList(camera.getFileList());
 	
 	std::cout << std::setw(5) <<"id" << std::setw(42) << "sha1" << std::setw(28) << "date" << std::endl;
-	for (Litro::FileListEntry file : fileList) {
+	for (Lyli::FileListEntry file : fileList) {
 		// id
 		std::cout << std::setw(5) << file.id;
 		
@@ -76,7 +76,7 @@ void listFiles(Litro::Camera &camera) {
 	}
 }
 
-void downloadImage(Litro::Camera &camera, int id) {
+void downloadImage(Lyli::Camera &camera, int id) {
 	char outputFile[50];
 	std::ofstream ofs;
 	
@@ -106,14 +106,14 @@ int main(int argc, char *argv[]) {
 	}
 	
 	Usbpp::Context context;
-	Litro::CameraList cameras(Litro::getCameras(context));
+	Lyli::CameraList cameras(Lyli::getCameras(context));
 	
 	if (cameras.size() == 0) {
 		std::cerr << "No cameras found" << std::endl;
 		return 1;
 	}
 	
-	Litro::Camera &camera(cameras[0]);
+	Lyli::Camera &camera(cameras[0]);
 	
 	int c;
 	while ((c = getopt(argc, argv, "ild:")) != -1) {

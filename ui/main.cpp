@@ -1,5 +1,5 @@
 /*
- * This file is part of Litro-Qt, a GUI to control Lytro camera
+ * This file is part of Lyli-Qt, a GUI to control Lytro camera
  * Copyright (C) 2015  Lukas Jirkovsky <l.jirkovsky @at@ gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,12 +33,12 @@ int main(int argc, char *argv[])
 	QApplication app(argc, argv);
 
 	Usbpp::Context context;
-	Litro::CameraList cameras(Litro::getCameras(context));
+	Lyli::CameraList cameras(Lyli::getCameras(context));
 
 	// get list of cameras
 	QStringList cameraList;
-	for (Litro::Camera &camera : cameras) {
-		Litro::CameraInformation info(camera.getCameraInformation());
+	for (Lyli::Camera &camera : cameras) {
+		Lyli::CameraInformation info(camera.getCameraInformation());
 		QString name = QString(info.vendor.c_str()).trimmed() + " "
 				+ QString(info.product.c_str()).trimmed() + " "
 				+ QString(info.revision.c_str()).trimmed();

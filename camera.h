@@ -1,8 +1,8 @@
 /*
- * This file is part of Litro, an application to control Lytro camera
+ * This file is part of Lyli, an application to control Lytro camera
  * Copyright (C) 2015  Lukas Jirkovsky <l.jirkovsky @at@ gmail.com>
  *
- * Litro is free software: you can redistribute it and/or modify
+ * Lyli is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, version 3 of the License
  *
@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LITRO_DOWNLOADER_H_
-#define LITRO_DOWNLOADER_H_
+#ifndef LYLI_DOWNLOADER_H_
+#define LYLI_DOWNLOADER_H_
 
 #include <cstdint>
 #include <ctime>
@@ -29,7 +29,7 @@ namespace Usbpp {
 class Context;
 }
 
-namespace Litro {
+namespace Lyli {
 
 class Camera;
 typedef std::vector<Camera> CameraList;

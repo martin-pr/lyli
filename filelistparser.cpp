@@ -1,8 +1,8 @@
 /*
- * This file is part of Litro, an application to control Lytro camera
+ * This file is part of Lyli, an application to control Lytro camera
  * Copyright (C) 2015  Lukas Jirkovsky <l.jirkovsky @at@ gmail.com>
  *
- * Litro is free software: you can redistribute it and/or modify
+ * Lyli is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, version 3 of the License
  *
@@ -40,8 +40,8 @@ namespace {
 	 *   24B - time (10B - date, 1B - T, 12B - time, 1B - Z)
 	 *   4B - padding?
 	 */
-	Litro::FileListEntry parseLine(const uint8_t *line) {
-		Litro::FileListEntry entry;
+	Lyli::FileListEntry parseLine(const uint8_t *line) {
+		Lyli::FileListEntry entry;
 		entry.id = * reinterpret_cast<const uint32_t*>(line + 20);
 		
 		// sha1 (excluding the "sha1-")
@@ -64,7 +64,7 @@ namespace {
 	}
 }
 
-namespace Litro {
+namespace Lyli {
 
 FileList parseFileList(const Usbpp::ByteBuffer& buffer)
 {

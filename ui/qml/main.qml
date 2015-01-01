@@ -1,5 +1,5 @@
 /*
- * This file is part of Litro-Qt, a GUI to control Lytro camera
+ * This file is part of Lyli-Qt, a GUI to control Lytro camera
  * Copyright (C) 2015  Lukas Jirkovsky <l.jirkovsky @at@ gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@ import QtQuick.Window 2.2
 import QtQuick.Dialogs 1.2
 
 ApplicationWindow {
-    title: qsTr("Litro")
+    title: qsTr("Lyli")
     width: 1024
     height: 768
     visible: true
