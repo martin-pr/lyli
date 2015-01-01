@@ -1,0 +1,138 @@
+/*
+ * This file is part of Litro, an application to control Lytro camera
+ * Copyright (C) 2015  Lukas Jirkovsky <l.jirkovsky @at@ gmail.com>
+ *
+ * Litro is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, version 3 of the License
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <unistd.h>
+
+#include "usbpp/context.h"
+#include "camera.h"
+
+void showHelp() {
+	std::cout << "Usage:" << std::endl;
+	std::cout << std::endl;
+	std::cout << "\t-i\t get basic camera information" << std::endl;
+	std::cout << "\t-l\t list files" << std::endl;
+	std::cout << "\t-d id\t download image with the specified id" << std::endl;
+	std::cout << "\t     \t The image is downloaded to the current directory" << std::endl;
+}
+
+void waitForCamera(Litro::Camera &camera) {
+	std::cout << "waiting until the camera is ready" << std::endl;
+	camera.waitReady();
+	std::cout << "camera ready" << std::endl;
+}
+
+void getCameraInformation(Litro::Camera &camera) {
+	Litro::CameraInformation info(camera.getCameraInformation());
+	
+	std::cout << "Vendor: " << info.vendor << std::endl;
+	std::cout << "Product: " << info.product << std::endl;
+	std::cout << "Revision: " << info.revision << std::endl;
+}
+
+void listFiles(Litro::Camera &camera) {
+	Litro::FileList fileList(camera.getFileList());
+	
+	std::cout << std::setw(5) <<"id" << std::setw(42) << "sha1" << std::setw(28) << "date" << std::endl;
+	for (Litro::FileListEntry file : fileList) {
+		// id
+		std::cout << std::setw(5) << file.id;
+		
+		// sha1
+		std::stringstream ss;
+		for (int i(0); i < 20; ++i) {
+			ss << std::setfill('0') << std::setw(2) << std::hex << (unsigned int) file.sha1[i];
+		}
+		std::cout << std::setw(42) << ss.str();
+		
+		// time
+		std::tm *tm = std::localtime(&file.time);
+		char buf[29];
+		std::strftime(buf, 28, "%c", tm);
+		buf[28] = '\0';
+		std::cout << std::setw(28) << buf;
+		
+		std::cout << std::endl;
+	}
+}
+
+void downloadImage(Litro::Camera &camera, int id) {
+	char outputFile[50];
+	std::ofstream ofs;
+	
+	std::snprintf(outputFile, 50, "%04d.TXT", id);
+	ofs.open(outputFile, std::ofstream::out | std::ofstream::binary);
+	camera.getImageMetadata(ofs, id);
+	ofs.flush();
+	ofs.close();
+	
+	std::snprintf(outputFile, 50, "%04d.128", id);
+	ofs.open(outputFile, std::ofstream::out | std::ofstream::binary);
+	camera.getImage128(ofs, id);
+	ofs.flush();
+	ofs.close();
+	
+	std::snprintf(outputFile, 50, "%04d.RAW", id);
+	ofs.open(outputFile, std::ofstream::out | std::ofstream::binary);
+	camera.getImageData(ofs, id);
+	ofs.flush();
+	ofs.close();
+}
+
+int main(int argc, char *argv[]) {
+	if (argc == 1) {
+		showHelp();
+		return 0;
+	}
+	
+	Usbpp::Context context;
+	Litro::CameraList cameras(Litro::getCameras(context));
+	
+	if (cameras.size() == 0) {
+		std::cerr << "No cameras found" << std::endl;
+		return 1;
+	}
+	
+	Litro::Camera &camera(cameras[0]);
+	
+	int c;
+	while ((c = getopt(argc, argv, "ild:")) != -1) {
+		switch (c) {
+			case 'i':
+				waitForCamera(camera);
+				getCameraInformation(camera);
+				break;
+			case 'l':
+				waitForCamera(camera);
+				listFiles(camera);
+				return 0;
+			case 'd':
+				waitForCamera(camera);
+				downloadImage(camera, atoi(optarg));
+				return 0;
+			default:
+				showHelp();
+				return 1;
+		}
+	}
+}
