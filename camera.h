@@ -77,7 +77,12 @@ public:
 	// all image data
 	// TODO: add progress
 	void getImageMetadata(std::ostream &os, int id);
-	void getImage128(std::ostream &os, int id);
+	/**
+	 * Download the image thumbnail.
+	 * 
+	 * The thumbnail is a 128x128 16-bit image in grayscale.
+	 */
+	void getImageThumbnail(std::ostream &os, int id);
 	void getImageData(std::ostream &os, int id);
 	
 private:

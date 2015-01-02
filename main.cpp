@@ -88,7 +88,7 @@ void downloadImage(Lyli::Camera &camera, int id) {
 	
 	std::snprintf(outputFile, 50, "%04d.128", id);
 	ofs.open(outputFile, std::ofstream::out | std::ofstream::binary);
-	camera.getImage128(ofs, id);
+	camera.getImageThumbnail(ofs, id);
 	ofs.flush();
 	ofs.close();
 	

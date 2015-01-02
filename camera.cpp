@@ -236,7 +236,7 @@ void Camera::getImageMetadata(std::ostream& os, int id)
 	return pimpl->getFile(os, fileName);
 }
 
-void Camera::getImage128(std::ostream& os, int id)
+void Camera::getImageThumbnail(std::ostream& os, int id)
 {
 	assert(pimpl != nullptr);
 	
