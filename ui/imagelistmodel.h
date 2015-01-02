@@ -26,6 +26,8 @@
 
 #include <camera.h>
 
+class ThumbnailProvider;
+
 class ImageListModel : public QAbstractListModel
 {
     Q_OBJECT
@@ -37,7 +39,7 @@ public:
         SelectRole
     };
 
-    ImageListModel(Lyli::CameraList &cameraList, QObject *parent = 0);
+    ImageListModel(Lyli::CameraList &cameraList, ThumbnailProvider *thumbnailProvider, QObject *parent = 0);
     ~ImageListModel();
 
     Qt::ItemFlags flags(const QModelIndex &index) const;
@@ -60,6 +62,7 @@ public slots:
 
 private:
     Lyli::CameraList &m_cameraList;
+	ThumbnailProvider *m_thumbnailProvider;
     Lyli::Camera *m_camera;
 
     Lyli::FileList m_fileList;

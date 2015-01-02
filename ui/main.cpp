@@ -24,6 +24,7 @@
 #include <QObjectList>
 
 #include "imagelistmodel.h"
+#include "thumbnailprovider.h"
 
 #include <context.h>
 #include <camera.h>
@@ -46,7 +47,8 @@ int main(int argc, char *argv[])
 	}
 
 	// get list of files
-	ImageListModel imageList(cameras);
+	ThumbnailProvider *thumbnailProvider = new ThumbnailProvider;
+	ImageListModel imageList(cameras, thumbnailProvider);
 
 	// preselect the first camera
 	if (cameras.size() > 0) {
@@ -56,6 +58,7 @@ int main(int argc, char *argv[])
 	QQmlApplicationEngine engine;
 	engine.rootContext()->setContextProperty("cameraListModel", QVariant::fromValue(cameraList));
 	engine.rootContext()->setContextProperty("imageGridModel", &imageList);
+	engine.addImageProvider("ThumbnailProvider", thumbnailProvider);
 	engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
 
 	return app.exec();

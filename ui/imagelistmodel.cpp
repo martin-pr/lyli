@@ -17,6 +17,7 @@
  */
 
 #include "imagelistmodel.h"
+#include "thumbnailprovider.h"
 
 #include <QDateTime>
 #include <QDebug>
@@ -28,8 +29,10 @@
 #include <algorithm>
 #include <fstream>
 
-ImageListModel::ImageListModel(Lyli::CameraList &cameraList, QObject *parent) : QAbstractListModel(parent),
+ImageListModel::ImageListModel(Lyli::CameraList &cameraList, ThumbnailProvider *thumbnailProvider, QObject *parent) :
+	QAbstractListModel(parent),
     m_cameraList(cameraList),
+    m_thumbnailProvider(thumbnailProvider),
     m_camera(nullptr),
     m_selectionType(SelectionType::SINGLE)
 {
@@ -43,6 +46,7 @@ ImageListModel::~ImageListModel()
 
 void ImageListModel::changeCamera(int id) {
     m_camera = & m_cameraList[id];
+	m_thumbnailProvider->changeCamera(m_camera);
 
     m_fileList = std::move(m_camera->getFileList());
     m_selected = std::move(std::vector<bool>(m_fileList.size(), false));
@@ -169,12 +173,6 @@ void ImageListModel::downloadFile(const QString &outputDirectory, int id) {
     outputFilePath = outputFileBase + ".TXT";
     ofs.open(outputFilePath.toLocal8Bit().data(), std::ofstream::out | std::ofstream::binary);
     m_camera->getImageMetadata(ofs, id);
-    ofs.flush();
-    ofs.close();
-
-    outputFilePath = outputFileBase + ".128";
-    ofs.open(outputFilePath.toLocal8Bit().data(), std::ofstream::out | std::ofstream::binary);
-    m_camera->getImage128(ofs, id);
     ofs.flush();
     ofs.close();
 

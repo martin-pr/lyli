@@ -24,17 +24,50 @@ GridView {
     id: imageGrid
     Layout.fillHeight: true
     Layout.fillWidth: true
-    cellWidth: 110
-    cellHeight: 130
+    cellWidth: 148
+    cellHeight: 188
     model: imageGridModel
 
     delegate: Item {
-        x: 5
-        width: 110
-        height: 130
+        width: parent.cellWidth - 4
+        height: parent.cellHeight - 4
 
         Column {
             Rectangle {
+                width: 144
+                height: 184
+                color: model.selected ? "lightblue" : "white"
+                border.color: "black"
+                border.width: 1
+
+                Image {
+                    id: image1
+                    x: 8
+                    y: 8
+                    width: 128
+                    height: 128
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    asynchronous: true
+                    source: "image://ThumbnailProvider/" + model.id
+                }
+
+                Label {
+                    id: date
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    y: 142
+                    text: Qt.formatDateTime(model.datetime, "d MMM yyyy")
+                    horizontalAlignment: Text.AlignHCenter
+                }
+
+                Label {
+                    id: time
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    y: 162
+                    text: Qt.formatDateTime(model.datetime, "hh:mm:ss")
+                    horizontalAlignment: Text.AlignHCenter
+                }
+
                 /* The action for selecting the view */
                 MouseArea {
                     anchors.fill: parent
@@ -49,42 +82,6 @@ GridView {
                         }
                         model.selected = !model.selected
                     }
-                }
-
-                /* Constructing the view */
-                width: 110
-                height: 130
-                color: model.selected ? "blue" : "white"
-                border.color: "black"
-                border.width: 1
-                anchors.horizontalCenter: parent.horizontalCenter
-
-                Rectangle {
-                    y: 5
-                    width: 100
-                    height: 100
-                    color: "grey"
-                    anchors.horizontalCenter: parent.horizontalCenter
-
-                    Column {
-                        Text {
-                            id: date
-                            text: Qt.formatDateTime(model.datetime, "d MMM yyyy")
-                            anchors.horizontalCenter: parent.horizontalCenter
-                        }
-                        Text {
-                            id: time
-                            text: Qt.formatDateTime(model.datetime, "hh:mm:ss")
-                            anchors.horizontalCenter: parent.horizontalCenter
-                        }
-                    }
-                }
-
-                Text {
-                    text: model.id
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.bottom: parent.bottom
-                    font.bold: true
                 }
             }
         }
