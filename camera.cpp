@@ -89,8 +89,8 @@ public:
 		// get the expected response length
 		Usbpp::MassStorage::CommandBlockWrapper cmdGetLen(65536, 0x80, 0, {0xc6, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00});
 		device.sendCommand(LIBUSB_ENDPOINT_OUT | 0x02, cmdGetLen, &response);
-		std::size_t len(*reinterpret_cast<uint32_t*>(response.data()));
 #ifndef NDEBUG
+		std::size_t len(*reinterpret_cast<uint32_t*>(response.data()));
 		std::cout << "expected length " << len << " bytes" << std::endl;
 #endif
 		
@@ -190,11 +190,6 @@ Camera& Camera::operator=(Camera&& other) noexcept
 
 void Camera::waitReady()
 {
-	bool ready = false;
-	int transferred;
-	unsigned char cswBuffer[13];
-	Usbpp::MassStorage::CommandBlockWrapper testUnitReady(0, 0, 0, {0,0,0,0, 0,0,0,0, 0,0,0,0});
-
 	while (! pimpl->isReady());
 }
 
