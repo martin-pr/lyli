@@ -106,17 +106,17 @@ public:
 	                     uint16_t wIndex,
 	                     unsigned char *data,
 	                     uint16_t wLength,
-	                     unsigned int timeout);
+	                     unsigned int timeout) const;
 	void bulkTransfer(unsigned char endpoint,
 	                  unsigned char *data,
 	                  int length,
 	                  int *transferred,
-	                  unsigned int timeout);
+	                  unsigned int timeout) const;
 	void interruptTransfer(unsigned char endpoint,
 	                       unsigned char *data,
 	                       int length,
 	                       int *transferred,
-	                       unsigned int timeout);
+	                       unsigned int timeout) const;
 	
 private:
 	Device(libusb_device *device_);

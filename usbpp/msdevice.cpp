@@ -74,7 +74,7 @@ CommandStatusWrapper MSDevice::sendCommand(unsigned char endpoint, const Command
 	}
 }
 
-SCSI::InquiryResponse MSDevice::sendInquiry(unsigned char endpoint, uint8_t LUN)
+SCSI::InquiryResponse MSDevice::sendInquiry(unsigned char endpoint, uint8_t LUN) const
 {
 	int transferred, statusTransferred;
 	unsigned char inEndpoint(endpoint | LIBUSB_ENDPOINT_IN);
@@ -123,7 +123,7 @@ SCSI::InquiryResponse MSDevice::sendInquiry(unsigned char endpoint, uint8_t LUN)
 
 // pretty much a copy of the previous sendInquiry function
 // TODO: try to avoid this using the std::bind
-SCSI::InquiryResponse MSDevice::sendInquiry(unsigned char endpoint, uint8_t LUN, uint8_t page)
+SCSI::InquiryResponse MSDevice::sendInquiry(unsigned char endpoint, uint8_t LUN, uint8_t page) const
 {
 	int transferred, statusTransferred;
 	unsigned char inEndpoint(endpoint | LIBUSB_ENDPOINT_IN);

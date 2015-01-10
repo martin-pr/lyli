@@ -105,7 +105,7 @@ public:
 		return result;
 	}
 	
-	CameraInformation getCameraInformation() {
+	CameraInformation getCameraInformation() const {
 		CameraInformation info;
 		Usbpp::MassStorage::SCSI::InquiryResponse response(device.sendInquiry(0x02, 0));
 		info.vendor = std::string((const char*) response.getVendorIdentification().data(), response.getVendorIdentification().size());
@@ -193,7 +193,7 @@ void Camera::waitReady()
 	while (! pimpl->isReady());
 }
 
-CameraInformation Camera::getCameraInformation()
+CameraInformation Camera::getCameraInformation() const
 {
 	assert(pimpl != nullptr);
 	

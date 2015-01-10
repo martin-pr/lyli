@@ -66,7 +66,7 @@ public:
 	
 	void waitReady();
 	
-	CameraInformation getCameraInformation();
+	CameraInformation getCameraInformation() const;
 	
 	void getVersion();
 	void getFirmware(std::ostream &os);

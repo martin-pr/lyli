@@ -213,17 +213,17 @@ void Device::releaseInterface(int bInterfaceNumber)
 	}
 }
 
-void Device::controlTransfer(uint8_t bmRequestType, uint8_t bRequest, uint16_t wValue, uint16_t wIndex, unsigned char* data, uint16_t wLength, unsigned int timeout)
+void Device::controlTransfer(uint8_t bmRequestType, uint8_t bRequest, uint16_t wValue, uint16_t wIndex, unsigned char* data, uint16_t wLength, unsigned int timeout) const
 {
 	libusb_control_transfer(handle, bmRequestType, bRequest, wValue, wIndex, data, wLength, timeout);
 }
 
-void Device::bulkTransfer(unsigned char endpoint, unsigned char* data, int length, int* transferred, unsigned int timeout)
+void Device::bulkTransfer(unsigned char endpoint, unsigned char* data, int length, int* transferred, unsigned int timeout) const
 {
 	libusb_bulk_transfer(handle, endpoint, data, length, transferred, timeout);
 }
 
-void Device::interruptTransfer(unsigned char endpoint, unsigned char* data, int length, int* transferred, unsigned int timeout)
+void Device::interruptTransfer(unsigned char endpoint, unsigned char* data, int length, int* transferred, unsigned int timeout) const
 {
 	libusb_interrupt_transfer(handle, endpoint, data, length, transferred, timeout);
 }

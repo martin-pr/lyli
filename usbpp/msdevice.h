@@ -44,11 +44,11 @@ public:
 	/**
 	 * A convenience function to send the SCSI Inquiry command.
 	 */
-	SCSI::InquiryResponse sendInquiry(unsigned char endpoint, uint8_t LUN);
+	SCSI::InquiryResponse sendInquiry(unsigned char endpoint, uint8_t LUN) const;
 	/**
 	 * A convenience function to send the SCSI Inquiry command.
 	 */
-	SCSI::InquiryResponse sendInquiry(unsigned char endpoint, uint8_t LUN, uint8_t page);
+	SCSI::InquiryResponse sendInquiry(unsigned char endpoint, uint8_t LUN, uint8_t page) const;
 };
 
 }
