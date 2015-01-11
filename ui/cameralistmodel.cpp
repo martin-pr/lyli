@@ -1,11 +1,10 @@
 #include "cameralistmodel.h"
 
-#include <usbpp/context.h>
+Usbpp::Context CameraListModel::m_context;
 
 CameraListModel::CameraListModel(QObject* parent): QAbstractListModel(parent)
 {
-	Usbpp::Context context;
-	m_cameraList = std::move(Lyli::getCameras(context));
+	m_cameraList = std::move(Lyli::getCameras(m_context));
 }
 
 CameraListModel::~CameraListModel()

@@ -4,6 +4,7 @@
 #include <QtCore/QAbstractListModel>
 
 #include <camera.h>
+#include <usbpp/context.h>
 
 class CameraListModel : public QAbstractListModel
 {
@@ -20,6 +21,7 @@ public:
 	virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
 
 private:
+	static Usbpp::Context m_context;
 	Lyli::CameraList m_cameraList;
 };
 
