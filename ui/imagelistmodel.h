@@ -19,66 +19,30 @@
 #ifndef IMAGELIST_H
 #define IMAGELIST_H
 
-#include <QAbstractListModel>
+#include <QtCore/QAbstractListModel>
 #include <QObject>
-
-#include <vector>
 
 #include <camera.h>
 
-class ThumbnailProvider;
-
 class ImageListModel : public QAbstractListModel
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    enum ImageListRoles {
-        IdRole = Qt::UserRole + 1,
-        DateTimeRole,
-        SelectRole
-    };
+	ImageListModel(QObject *parent = 0);
+	~ImageListModel();
 
-    ImageListModel(Lyli::CameraList &cameraList, ThumbnailProvider *thumbnailProvider, QObject *parent = 0);
-    ~ImageListModel();
-
-    Qt::ItemFlags flags(const QModelIndex &index) const;
-    QHash<int, QByteArray> roleNames() const;
-    int rowCount(const QModelIndex &parent) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    bool setData(const QModelIndex &index, const QVariant &value, int role);
-
-    Q_INVOKABLE void setAdditiveSelection();
-    Q_INVOKABLE void setRangeSelection();
-
-    Q_INVOKABLE void selectRange(QModelIndex start, QModelIndex end, bool selected);
-    Q_INVOKABLE void selectAll(bool selected);
-
-    Q_INVOKABLE void downloadAll(const QUrl &outputDirectory);
-    Q_INVOKABLE void downloadSelected(const QUrl &outputDirectory);
+	// inherited members
+	virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
+	virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
 
 public slots:
-    void changeCamera(int id);
+	void changeCamera(Lyli::Camera *camera);
+	void downloadFile(const QModelIndex &index, const QString &outputDirectory);
 
 private:
-    Lyli::CameraList &m_cameraList;
-	ThumbnailProvider *m_thumbnailProvider;
-    Lyli::Camera *m_camera;
-
-    Lyli::FileList m_fileList;
-    std::vector<bool> m_selected;
-
-    enum class SelectionType {
-        SINGLE,
-        ADDITIVE,
-        RANGE
-    };
-
-    SelectionType m_selectionType;
-    // a last edited index used as the beginning for the range selection
-    QModelIndex m_lastEditedIndex;
-
-    void downloadFile(const QString &outputDirectory, int id);
+	Lyli::Camera *m_camera;
+	Lyli::FileList m_fileList;
 };
 
 #endif // IMAGELIST_H

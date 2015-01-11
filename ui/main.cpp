@@ -17,49 +17,17 @@
  */
 
 #include <QApplication>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
-#include <QString>
-#include <QStringList>
-#include <QObjectList>
 
-#include "imagelistmodel.h"
-#include "thumbnailprovider.h"
-
-#include <context.h>
-#include <camera.h>
+#include "mainwindow.h"
 
 int main(int argc, char *argv[])
 {
 	QApplication app(argc, argv);
 
-	Usbpp::Context context;
-	Lyli::CameraList cameras(Lyli::getCameras(context));
-
-	// get list of cameras
-	QStringList cameraList;
-	for (Lyli::Camera &camera : cameras) {
-		Lyli::CameraInformation info(camera.getCameraInformation());
-		QString name = QString(info.vendor.c_str()).trimmed() + " "
-				+ QString(info.product.c_str()).trimmed() + " "
-				+ QString(info.revision.c_str()).trimmed();
-		cameraList.append(name);
-	}
-
-	// get list of files
-	ThumbnailProvider *thumbnailProvider = new ThumbnailProvider;
-	ImageListModel imageList(cameras, thumbnailProvider);
-
-	// preselect the first camera
-	if (cameras.size() > 0) {
-		imageList.changeCamera(0);
-	}
-
-	QQmlApplicationEngine engine;
-	engine.rootContext()->setContextProperty("cameraListModel", QVariant::fromValue(cameraList));
-	engine.rootContext()->setContextProperty("imageGridModel", &imageList);
-	engine.addImageProvider("ThumbnailProvider", thumbnailProvider);
-	engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
+	/*CameraForm form;
+	form.show();*/
+	MainWindow mainWindow;
+	mainWindow.show();
 
 	return app.exec();
 }
