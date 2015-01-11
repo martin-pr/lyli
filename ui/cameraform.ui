@@ -69,6 +69,9 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::ExtendedSelection</enum>
+     </property>
      <property name="viewMode">
       <enum>QListView::IconMode</enum>
      </property>
