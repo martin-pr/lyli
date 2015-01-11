@@ -27,11 +27,15 @@ QVariant CameraListModel::data(const QModelIndex& index, int role) const
 		return QVariant();
 	}
 
-	Lyli::CameraInformation info(m_cameraList[index.row()].getCameraInformation());
-	QString name = QString(info.vendor.c_str()).trimmed() + " "
-	               + QString(info.product.c_str()).trimmed() + " "
-	               + QString(info.revision.c_str()).trimmed();
-	return QVariant::fromValue(name);
+	if (role == Qt::DisplayRole) {
+		Lyli::CameraInformation info(m_cameraList[index.row()].getCameraInformation());
+		QString name = QString(info.vendor.c_str()).trimmed() + " "
+		               + QString(info.product.c_str()).trimmed() + " "
+		               + QString(info.revision.c_str()).trimmed();
+		return QVariant::fromValue(name);
+	}
+	
+	return QVariant();
 }
 
 int CameraListModel::rowCount(const QModelIndex& parent) const

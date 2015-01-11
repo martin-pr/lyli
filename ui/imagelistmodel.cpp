@@ -46,7 +46,11 @@ QVariant ImageListModel::data(const QModelIndex& index, int role) const
 		return QVariant();
 	}
 	
-	return QVariant::fromValue(ImageListItem(m_camera, m_fileList[index.row()]));
+	if (role == Qt::DisplayRole) {
+		return QVariant::fromValue(ImageListItem(m_camera, m_fileList[index.row()]));
+	}
+	
+	return QVariant();
 }
 
 int ImageListModel::rowCount(const QModelIndex& parent) const
