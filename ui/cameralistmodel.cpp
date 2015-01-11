@@ -5,7 +5,7 @@
 CameraListModel::CameraListModel(QObject* parent): QAbstractListModel(parent)
 {
 	Usbpp::Context context;
-	m_cameraList = Lyli::getCameras(context);
+	m_cameraList = std::move(Lyli::getCameras(context));
 }
 
 CameraListModel::~CameraListModel()
