@@ -61,10 +61,12 @@ int ImageListModel::rowCount(const QModelIndex& parent) const
 void ImageListModel::changeCamera(Lyli::Camera* camera)
 {
 	if (m_camera != camera) {
+		beginResetModel();
+		
 		m_camera = camera;
 		m_fileList = std::move(m_camera->getFileList());
 		
-		emit dataChanged(createIndex(0,0), createIndex(m_fileList.size(), 0));
+		endResetModel();
 	}
 }
 
