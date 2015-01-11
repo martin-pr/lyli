@@ -78,7 +78,7 @@ SCSI::InquiryResponse MSDevice::sendInquiry(unsigned char endpoint, uint8_t LUN)
 {
 	int transferred, statusTransferred;
 	unsigned char inEndpoint(endpoint | LIBUSB_ENDPOINT_IN);
-	std::unique_ptr<unsigned char> tmpBuf(new unsigned char[36]);
+	std::unique_ptr<unsigned char[]> tmpBuf(new unsigned char[36]);
 	unsigned char statusBuf[13];
 
 	// first send the inquiry with the minimal allocation length
