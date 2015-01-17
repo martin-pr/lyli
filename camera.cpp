@@ -28,6 +28,8 @@
 
 #include <cassert>
 #include <cstring>
+#include <thread>
+#include <mutex>
 #include <ostream>
 
 // TODO: remove this later
@@ -54,7 +56,9 @@ namespace Lyli {
 
 class Camera::Impl {
 public:
-	Impl(const Usbpp::MassStorage::MSDevice &device_) : device(device_) {
+	Impl(const Usbpp::MassStorage::MSDevice &device_) :
+		device(device_)
+	{
 		// ensure that the device is opened
 		device.open(true);
 		
@@ -78,13 +82,19 @@ public:
 	bool isReady() {
 		Usbpp::MassStorage::CommandBlockWrapper cmdUnitReady(0, 0, 0, {0,0,0,0, 0,0,0,0, 0,0,0,0});
 		
-		return device.sendCommand(LIBUSB_ENDPOINT_OUT | 0x02, cmdUnitReady, nullptr).getStatus() ==
+		std::unique_lock<std::mutex> cameraLock(cameraAccessMutex);
+		bool ready = device.sendCommand(LIBUSB_ENDPOINT_OUT | 0x02, cmdUnitReady, nullptr).getStatus() ==
 			Usbpp::MassStorage::CommandStatusWrapper::Status::PASSED;
+		cameraLock.unlock();	
+		
+		return ready;
 	}
 	
 	Usbpp::ByteBuffer downloadData() {
 		Usbpp::ByteBuffer result;
 		Usbpp::ByteBuffer response;
+		
+		// doesn't need locking, because the lock is already kept by caller
 		
 		// get the expected response length
 		Usbpp::MassStorage::CommandBlockWrapper cmdGetLen(65536, 0x80, 0, {0xc6, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00});
@@ -107,7 +117,9 @@ public:
 	
 	CameraInformation getCameraInformation() const {
 		CameraInformation info;
+		std::unique_lock<std::mutex> cameraLock(cameraAccessMutex);
 		Usbpp::MassStorage::SCSI::InquiryResponse response(device.sendInquiry(0x02, 0));
+		cameraLock.unlock();
 		info.vendor = std::string((const char*) response.getVendorIdentification().data(), response.getVendorIdentification().size());
 		info.product = std::string((const char*) response.getProductIdentification().data(), response.getProductIdentification().size());
 		info.revision = std::string((const char*) response.getProductRevisionLevel().data(), response.getProductRevisionLevel().size());
@@ -118,12 +130,16 @@ public:
 	FileList getFileList() {
 		Usbpp::ByteBuffer response;
 		
+		std::unique_lock<std::mutex> cameraLock(cameraAccessMutex);
+		
 		// request the file list
 		Usbpp::MassStorage::CommandBlockWrapper cmdReqFilelist(0, 0, 0, {0xc2, 00, 02, 00, 00, 00, 00, 00, 00, 00, 00, 00});
 		device.sendCommand(LIBUSB_ENDPOINT_OUT | 0x02, cmdReqFilelist, &response);
 		
 		// get the data
 		response = downloadData();
+		
+		cameraLock.unlock();
 		
 		return parseFileList(response);
 	}
@@ -134,6 +150,8 @@ public:
 		Usbpp::ByteBuffer response;
 		
 		std::size_t len(std::strlen(fileName) + 1);
+		
+		std::unique_lock<std::mutex> cameraLock(cameraAccessMutex);
 		
 		// request the file
 		Usbpp::MassStorage::CommandBlockWrapper cmdReqFile(len, 0, 0, {0xc2, 00, 01, 00, 00, 00, 00, 00, 00, 00, 00, 00});
@@ -146,6 +164,8 @@ public:
 		// get the data
 		response = downloadData();
 		
+		cameraLock.unlock();
+		
 		out.write(reinterpret_cast<const char*>(response.data()), response.size());
 		
 #ifndef NDEBUG
@@ -156,6 +176,8 @@ public:
 	
 private:
 	Usbpp::MassStorage::MSDevice device;
+	
+	mutable std::mutex cameraAccessMutex;
 };
 
 Camera::Camera() : pimpl(nullptr)
