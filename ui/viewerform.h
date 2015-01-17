@@ -16,38 +16,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
 
-#include <QtWidgets/QMainWindow>
-#include <QtWidgets/QProgressBar>
+#ifndef VIEWERFORM_H
+#define VIEWERFORM_H
 
-#include "cameraform.h"
-#include "viewerform.h"
+#include <QtWidgets/QWidget>
 
 namespace Ui
 {
-class MainWindow;
+class ViewerForm;
 }
 
-class MainWindow : public QMainWindow
+class QFileSystemModel;
+class QModelIndex;
+
+class ViewerForm : public QWidget
 {
-    Q_OBJECT
+	Q_OBJECT
+
 public:
-    MainWindow();
-    ~MainWindow();
+	ViewerForm(QWidget *parent = nullptr);
+	~ViewerForm();
 	
 public slots:
-	void progressStart(int files);
-	void progressRun(int progress);
-	void progressFinish();
+	void directoryViewClicked(const QModelIndex &index);
+	void fileViewClicked(const QModelIndex &index);
 
 private:
-	Ui::MainWindow* ui;
+	Ui::ViewerForm* ui;
+	QFileSystemModel *m_dirModel;
+	QFileSystemModel *m_fileModel;
 	
-	QProgressBar* m_progressBar;
-	CameraForm *m_cameraForm;
-	ViewerForm *m_viewerForm;
+	ViewerForm(const ViewerForm& other);
+	ViewerForm& operator=(const ViewerForm& other);
 };
 
-#endif // MAINWINDOW_H
+#endif // VIEWERFORM_H

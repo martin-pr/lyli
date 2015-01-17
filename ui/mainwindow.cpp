@@ -30,6 +30,12 @@ MainWindow::MainWindow()
 	cameraFormLayout->addWidget(m_cameraForm);
 	ui->tabCamera->setLayout(cameraFormLayout);
 	
+	QHBoxLayout *viewerFormLayout = new QHBoxLayout;
+	m_viewerForm = new ViewerForm(ui->tabCamera);
+	viewerFormLayout->setMargin(4);
+	viewerFormLayout->addWidget(m_viewerForm);
+	ui->tabViewer->setLayout(viewerFormLayout);
+	
 	m_progressBar = new QProgressBar;
 	m_progressBar->setEnabled(false);
 	ui->statusbar->addPermanentWidget(m_progressBar);
