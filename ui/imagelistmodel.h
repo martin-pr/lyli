@@ -20,9 +20,11 @@
 #define IMAGELIST_H
 
 #include <QtCore/QAbstractListModel>
-#include <QObject>
+#include <QtCore/QObject>
+#include <QtCore/QVector>
 
 #include <camera.h>
+#include "imagelistitem.h"
 
 class ImageListModel : public QAbstractListModel
 {
@@ -31,6 +33,8 @@ class ImageListModel : public QAbstractListModel
 public:
 	ImageListModel(QObject *parent = 0);
 	~ImageListModel();
+	
+	void downloadFile(const QModelIndex &index, const QString &outputDirectory);
 
 	// inherited members
 	virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
@@ -38,11 +42,10 @@ public:
 
 public slots:
 	void changeCamera(Lyli::Camera *camera);
-	void downloadFile(const QModelIndex &index, const QString &outputDirectory);
 
 private:
 	Lyli::Camera *m_camera;
-	Lyli::FileList m_fileList;
+	QVector<ImageListItem> m_fileList;
 };
 
 #endif // IMAGELIST_H

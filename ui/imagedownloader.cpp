@@ -16,29 +16,46 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#include "imagedownloader.h"
 
-#include <QtWidgets/qmainwindow.h>
-
-#include "cameraform.h"
-
-namespace Ui
+ImageDownloader::ImageDownloader(ImageListModel* model, const QModelIndexList& indices, QString outputDir):
+	m_model(model), m_indices(indices), m_outputDir(outputDir)
 {
-class MainWindow;
 }
 
-class MainWindow : public QMainWindow
+ImageDownloader::~ImageDownloader()
 {
-    Q_OBJECT
-public:
-    MainWindow();
-    ~MainWindow();
+}
 
-private:
-    Ui::MainWindow* ui;
+void ImageDownloader::downloadAll()
+{
+	const int rowCount = m_model->rowCount();
 	
-	CameraForm *m_cameraForm;
-};
+	emit started(rowCount);
+	
+	// download all files
+	for (int i = 0; i < rowCount; ++i) {
+		QModelIndex index = m_model->index(i, 0);
+		m_model->downloadFile(index, m_outputDir);
+		
+		emit progress(i);
+	}
+	
+	emit finished();
+}
 
-#endif // MAINWINDOW_H
+void ImageDownloader::downloadSelected()
+{
+	emit started(m_indices.size());
+	
+	// download selected files
+	int i = 0;
+	foreach(const QModelIndex &index, m_indices) {
+		m_model->downloadFile(index, m_outputDir);
+		
+		emit progress(i);
+	}
+	
+	emit finished();
+}
+

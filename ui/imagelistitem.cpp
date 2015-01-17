@@ -1,3 +1,21 @@
+/*
+ * This file is part of Lyli-Qt, a GUI to control Lytro camera
+ * Copyright (C) 2015  Lukas Jirkovsky <l.jirkovsky @at@ gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "imagelistitem.h"
 
 #include <sstream>
@@ -8,22 +26,30 @@ ImageListItem::ImageListItem(): m_camera(nullptr)
 }
 
 ImageListItem::ImageListItem(Lyli::Camera *camera, const Lyli::FileListEntry &fileEntry, QObject* parent) :
-	QObject(parent), m_camera(camera), m_fileEntry(fileEntry)
+	QObject(parent),
+	m_camera(camera), m_fileEntry(fileEntry), m_image(std::make_shared<QImage>())
 {
 	
 }
 
 ImageListItem::ImageListItem(const ImageListItem& other) :
-QObject(other.parent()), m_camera(other.m_camera), m_fileEntry(other.m_fileEntry)
+QObject(other.parent()), m_camera(other.m_camera), m_fileEntry(other.m_fileEntry), m_image(other.m_image)
 {
-	if (! other.m_image.isNull()) {
-		m_image = other.m_image;
-	}
+	
 }
 
 ImageListItem::~ImageListItem()
 {
 	
+}
+
+ImageListItem& ImageListItem::operator=(const ImageListItem& other)
+{
+	m_camera = other.m_camera;
+	m_fileEntry = other.m_fileEntry;
+	m_image = other.m_image;
+
+	return *this;
 }
 
 bool ImageListItem::isNull() const
@@ -68,20 +94,19 @@ QDateTime ImageListItem::getTime() const
 
 QImage ImageListItem::getImage() const
 {
-	constexpr int IMG_WIDTH = 128;
-	constexpr int IMG_HEIGHT = 128;
 	
-	if (! m_image.isNull()) {
-		return m_image;
+	
+	if (m_image && ! m_image->isNull()) {
+		return *m_image;
 	}
+	
+	*m_image = QImage(IMG_WIDTH, IMG_HEIGHT, QImage::Format_RGB32);
 	
 	if (m_camera == nullptr) {
-		m_image = QImage(IMG_WIDTH, IMG_HEIGHT, QImage::Format_RGB32);
-		m_image.fill(Qt::gray);
-		return m_image;
+		m_image->fill(Qt::gray);
+		return *m_image;
 	}
 	
-	m_image = QImage(IMG_WIDTH, IMG_HEIGHT, QImage::Format_RGB32);
 	std::stringstream ss;
 	m_camera->getImageThumbnail(ss, m_fileEntry.id);
 	
@@ -99,9 +124,9 @@ QImage ImageListItem::getImage() const
 		tmpVal = * (uint16_t*)(buf);
 		y = pos / IMG_WIDTH;
 		x = pos % IMG_WIDTH;
-		m_image.setPixel(x, y, qRgb(tmpVal, tmpVal, tmpVal));
+		m_image->setPixel(x, y, qRgb(tmpVal, tmpVal, tmpVal));
 		++pos;
 	}
 	
-	return m_image;
+	return *m_image;
 }

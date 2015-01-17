@@ -16,31 +16,45 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CAMERALISTMODEL_H
-#define CAMERALISTMODEL_H
+#ifndef IMAGEDOWNLOADER_H
+#define IMAGEDOWNLOADER_H
 
-#include <QtCore/QAbstractListModel>
+#include <QtCore/QObject>
 
-#include <camera.h>
-#include <usbpp/context.h>
+#include "imagelistmodel.h"
 
-class CameraListModel : public QAbstractListModel
+class ImageDownloader : public QObject
 {
 	Q_OBJECT
 
 public:
-	CameraListModel(QObject *parent=0);
-	~CameraListModel();
+	ImageDownloader(ImageListModel *model, const QModelIndexList &indices, QString outputDir);
+	virtual ~ImageDownloader();
 	
-	Lyli::Camera* getCamera(Lyli::FileList::size_type index);
+public slots:
+	void downloadAll();
+	void downloadSelected();
 	
-	// inherited members
-	virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
-	virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
-
+signals:
+	/** Signal emitted when the download starts.
+	 * 
+	 * @param files the total number of files to be downloaded
+	 */
+	void started(int files);
+	/** Signal emitted during the download to update the progress.
+	 * 
+	 * @param progress the order of the currently downloaded file
+	 */
+	void progress(int progress);
+	/** Signal emitted when the download finishes.
+	 * 
+	 */
+	void finished();
+	
 private:
-	static Usbpp::Context m_context;
-	Lyli::CameraList m_cameraList;
+	ImageListModel *m_model;
+	QModelIndexList m_indices;
+	QString m_outputDir;
 };
 
-#endif // CAMERALISTMODEL_H
+#endif // IMAGEDOWNLOADER_H

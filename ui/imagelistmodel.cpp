@@ -28,8 +28,6 @@
 #include <algorithm>
 #include <fstream>
 
-#include "imagelistitem.h"
-
 ImageListModel::ImageListModel(QObject *parent) : QAbstractListModel(parent)
 {
 
@@ -47,7 +45,7 @@ QVariant ImageListModel::data(const QModelIndex& index, int role) const
 	}
 	
 	if (role == Qt::DisplayRole) {
-		return QVariant::fromValue(ImageListItem(m_camera, m_fileList[index.row()]));
+		return QVariant::fromValue(m_fileList[index.row()]);
 	}
 	
 	return QVariant();
@@ -64,7 +62,13 @@ void ImageListModel::changeCamera(Lyli::Camera* camera)
 		beginResetModel();
 		
 		m_camera = camera;
-		m_fileList = std::move(m_camera->getFileList());
+		
+		Lyli::FileList fileList = std::move(m_camera->getFileList());
+		m_fileList.clear();
+		m_fileList.reserve(fileList.size());
+		for (Lyli::FileListEntry entry : fileList) {
+			m_fileList.push_back(ImageListItem(m_camera, entry));
+		}
 		
 		endResetModel();
 	}
@@ -74,7 +78,7 @@ void ImageListModel::downloadFile(const QModelIndex &index, const QString &outpu
 	QString outputFile;
 	QString outputFilePath;
 	std::ofstream ofs;
-	int id = index.row();
+	int id = m_fileList[index.row()].getId();
 
 	QString outputFileBase =  outputDirectory + QDir::separator() + outputFile.sprintf("%04d", id);
 
