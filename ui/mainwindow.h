@@ -19,7 +19,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QtWidgets/qmainwindow.h>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QProgressBar>
 
 #include "cameraform.h"
 
@@ -34,10 +35,15 @@ class MainWindow : public QMainWindow
 public:
     MainWindow();
     ~MainWindow();
+	
+public slots:
+	void progressStart(int files);
+	void progressRun(int progress);
+	void progressFinish();
 
 private:
     Ui::MainWindow* ui;
-	
+	QProgressBar* m_progressBar;
 	CameraForm *m_cameraForm;
 };
 

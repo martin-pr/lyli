@@ -23,8 +23,6 @@
 #include <QtCore/QAbstractListModel>
 #include <QtWidgets/QWidget>
 
-#include <functional>
-
 namespace Ui
 {
 class CameraForm;
@@ -37,6 +35,11 @@ class CameraForm : public QWidget
 public:
 	CameraForm(QWidget *parent = nullptr);
 	~CameraForm();
+	
+signals:
+	void progressStart(int files);
+	void progressRun(int progress);
+	void progressFinish();
 
 private:
 	enum class DownloadMode {
@@ -50,7 +53,7 @@ private slots:
 	void downloadSelected();
 	
 	void downloadStarted(int files);
-	void downloadProgress(int progress);
+	void downloadRunning(int progress);
 	void downloadFinished();
 	
 private:

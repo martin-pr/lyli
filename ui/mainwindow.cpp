@@ -25,12 +25,36 @@ MainWindow::MainWindow()
 	ui->setupUi(this);
 	
 	QHBoxLayout *cameraFormLayout = new QHBoxLayout;
-	cameraFormLayout->addWidget(new CameraForm(ui->tabCamera));
-	
+	m_cameraForm = new CameraForm(ui->tabCamera);
+	cameraFormLayout->addWidget(m_cameraForm);
 	ui->tabCamera->setLayout(cameraFormLayout);
+	
+	m_progressBar = new QProgressBar;
+	m_progressBar->setEnabled(false);
+	ui->statusbar->addPermanentWidget(m_progressBar);
+	
+	connect(m_cameraForm, SIGNAL(progressStart(int)), this, SLOT(progressStart(int)));
+	connect(m_cameraForm, SIGNAL(progressRun(int)), this, SLOT(progressStart(int)));
+	connect(m_cameraForm, SIGNAL(progressStart(int)), this, SLOT(progressStart(int)));
 }
 
 MainWindow::~MainWindow()
 {
 	delete ui;
+}
+
+void MainWindow::progressStart(int files)
+{
+	m_progressBar->setEnabled(true);
+	m_progressBar->setMaximum(files);
+}
+
+void MainWindow::progressRun(int progress)
+{
+	m_progressBar->setValue(progress);
+}
+
+void MainWindow::progressFinish()
+{
+	m_progressBar->setEnabled(true);
 }

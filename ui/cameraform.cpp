@@ -78,17 +78,19 @@ void CameraForm::downloadStarted(int files)
 {
 	ui->buttonDownloadAll->setEnabled(false);
 	ui->buttonDownloadSelected->setEnabled(false);
+	emit progressStart(files);
 }
 
-void CameraForm::downloadProgress(int progress)
+void CameraForm::downloadRunning(int progress)
 {
-
+	emit progressRun(progress);
 }
 
 void CameraForm::downloadFinished()
 {
 	ui->buttonDownloadAll->setEnabled(true);
 	ui->buttonDownloadSelected->setEnabled(true);
+	emit progressFinish();
 }
 
 void CameraForm::download(DownloadMode mode)
@@ -105,6 +107,9 @@ void CameraForm::download(DownloadMode mode)
 		                                                  ui->imageList->selectionModel()->selectedIndexes(),
 		                                                  outputDirectory);
 		downloader->moveToThread(&m_downloadThread);
+		connect(downloader, SIGNAL(started(int)), this, SLOT(downloadStarted(int)));
+		connect(downloader, SIGNAL(progress(int)), this, SLOT(downloadRunning(int)));
+		connect(downloader, SIGNAL(finished()), this, SLOT(downloadFinished()));
 		
 		connect(&m_downloadThread, SIGNAL(finished()), downloader, SLOT(deleteLater()));
 		
