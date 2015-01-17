@@ -26,6 +26,7 @@ MainWindow::MainWindow()
 	
 	QHBoxLayout *cameraFormLayout = new QHBoxLayout;
 	m_cameraForm = new CameraForm(ui->tabCamera);
+	cameraFormLayout->setMargin(4);
 	cameraFormLayout->addWidget(m_cameraForm);
 	ui->tabCamera->setLayout(cameraFormLayout);
 	
