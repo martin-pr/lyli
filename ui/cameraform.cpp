@@ -44,6 +44,12 @@ CameraForm::CameraForm(QWidget *parent) : QWidget(parent)
 	connect(ui->cameraList, SIGNAL(activated(QModelIndex)), this, SLOT(changeCamera(QModelIndex)));
 	connect(ui->buttonDownloadAll, SIGNAL(clicked(bool)), this, SLOT(downloadAll()));
 	connect(ui->buttonDownloadSelected, SIGNAL(clicked(bool)), this, SLOT(downloadSelected()));
+	
+	// some default settings
+	if (ui->cameraList->model()->rowCount() > 0) {
+		ui->cameraList->setCurrentIndex(ui->cameraList->model()->index(0,0));
+		changeCamera(ui->cameraList->currentIndex());
+	}
 }
 
 CameraForm::~CameraForm()
@@ -58,7 +64,6 @@ void CameraForm::changeCamera(const QModelIndex &index)
 	CameraListModel *model = static_cast<CameraListModel*>(ui->cameraList->model());
 	Lyli::Camera *camera = model->getCamera(index.row());
 	if (camera != nullptr) {
-		
 		ImageListModel *imageModel = static_cast<ImageListModel*>(ui->imageList->model());
 		imageModel->changeCamera(camera);
 	}
