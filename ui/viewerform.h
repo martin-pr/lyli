@@ -41,11 +41,22 @@ public:
 public slots:
 	void directoryViewClicked(const QModelIndex &index);
 	void fileViewClicked(const QModelIndex &index);
+	
+	void zoomIn();
+	void zoomOut();
+	void zoomFit();
+	void zoomOriginal();
 
+protected:
+	virtual void resizeEvent(QResizeEvent *event);
+	
 private:
 	Ui::ViewerForm* ui;
 	QFileSystemModel *m_dirModel;
 	QFileSystemModel *m_fileModel;
+	double m_scale;
+	
+	void scaleImage();
 	
 	ViewerForm(const ViewerForm& other);
 	ViewerForm& operator=(const ViewerForm& other);

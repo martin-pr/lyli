@@ -19,12 +19,13 @@
 #include "viewerform.h"
 #include "ui_viewerform.h"
 
+#include <algorithm>
 #include <QtGui/QPixmap>
 #include <QtWidgets/QFileSystemModel>
 
 #include "lytroimage.h"
 
-ViewerForm::ViewerForm(QWidget *parent) : QWidget(parent)
+ViewerForm::ViewerForm(QWidget *parent) : QWidget(parent), m_scale(1.0)
 {
 	ui = new Ui::ViewerForm;
 	ui->setupUi(this);
@@ -46,6 +47,11 @@ ViewerForm::ViewerForm(QWidget *parent) : QWidget(parent)
 	ui->fileList->setModel(m_fileModel);
 	ui->fileList->setRootIndex(m_fileModel->index(QDir::currentPath()));
 	connect(ui->fileList, SIGNAL(activated(QModelIndex)), this, SLOT(fileViewClicked(QModelIndex)));
+	
+	connect(ui->buttonZoomIn, SIGNAL(clicked(bool)), this, SLOT(zoomIn()));
+	connect(ui->buttonZoomOut, SIGNAL(clicked(bool)), this, SLOT(zoomOut()));
+	connect(ui->buttonZoomFit, SIGNAL(clicked(bool)), this, SLOT(zoomFit()));
+	connect(ui->buttonZoomOriginal, SIGNAL(clicked(bool)), this, SLOT(zoomOriginal()));
 }
 
 ViewerForm::~ViewerForm()
@@ -66,3 +72,43 @@ void ViewerForm::fileViewClicked(const QModelIndex& index)
 	LytroImage image(m_fileModel->fileInfo(index).absoluteFilePath().toLocal8Bit());
 	ui->image->setPixmap(QPixmap::fromImage(*image.getQImage()));
 }
+
+void ViewerForm::zoomIn()
+{
+	m_scale *= 1.25;
+	scaleImage();
+}
+
+void ViewerForm::zoomOut()
+{
+	m_scale *= 0.75;
+	scaleImage();
+}
+
+void ViewerForm::zoomFit()
+{
+	m_scale = std::min((double) ui->scrollArea->size().width() / (double) ui->image->pixmap()->size().width(),
+	                   (double) ui->scrollArea->size().height() / (double) ui->image->pixmap()->size().height());
+	scaleImage();
+}
+
+void ViewerForm::zoomOriginal()
+{
+	m_scale = 1.0;
+	scaleImage();
+}
+
+void ViewerForm::resizeEvent(QResizeEvent *event) {
+	scaleImage();
+	QWidget::resizeEvent(event);
+}
+
+void ViewerForm::scaleImage()
+{
+	if (ui->image->pixmap() != nullptr) {
+		ui->image->resize(m_scale * ui->image->pixmap()->size());
+		ui->scrollAreaWidgetContents->setMinimumSize(ui->image->size());
+		ui->buttonZoomIn->setEnabled(m_scale < 3.0);
+	}
+}
+
