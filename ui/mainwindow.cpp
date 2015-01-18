@@ -38,6 +38,7 @@ MainWindow::MainWindow()
 	
 	m_progressBar = new QProgressBar;
 	m_progressBar->setEnabled(false);
+	m_progressBar->setFormat(QStringLiteral("%v/%m"));
 	ui->statusbar->addPermanentWidget(m_progressBar);
 	
 	connect(m_cameraForm, SIGNAL(progressStart(int)), this, SLOT(onProgressStart(int)));
