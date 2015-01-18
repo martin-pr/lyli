@@ -63,5 +63,5 @@ void MainWindow::progressRun(int progress)
 
 void MainWindow::progressFinish()
 {
-	m_progressBar->setEnabled(true);
+	m_progressBar->setEnabled(false);
 }
