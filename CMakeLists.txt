@@ -6,8 +6,6 @@ project(lyli CXX)
 ################
 
 find_package(Qt5Core)
-find_package(Qt5Qml)
-find_package(Qt5Quick)
 find_package(Qt5Widgets)
 
 find_package(PkgConfig REQUIRED)
@@ -32,6 +30,6 @@ target_link_libraries(lyliiface usbpp)
 add_executable(lyli main.cpp)
 target_link_libraries(lyli usbpp lyliiface)
 
-if (Qt5Core_FOUND AND Qt5Qml_FOUND AND Qt5Quick_FOUND AND Qt5Widgets_FOUND)
+if (Qt5Core_FOUND AND Qt5Widgets_FOUND)
 	add_subdirectory(ui)
 endif()

@@ -9,4 +9,4 @@ add_executable(lyli-qt main.cpp mainwindow.cpp
                imagelistmodel.cpp imagelistitem.cpp imagelistdelegate.cpp imagedownloader.cpp
                viewerform.cpp lytroimage.cpp
                ${LYLI_UI_SRCS})
-target_link_libraries(lyli-qt usbpp lyliiface Qt5::Core Qt5::Qml Qt5::Quick Qt5::Widgets)
+target_link_libraries(lyli-qt usbpp lyliiface Qt5::Core Qt5::Widgets)
