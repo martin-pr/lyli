@@ -40,9 +40,9 @@ MainWindow::MainWindow()
 	m_progressBar->setEnabled(false);
 	ui->statusbar->addPermanentWidget(m_progressBar);
 	
-	connect(m_cameraForm, SIGNAL(progressStart(int)), this, SLOT(progressStart(int)));
-	connect(m_cameraForm, SIGNAL(progressRun(int)), this, SLOT(progressStart(int)));
-	connect(m_cameraForm, SIGNAL(progressStart(int)), this, SLOT(progressStart(int)));
+	connect(m_cameraForm, SIGNAL(progressStart(int)), this, SLOT(onProgressStart(int)));
+	connect(m_cameraForm, SIGNAL(progressRun(int)), this, SLOT(onProgress(int)));
+	connect(m_cameraForm, SIGNAL(progressFinish()), this, SLOT(onProgressFinish()));
 }
 
 MainWindow::~MainWindow()
@@ -50,18 +50,18 @@ MainWindow::~MainWindow()
 	delete ui;
 }
 
-void MainWindow::progressStart(int files)
+void MainWindow::onProgressStart(int files)
 {
 	m_progressBar->setEnabled(true);
 	m_progressBar->setMaximum(files);
 }
 
-void MainWindow::progressRun(int progress)
+void MainWindow::onProgress(int progress)
 {
 	m_progressBar->setValue(progress);
 }
 
-void MainWindow::progressFinish()
+void MainWindow::onProgressFinish()
 {
 	m_progressBar->setEnabled(false);
 }

@@ -41,14 +41,14 @@ CameraForm::CameraForm(QWidget *parent) : QWidget(parent)
 	ui->imageList->setItemDelegate(new ImageListDelegate);
 	
 	// connect signals & slots
-	connect(ui->cameraList, SIGNAL(activated(QModelIndex)), this, SLOT(changeCamera(QModelIndex)));
-	connect(ui->buttonDownloadAll, SIGNAL(clicked(bool)), this, SLOT(downloadAll()));
-	connect(ui->buttonDownloadSelected, SIGNAL(clicked(bool)), this, SLOT(downloadSelected()));
+	connect(ui->cameraList, SIGNAL(activated(QModelIndex)), this, SLOT(onChangeCamera(QModelIndex)));
+	connect(ui->buttonDownloadAll, SIGNAL(clicked(bool)), this, SLOT(onDownloadAll()));
+	connect(ui->buttonDownloadSelected, SIGNAL(clicked(bool)), this, SLOT(onDownloadSelected()));
 	
 	// some default settings
 	if (ui->cameraList->model()->rowCount() > 0) {
 		ui->cameraList->setCurrentIndex(ui->cameraList->model()->index(0,0));
-		changeCamera(ui->cameraList->currentIndex());
+		onChangeCamera(ui->cameraList->currentIndex());
 	}
 }
 
@@ -59,7 +59,7 @@ CameraForm::~CameraForm()
 	delete ui;
 }
 
-void CameraForm::changeCamera(const QModelIndex &index)
+void CameraForm::onChangeCamera(const QModelIndex &index)
 {
 	CameraListModel *model = static_cast<CameraListModel*>(ui->cameraList->model());
 	Lyli::Camera *camera = model->getCamera(index.row());
@@ -69,29 +69,29 @@ void CameraForm::changeCamera(const QModelIndex &index)
 	}
 }
 
-void CameraForm::downloadAll()
+void CameraForm::onDownloadAll()
 {
 	download(DownloadMode::ALL);
 }
 
-void CameraForm::downloadSelected()
+void CameraForm::onDownloadSelected()
 {
 	download(DownloadMode::SELECTED);
 }
 
-void CameraForm::downloadStarted(int files)
+void CameraForm::onDownloadStarted(int files)
 {
 	ui->buttonDownloadAll->setEnabled(false);
 	ui->buttonDownloadSelected->setEnabled(false);
 	emit progressStart(files);
 }
 
-void CameraForm::downloadRunning(int progress)
+void CameraForm::onDownloadRunning(int progress)
 {
 	emit progressRun(progress);
 }
 
-void CameraForm::downloadFinished()
+void CameraForm::onDownloadFinished()
 {
 	ui->buttonDownloadAll->setEnabled(true);
 	ui->buttonDownloadSelected->setEnabled(true);
@@ -112,18 +112,18 @@ void CameraForm::download(DownloadMode mode)
 		                                                  ui->imageList->selectionModel()->selectedIndexes(),
 		                                                  outputDirectory);
 		downloader->moveToThread(&m_downloadThread);
-		connect(downloader, SIGNAL(started(int)), this, SLOT(downloadStarted(int)));
-		connect(downloader, SIGNAL(progress(int)), this, SLOT(downloadRunning(int)));
-		connect(downloader, SIGNAL(finished()), this, SLOT(downloadFinished()));
+		connect(downloader, SIGNAL(started(int)), this, SLOT(onDownloadStarted(int)));
+		connect(downloader, SIGNAL(progress(int)), this, SLOT(onDownloadRunning(int)));
+		connect(downloader, SIGNAL(finished()), this, SLOT(onDownloadFinished()));
 		
 		connect(&m_downloadThread, SIGNAL(finished()), downloader, SLOT(deleteLater()));
 		
 		switch (mode) {
 			case DownloadMode::ALL:
-				connect(&m_downloadThread, SIGNAL(started()), downloader, SLOT(downloadAll()));
+				connect(&m_downloadThread, SIGNAL(started()), downloader, SLOT(onDownloadAll()));
 				break;
 			case DownloadMode::SELECTED:
-				connect(&m_downloadThread, SIGNAL(started()), downloader, SLOT(downloadSelected()));
+				connect(&m_downloadThread, SIGNAL(started()), downloader, SLOT(onDownloadSelected()));
 				break;
 		}
 		

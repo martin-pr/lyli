@@ -32,8 +32,8 @@ public:
 	virtual ~ImageDownloader();
 	
 public slots:
-	void downloadAll();
-	void downloadSelected();
+	void onDownloadAll();
+	void onDownloadSelected();
 	
 signals:
 	/** Signal emitted when the download starts.

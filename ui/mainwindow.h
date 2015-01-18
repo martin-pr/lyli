@@ -38,9 +38,9 @@ public:
     ~MainWindow();
 	
 public slots:
-	void progressStart(int files);
-	void progressRun(int progress);
-	void progressFinish();
+	void onProgressStart(int files);
+	void onProgress(int progress);
+	void onProgressFinish();
 
 private:
 	Ui::MainWindow* ui;

@@ -27,7 +27,7 @@ ImageDownloader::~ImageDownloader()
 {
 }
 
-void ImageDownloader::downloadAll()
+void ImageDownloader::onDownloadAll()
 {
 	const int rowCount = m_model->rowCount();
 	
@@ -38,13 +38,13 @@ void ImageDownloader::downloadAll()
 		QModelIndex index = m_model->index(i, 0);
 		m_model->downloadFile(index, m_outputDir);
 		
-		emit progress(i);
+		emit progress(i+1);
 	}
 	
 	emit finished();
 }
 
-void ImageDownloader::downloadSelected()
+void ImageDownloader::onDownloadSelected()
 {
 	emit started(m_indices.size());
 	
@@ -53,7 +53,8 @@ void ImageDownloader::downloadSelected()
 	foreach(const QModelIndex &index, m_indices) {
 		m_model->downloadFile(index, m_outputDir);
 		
-		emit progress(i);
+		emit progress(i+1);
+		++i;
 	}
 	
 	emit finished();

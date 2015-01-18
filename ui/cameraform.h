@@ -48,13 +48,13 @@ private:
 	};
 	
 private slots:
-	void changeCamera(const QModelIndex& index);
-	void downloadAll();
-	void downloadSelected();
+	void onChangeCamera(const QModelIndex& index);
+	void onDownloadAll();
+	void onDownloadSelected();
 	
-	void downloadStarted(int files);
-	void downloadRunning(int progress);
-	void downloadFinished();
+	void onDownloadStarted(int files);
+	void onDownloadRunning(int progress);
+	void onDownloadFinished();
 	
 private:
 	Ui::CameraForm* ui;
