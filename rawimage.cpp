@@ -64,7 +64,7 @@ namespace Lyli {
 RawImage::RawImage(std::istream& is, std::size_t width, std::size_t height) :
 m_data(new uint16_t[width*height*3]()), m_width(width), m_height(height)
 {
-	char buf[3];
+	unsigned char buf[3];
 	std::uint16_t tmp;
 	std::size_t pos(0);
 	
@@ -72,17 +72,17 @@ m_data(new uint16_t[width*height*3]()), m_width(width), m_height(height)
 		// this assumes that the x-dimension has even number of pixels
 		// so two pixels can be read at once
 		for (int x = 0; x < m_width;) {
-			is.read(buf, 3);
+			is.read(reinterpret_cast<char*>(buf), 3);
 		
 			// mask out the first twelve bits
 			// the data are stored as big endian, so we have to fix that, too
-			tmp = ((buf[1] & 0xF0) << 8) | buf[0];
+			tmp = (buf[0] << 8) | (buf[1] & 0xF0);
 			m_data[pos + getColorIndex(x, y)] = tmp;
 			pos += 3;
 			++x;
 			
 			// the second 12b
-			tmp = ((buf[2] & 0xF) << 12) | ((buf[1] & 0xF) << 4) | ((buf[2] >> 4) & 0xF);
+			tmp = ((buf[1] & 0xF) << 12) | (buf[2] << 4);
 			m_data[pos + getColorIndex(x, y)] = tmp;
 			pos += 3;
 			++x;

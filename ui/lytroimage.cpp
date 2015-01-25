@@ -49,9 +49,9 @@ LytroImage::LytroImage(const char *file)
 	for(std::size_t y = 0; y < IMG_HEIGHT; ++y) {
 		for(std::size_t x = 0; x < IMG_WIDTH; ++x) {
 			m_image->setPixel(x, y, qRgb(
-				rawImage[pos],
-				rawImage[pos + 1],
-				rawImage[pos + 2]));
+				rawImage[pos] >> 8,
+				rawImage[pos + 1] >> 8,
+				rawImage[pos + 2] >> 8));
 			pos += 3;
 		}
 	}
