@@ -29,10 +29,16 @@ public:
 	LytroImage(const char *file);
 	~LytroImage();
 	
+	/** Initialize static members.
+	 * 
+	 */
+	static void init();
+	
 	const QImage *getQImage() const;
 	
 private:
 	QImage *m_image;
+	static unsigned char m_gamma[4096];
 };
 
 #endif // LYTROIMAGE_H

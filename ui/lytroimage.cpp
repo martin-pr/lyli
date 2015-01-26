@@ -22,6 +22,7 @@
 
 #include <QtGui/QImage>
 
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
@@ -34,6 +35,8 @@ constexpr std::size_t IMG_WIDTH=3280;
 constexpr std::size_t IMG_HEIGHT=3280;
 
 }
+
+unsigned char LytroImage::m_gamma[4096];
 
 LytroImage::LytroImage(const char *file)
 {
@@ -49,9 +52,9 @@ LytroImage::LytroImage(const char *file)
 	for(std::size_t y = 0; y < IMG_HEIGHT; ++y) {
 		for(std::size_t x = 0; x < IMG_WIDTH; ++x) {
 			m_image->setPixel(x, y, qRgb(
-				rawImage[pos] >> 8,
-				rawImage[pos + 1] >> 8,
-				rawImage[pos + 2] >> 8));
+				m_gamma[rawImage[pos] >> 4],
+				m_gamma[rawImage[pos+1] >> 4],
+				m_gamma[rawImage[pos+2] >> 4]));
 			pos += 3;
 		}
 	}
@@ -60,6 +63,15 @@ LytroImage::LytroImage(const char *file)
 LytroImage::~LytroImage()
 {
 	delete m_image;
+}
+
+void LytroImage::init()
+{
+	static double gamma = 1.0/2.2;
+	for (uint16_t i = 0; i < 4096; ++i) {
+		double tmp = i / 4096.0;
+		m_gamma[i] = std::pow(tmp, gamma) * 255;
+	}
 }
 
 const QImage *LytroImage::getQImage() const

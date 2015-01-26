@@ -27,6 +27,8 @@
 
 ViewerForm::ViewerForm(QWidget *parent) : QWidget(parent), m_scale(1.0)
 {
+	LytroImage::init();
+	
 	ui = new Ui::ViewerForm;
 	ui->setupUi(this);
 	
