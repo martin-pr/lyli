@@ -41,9 +41,9 @@ CameraForm::CameraForm(QWidget *parent) : QWidget(parent)
 	ui->imageList->setItemDelegate(new ImageListDelegate);
 	
 	// connect signals & slots
-	connect(ui->cameraList, SIGNAL(activated(QModelIndex)), this, SLOT(onChangeCamera(QModelIndex)));
-	connect(ui->buttonDownloadAll, SIGNAL(clicked(bool)), this, SLOT(onDownloadAll()));
-	connect(ui->buttonDownloadSelected, SIGNAL(clicked(bool)), this, SLOT(onDownloadSelected()));
+	connect(ui->cameraList, &QListView::activated, this, &CameraForm::onChangeCamera);
+	connect(ui->buttonDownloadAll, &QToolButton::clicked, this, &CameraForm::onDownloadAll);
+	connect(ui->buttonDownloadSelected, &QToolButton::clicked, this, &CameraForm::onDownloadSelected);
 	
 	// some default settings
 	if (ui->cameraList->model()->rowCount() > 0) {
@@ -112,18 +112,18 @@ void CameraForm::download(DownloadMode mode)
 		                                                  ui->imageList->selectionModel()->selectedIndexes(),
 		                                                  outputDirectory);
 		downloader->moveToThread(&m_downloadThread);
-		connect(downloader, SIGNAL(started(int)), this, SLOT(onDownloadStarted(int)));
-		connect(downloader, SIGNAL(progress(int)), this, SLOT(onDownloadRunning(int)));
-		connect(downloader, SIGNAL(finished()), this, SLOT(onDownloadFinished()));
+		connect(downloader, &ImageDownloader::started, this, &CameraForm::onDownloadStarted);
+		connect(downloader, &ImageDownloader::progress, this, &CameraForm::onDownloadRunning);
+		connect(downloader, &ImageDownloader::finished, this, &CameraForm::onDownloadFinished);
 		
-		connect(&m_downloadThread, SIGNAL(finished()), downloader, SLOT(deleteLater()));
+		connect(&m_downloadThread, &QThread::finished, downloader, &ImageDownloader::deleteLater);
 		
 		switch (mode) {
 			case DownloadMode::ALL:
-				connect(&m_downloadThread, SIGNAL(started()), downloader, SLOT(onDownloadAll()));
+				connect(&m_downloadThread, &QThread::started, downloader, &ImageDownloader::onDownloadAll);
 				break;
 			case DownloadMode::SELECTED:
-				connect(&m_downloadThread, SIGNAL(started()), downloader, SLOT(onDownloadSelected()));
+				connect(&m_downloadThread, &QThread::started, downloader, &ImageDownloader::onDownloadSelected);
 				break;
 		}
 		

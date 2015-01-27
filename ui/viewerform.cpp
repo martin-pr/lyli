@@ -38,7 +38,7 @@ ViewerForm::ViewerForm(QWidget *parent) : QWidget(parent), m_scale(1.0)
 	m_dirModel->setFilter(QDir::Dirs | QDir::NoDot);
 	ui->directoryList->setModel(m_dirModel);
 	ui->directoryList->setRootIndex(m_dirModel->index(QDir::currentPath()));
-	connect(ui->directoryList, SIGNAL(activated(QModelIndex)), this, SLOT(directoryViewClicked(QModelIndex)));
+	connect(ui->directoryList, &QListView::activated, this, &ViewerForm::directoryViewClicked);
 	
 	m_fileModel = new QFileSystemModel;
 	m_fileModel->setReadOnly(true);
@@ -48,12 +48,12 @@ ViewerForm::ViewerForm(QWidget *parent) : QWidget(parent), m_scale(1.0)
 	m_fileModel->setNameFilterDisables(false);
 	ui->fileList->setModel(m_fileModel);
 	ui->fileList->setRootIndex(m_fileModel->index(QDir::currentPath()));
-	connect(ui->fileList, SIGNAL(activated(QModelIndex)), this, SLOT(fileViewClicked(QModelIndex)));
+	connect(ui->fileList, &QListView::activated, this, &ViewerForm::fileViewClicked);
 	
-	connect(ui->buttonZoomIn, SIGNAL(clicked(bool)), this, SLOT(zoomIn()));
-	connect(ui->buttonZoomOut, SIGNAL(clicked(bool)), this, SLOT(zoomOut()));
-	connect(ui->buttonZoomFit, SIGNAL(clicked(bool)), this, SLOT(zoomFit()));
-	connect(ui->buttonZoomOriginal, SIGNAL(clicked(bool)), this, SLOT(zoomOriginal()));
+	connect(ui->buttonZoomIn, &QToolButton::clicked, this, &ViewerForm::zoomIn);
+	connect(ui->buttonZoomOut, &QToolButton::clicked, this, &ViewerForm::zoomOut);
+	connect(ui->buttonZoomFit, &QToolButton::clicked, this, &ViewerForm::zoomFit);
+	connect(ui->buttonZoomOriginal, &QToolButton::clicked, this, &ViewerForm::zoomOriginal);
 }
 
 ViewerForm::~ViewerForm()

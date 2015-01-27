@@ -41,9 +41,9 @@ MainWindow::MainWindow()
 	m_progressBar->setFormat(QStringLiteral("%v/%m"));
 	ui->statusbar->addPermanentWidget(m_progressBar);
 	
-	connect(m_cameraForm, SIGNAL(progressStart(int)), this, SLOT(onProgressStart(int)));
-	connect(m_cameraForm, SIGNAL(progressRun(int)), this, SLOT(onProgress(int)));
-	connect(m_cameraForm, SIGNAL(progressFinish()), this, SLOT(onProgressFinish()));
+	connect(m_cameraForm, &CameraForm::progressStart, this, &MainWindow::onProgressStart);
+	connect(m_cameraForm, &CameraForm::progressRun, this, &MainWindow::onProgress);
+	connect(m_cameraForm, &CameraForm::progressFinish, this, &MainWindow::onProgressFinish);
 }
 
 MainWindow::~MainWindow()
