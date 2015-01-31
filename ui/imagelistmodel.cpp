@@ -28,7 +28,7 @@
 #include <algorithm>
 #include <fstream>
 
-ImageListModel::ImageListModel(QObject *parent) : QAbstractListModel(parent)
+ImageListModel::ImageListModel(QObject *parent) : QAbstractListModel(parent), m_camera(nullptr)
 {
 
 }
@@ -62,12 +62,14 @@ void ImageListModel::changeCamera(Lyli::Camera* camera)
 		beginResetModel();
 		
 		m_camera = camera;
-		
-		Lyli::FileList fileList = std::move(m_camera->getFileList());
 		m_fileList.clear();
-		m_fileList.reserve(fileList.size());
-		for (Lyli::FileListEntry entry : fileList) {
-			m_fileList.push_back(ImageListItem(m_camera, entry));
+		
+		if (m_camera != nullptr) {
+			Lyli::FileList fileList = std::move(m_camera->getFileList());
+			m_fileList.reserve(fileList.size());
+			for (Lyli::FileListEntry entry : fileList) {
+				m_fileList.push_back(ImageListItem(m_camera, entry));
+			}
 		}
 		
 		endResetModel();
