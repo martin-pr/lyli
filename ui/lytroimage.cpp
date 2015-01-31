@@ -46,7 +46,7 @@ LytroImage::LytroImage(const char *file)
 	Lyli::RawImage image(fin, IMG_WIDTH, IMG_HEIGHT);
 	fin.close();
 	
-	uint16_t *rawImage = image.getData();
+	uint16_t *rawImage = reinterpret_cast<uint16_t*>(image.getData().data);
 	// combine the images
 	std::size_t pos(0);
 	for(std::size_t y = 0; y < IMG_HEIGHT; ++y) {

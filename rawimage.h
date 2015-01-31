@@ -18,6 +18,8 @@
 #ifndef LYLI_RAWIMAGE_H_
 #define LYLI_RAWIMAGE_H_
 
+#include <opencv2/core/core.hpp>
+
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
@@ -39,13 +41,12 @@ public:
 	 * 
 	 * \return pointer to a buffer containing width*height RGB uint16_t pixels
 	 */
-	uint16_t* getData();
+	cv::Mat &getData();
 	
 private:
-	uint16_t* m_data;
-	std::size_t m_width;
-	std::size_t m_height;
+	cv::Mat m_data;
 	
+
 	void demosaic();
 };
 

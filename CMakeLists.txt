@@ -8,6 +8,7 @@ project(lyli CXX)
 find_package(Qt5Core)
 find_package(Qt5Widgets)
 
+find_package(OpenCV REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBUSB REQUIRED libusb-1.0>=1.0.0)
 
@@ -25,7 +26,7 @@ include_directories(${LIBUSB_INCLUDE_DIRS})
 add_subdirectory(usbpp)
 
 add_library(lyliiface STATIC camera.cpp filelistparser.cpp rawimage.cpp)
-target_link_libraries(lyliiface usbpp)
+target_link_libraries(lyliiface usbpp ${OpenCV_LIBS})
 
 add_executable(lyli main.cpp)
 target_link_libraries(lyli usbpp lyliiface)
