@@ -147,8 +147,8 @@ void Device::close()
 bool Device::reset()
 {
 	assert(handle != 0);
-	assert(interfaceMyClaimed.size() == 0);
-	assert(interfaceRefCount == 0 || interfaceRefCount->size() == 0);
+	assert(interfaceMyClaimed.empty());
+	assert(interfaceRefCount == 0 || interfaceRefCount->empty());
 	if (libusb_reset_device(handle) == LIBUSB_ERROR_NOT_FOUND) {
 		return false;
 	}
@@ -206,7 +206,7 @@ void Device::releaseInterface(int bInterfaceNumber)
 			libusb_release_interface(handle, bInterfaceNumber);
 			interfaceRefCount->erase(refcnt);
 		}
-		if (interfaceRefCount->size() == 0) {
+		if (interfaceRefCount->empty()) {
 			delete interfaceRefCount;
 			interfaceRefCount = nullptr;
 		}
