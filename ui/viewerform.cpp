@@ -20,7 +20,10 @@
 #include "ui_viewerform.h"
 
 #include <algorithm>
+#include <QtCore/QByteArray>
+#include <QtGui/QImageWriter>
 #include <QtGui/QPixmap>
+#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QFileSystemModel>
 
 #include "lytroimage.h"
@@ -50,6 +53,8 @@ ViewerForm::ViewerForm(QWidget *parent) : QWidget(parent), m_scale(1.0)
 	ui->fileList->setRootIndex(m_fileModel->index(QDir::currentPath()));
 	connect(ui->fileList, &QListView::activated, this, &ViewerForm::fileViewClicked);
 	
+	connect(ui->buttonSaveAs, &QToolButton::clicked, this, &ViewerForm::saveAs);
+	
 	connect(ui->buttonZoomIn, &QToolButton::clicked, this, &ViewerForm::zoomIn);
 	connect(ui->buttonZoomOut, &QToolButton::clicked, this, &ViewerForm::zoomOut);
 	connect(ui->buttonZoomFit, &QToolButton::clicked, this, &ViewerForm::zoomFit);
@@ -71,8 +76,28 @@ void ViewerForm::directoryViewClicked(const QModelIndex& index)
 void ViewerForm::fileViewClicked(const QModelIndex& index)
 {
 	// load the image
-	LytroImage image(m_fileModel->fileInfo(index).absoluteFilePath().toLocal8Bit());
-	ui->image->setPixmap(QPixmap::fromImage(*image.getQImage()));
+	m_image = std::move(LytroImage(m_fileModel->fileInfo(index).absoluteFilePath().toLocal8Bit()));
+	ui->image->setPixmap(QPixmap::fromImage(*m_image.getQImage()));
+}
+
+void ViewerForm::saveAs()
+{
+	// prepare filters based on the QImageWriter::supportedImageFormats();
+	auto formats = QImageWriter::supportedImageFormats();
+	QString filters;
+	for (QByteArray format : formats) {
+		filters.append(QString("%1 images (*.%2);;").arg(QString(format.toUpper()), QString(format.toLower())));
+	}
+	filters.append(tr("All Files (*)"));
+	
+	QString fileName = QFileDialog::getSaveFileName(this,
+	                                                tr("Save File"),
+	                                                QDir::currentPath(),
+	                                                filters);
+	
+	if (! fileName.isEmpty()) {
+		m_image.getQImage()->save(fileName);
+	}
 }
 
 void ViewerForm::zoomIn()
@@ -113,4 +138,5 @@ void ViewerForm::scaleImage()
 		ui->buttonZoomIn->setEnabled(m_scale < 3.0);
 	}
 }
+
 

@@ -22,6 +22,8 @@
 
 #include <QtWidgets/QWidget>
 
+#include "lytroimage.h"
+
 namespace Ui
 {
 class ViewerForm;
@@ -42,6 +44,8 @@ public slots:
 	void directoryViewClicked(const QModelIndex &index);
 	void fileViewClicked(const QModelIndex &index);
 	
+	void saveAs();
+	
 	void zoomIn();
 	void zoomOut();
 	void zoomFit();
@@ -54,7 +58,9 @@ private:
 	Ui::ViewerForm* ui;
 	QFileSystemModel *m_dirModel;
 	QFileSystemModel *m_fileModel;
+	
 	double m_scale;
+	LytroImage m_image;
 	
 	void scaleImage();
 	
