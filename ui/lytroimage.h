@@ -26,8 +26,14 @@ class QImage;
 class LytroImage
 {
 public:
+	LytroImage();
 	LytroImage(const char *file);
 	~LytroImage();
+	
+	LytroImage(const LytroImage &other);
+	LytroImage(LytroImage &&other);
+	LytroImage &operator=(const LytroImage &other);
+	LytroImage &operator=(LytroImage &&other);
 	
 	/** Initialize static members.
 	 * 

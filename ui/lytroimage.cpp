@@ -38,6 +38,11 @@ constexpr std::size_t IMG_HEIGHT=3280;
 
 unsigned char LytroImage::m_gamma[4096];
 
+LytroImage::LytroImage() : m_image(nullptr)
+{
+
+}
+
 LytroImage::LytroImage(const char *file)
 {
 	m_image = new QImage(IMG_WIDTH, IMG_HEIGHT, QImage::Format_RGB32);
@@ -62,7 +67,32 @@ LytroImage::LytroImage(const char *file)
 
 LytroImage::~LytroImage()
 {
-	delete m_image;
+	if (m_image != nullptr) {
+		delete m_image;
+	}
+}
+
+LytroImage::LytroImage(const LytroImage& other)
+{
+	m_image = new QImage(*other.m_image);
+}
+
+LytroImage::LytroImage(LytroImage&& other)
+{
+	m_image = other.m_image;
+	other.m_image = nullptr;
+}
+
+LytroImage& LytroImage::operator=(const LytroImage& other)
+{
+	LytroImage tmp(other);
+	std::swap(m_image, tmp.m_image);
+}
+
+LytroImage& LytroImage::operator=(LytroImage&& other)
+{
+	m_image = other.m_image;
+	other.m_image = nullptr;
 }
 
 void LytroImage::init()
