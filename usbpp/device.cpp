@@ -67,7 +67,7 @@ Device::Device(Device&& other)
 	handle = other.handle;
 	other.handle = nullptr;
 	handleRefCount = other.handleRefCount;
-        other.handleRefCount = nullptr;
+	other.handleRefCount = nullptr;
 	interfaceMyClaimed = std::move(other.interfaceMyClaimed);
 	interfaceRefCount = other.interfaceRefCount;
 	other.interfaceRefCount = nullptr;
