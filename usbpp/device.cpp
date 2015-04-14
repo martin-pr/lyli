@@ -108,11 +108,17 @@ Device& Device::operator=(const Device& other)
 
 Device& Device::operator=(Device&& other)
 {
+	if (this == &other) {
+		return *this;
+	}
+	
 	std::swap(device, other.device);
 	std::swap(handle, other.handle);
 	std::swap(handleRefCount, other.handleRefCount);
 	std::swap(interfaceMyClaimed, other.interfaceMyClaimed);
 	std::swap(interfaceRefCount, other.interfaceRefCount);
+	
+	return *this;
 }
 
 void Device::open(bool detachDriver)

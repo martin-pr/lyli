@@ -62,14 +62,22 @@ public:
 	}
 	
 	Buffer<T> &operator=(const Buffer<T> &other) {
+		if (this == &other) {
+			return *this;
+		}
 		Buffer tmp(other);
 		std::swap(mdata, tmp.mdata);
 		std::swap(msize, tmp.msize);
+		return *this;
 	}
 	
 	Buffer<T> &operator=(Buffer<T> &&other) noexcept {
+		if (this == &other) {
+			return *this;
+		}
 		std::swap(mdata, other.mdata);
 		std::swap(msize, other.msize);
+		return *this;
 	}
 	
 	Buffer<T> &append(const Buffer<T> &other) {

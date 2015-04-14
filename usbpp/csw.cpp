@@ -86,6 +86,9 @@ CommandStatusWrapper::CommandStatusWrapper(CommandStatusWrapper&& other)
 
 CommandStatusWrapper& CommandStatusWrapper::operator=(const CommandStatusWrapper& other)
 {
+	if (this == &other) {
+		return *this;
+	}
 	std::memcpy(data, other.data, CSW_LEN);
 	
 	return *this;

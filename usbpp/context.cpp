@@ -74,12 +74,20 @@ Context& Context::operator=(const Context& other)
 	refcount = other.refcount;
 	ctx = other.ctx;
 	++(*refcount);
+	
+	return *this;
 }
 
 Context& Context::operator=(Context &&other)
 {
+	if (this == &other) {
+		return *this;
+	}
+	
 	std::swap(refcount, other.refcount);
 	std::swap(ctx, other.ctx);
+	
+	return *this;
 }
 
 std::vector< Device > Context::getDevices()

@@ -40,7 +40,13 @@ InquiryResponse::InquiryResponse(InquiryResponse&& other) noexcept : mbuffer(std
 
 InquiryResponse& InquiryResponse::operator=(InquiryResponse&& other) noexcept
 {
+	if (this == &other) {
+		return *this;
+	}
+	
 	mbuffer = std::move(other.mbuffer);
+	
+	return *this;
 }
 
 uint8_t InquiryResponse::getPeripheralQualifier() const

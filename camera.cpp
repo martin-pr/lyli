@@ -206,7 +206,12 @@ Camera::Camera(Camera&& other) noexcept
 
 Camera& Camera::operator=(Camera&& other) noexcept
 {
+	if (this == &other) {
+		return *this;
+	}
+	
 	std::swap(pimpl, other.pimpl);
+	return *this;
 }
 
 
