@@ -90,6 +90,8 @@ public:
 		// update the current buffer
 		mdata = tmp;
 		msize += other.msize;
+		
+		return *this;
 	}
 	
 	std::size_t size() const {
