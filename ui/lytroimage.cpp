@@ -85,14 +85,22 @@ LytroImage::LytroImage(LytroImage&& other)
 
 LytroImage& LytroImage::operator=(const LytroImage& other)
 {
+	if (this == &other) {
+		return *this;
+	}
 	LytroImage tmp(other);
 	std::swap(m_image, tmp.m_image);
+	return *this;
 }
 
 LytroImage& LytroImage::operator=(LytroImage&& other)
 {
+	if (this == &other) {
+		return *this;
+	}
 	m_image = other.m_image;
 	other.m_image = nullptr;
+	return *this;
 }
 
 void LytroImage::init()
