@@ -140,7 +140,7 @@ uint32_t CommandBlockWrapper::getTransferLength() const
 
 CommandBlockWrapper::Flags CommandBlockWrapper::getFlags() const
 {
-	if (data[12] & static_cast<uint8_t>(Flags::INVALID) != 0) {
+	if ((data[12] & static_cast<uint8_t>(Flags::INVALID)) != 0) {
 		return Flags::INVALID;
 	}
 	return static_cast<Flags>(data[12]);
