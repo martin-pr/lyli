@@ -41,9 +41,9 @@ public:
 	virtual ~CommandBlockWrapper();
 	
 	CommandBlockWrapper(const CommandBlockWrapper &other);
-	CommandBlockWrapper(CommandBlockWrapper &&other);
+	CommandBlockWrapper(CommandBlockWrapper &&other) noexcept;
 	CommandBlockWrapper &operator=(const CommandBlockWrapper &other);
-	CommandBlockWrapper &operator=(CommandBlockWrapper &&other);
+	CommandBlockWrapper &operator=(CommandBlockWrapper &&other) noexcept;
 	
 	uint32_t getTag() const;
 	uint32_t getTransferLength() const;

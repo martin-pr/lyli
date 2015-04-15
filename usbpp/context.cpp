@@ -34,7 +34,7 @@ Context::Context(const Context& other) : refcount(other.refcount), ctx(other.ctx
 	++(*refcount);
 }
 
-Context::Context(Context&& other) : refcount(other.refcount), ctx(other.ctx)
+Context::Context(Context&& other) noexcept: refcount(other.refcount), ctx(other.ctx)
 {
 	other.refcount = nullptr;
 	other.ctx = nullptr;
@@ -78,7 +78,7 @@ Context& Context::operator=(const Context& other)
 	return *this;
 }
 
-Context& Context::operator=(Context &&other)
+Context& Context::operator=(Context &&other) noexcept
 {
 	if (this == &other) {
 		return *this;

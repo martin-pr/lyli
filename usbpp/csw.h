@@ -43,9 +43,9 @@ public:
 	virtual ~CommandStatusWrapper();
 	
 	CommandStatusWrapper(const CommandStatusWrapper &other);
-	CommandStatusWrapper(CommandStatusWrapper&& other);
+	CommandStatusWrapper(CommandStatusWrapper&& other) noexcept;
 	CommandStatusWrapper &operator=(const CommandStatusWrapper &other);
-	CommandStatusWrapper &operator=(CommandStatusWrapper&& other);
+	CommandStatusWrapper &operator=(CommandStatusWrapper&& other) noexcept;
 	
 	uint32_t getTag() const;
 	uint32_t getDataResidue() const;

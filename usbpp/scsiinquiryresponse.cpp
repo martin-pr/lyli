@@ -38,17 +38,6 @@ InquiryResponse::InquiryResponse(InquiryResponse&& other) noexcept : mbuffer(std
 	assert(mbuffer.size() >= 36);
 }
 
-InquiryResponse& InquiryResponse::operator=(InquiryResponse&& other) noexcept
-{
-	if (this == &other) {
-		return *this;
-	}
-	
-	mbuffer = std::move(other.mbuffer);
-	
-	return *this;
-}
-
 uint8_t InquiryResponse::getPeripheralQualifier() const
 {
 	return mbuffer.data()[0] >> 5;

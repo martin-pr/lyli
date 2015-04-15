@@ -91,7 +91,7 @@ CommandBlockWrapper::CommandBlockWrapper(const CommandBlockWrapper& other)
 	std::memcpy(data, other.data, CBW_LEN);
 }
 
-CommandBlockWrapper::CommandBlockWrapper(CommandBlockWrapper&& other)
+CommandBlockWrapper::CommandBlockWrapper(CommandBlockWrapper&& other) noexcept
 {
 	data = other.data;
 	other.data = nullptr;
@@ -107,7 +107,7 @@ CommandBlockWrapper& CommandBlockWrapper::operator=(const CommandBlockWrapper& o
 	return *this;
 }
 
-CommandBlockWrapper& CommandBlockWrapper::operator=(CommandBlockWrapper&& other)
+CommandBlockWrapper& CommandBlockWrapper::operator=(CommandBlockWrapper&& other) noexcept
 {
 	if (this == &other) {
 		return *this;

@@ -29,7 +29,8 @@ public:
     InquiryResponse(const ByteBuffer& buffer);
     InquiryResponse(const InquiryResponse& other);
     InquiryResponse(InquiryResponse&& other) noexcept;
-	InquiryResponse& operator=(InquiryResponse &&other) noexcept;
+	InquiryResponse& operator=(InquiryResponse &other) = default;
+	InquiryResponse& operator=(InquiryResponse &&other) noexcept = default;
 	
 	uint8_t getPeripheralQualifier() const;
 	uint8_t getPeripheralDeviceType() const;

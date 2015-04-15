@@ -55,16 +55,6 @@ Inquiry::Inquiry(CommandBlockWrapper&& other): CommandBlockWrapper(std::move(oth
 
 }
 
-Inquiry& Inquiry::operator=(Inquiry&& other) noexcept
-{
-	if (this == &other) {
-		return *this;
-	}
-	
-	CommandBlockWrapper::operator=(other);
-	return *this;
-}
-
 }
 }
 }

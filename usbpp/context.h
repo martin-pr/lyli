@@ -30,11 +30,11 @@ class Context {
 public:
 	Context();
 	Context(const Context &other);
-	Context(Context &&other);
+	Context(Context &&other) noexcept;
 	~Context();
 	
 	Context &operator=(const Context &other);
-	Context &operator=(Context &&other);
+	Context &operator=(Context &&other) noexcept;
 	
 	std::vector<Device> getDevices();
 	

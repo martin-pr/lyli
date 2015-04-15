@@ -37,7 +37,10 @@ public:
 	
     MSDevice(const Device &device);
 	MSDevice(const MSDevice &device);
-	MSDevice(MSDevice &&device);
+	MSDevice(MSDevice &&device) noexcept;
+	
+	MSDevice& operator=(const MSDevice &other) = default;
+	MSDevice& operator=(MSDevice &&other) noexcept = default;
 	
 	CommandStatusWrapper sendCommand(unsigned char endpoint, const CommandBlockWrapper& command, ByteBuffer *data);
 	

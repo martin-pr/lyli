@@ -41,11 +41,11 @@ public:
 	
 	Device();
 	Device(const Device &other);
-	Device(Device &&other);
+	Device(Device &&other) noexcept;
 	~Device();
 	
 	Device& operator=(const Device &other);
-	Device& operator=(Device &&other);
+	Device& operator=(Device &&other) noexcept;
 	
 	bool isValid();
 	

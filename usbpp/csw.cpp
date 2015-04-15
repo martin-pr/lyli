@@ -78,9 +78,8 @@ CommandStatusWrapper::CommandStatusWrapper(const CommandStatusWrapper& other)
 	std::memcpy(data, other.data, CSW_LEN);
 }
 
-CommandStatusWrapper::CommandStatusWrapper(CommandStatusWrapper&& other)
+CommandStatusWrapper::CommandStatusWrapper(CommandStatusWrapper&& other) noexcept : data(other.data)
 {
-	data = other.data;
 	other.data = nullptr;
 }
 
@@ -94,7 +93,7 @@ CommandStatusWrapper& CommandStatusWrapper::operator=(const CommandStatusWrapper
 	return *this;
 }
 
-CommandStatusWrapper& CommandStatusWrapper::operator=(CommandStatusWrapper&& other)
+CommandStatusWrapper& CommandStatusWrapper::operator=(CommandStatusWrapper&& other) noexcept
 {
 	if (this == &other) {
 		return *this;

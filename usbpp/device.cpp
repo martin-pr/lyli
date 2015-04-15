@@ -60,16 +60,13 @@ Device::Device(const Device& other) : device(other.device)
 	interfaceRefCount = other.interfaceRefCount;
 }
 
-Device::Device(Device&& other)
+Device::Device(Device&& other) noexcept :
+device(other.device), handle(other.handle), handleRefCount(other.handleRefCount),
+interfaceMyClaimed(std::move(other.interfaceMyClaimed)),interfaceRefCount(other.interfaceRefCount)
 {
-	device = other.device;
 	other.device = nullptr;
-	handle = other.handle;
 	other.handle = nullptr;
-	handleRefCount = other.handleRefCount;
 	other.handleRefCount = nullptr;
-	interfaceMyClaimed = std::move(other.interfaceMyClaimed);
-	interfaceRefCount = other.interfaceRefCount;
 	other.interfaceRefCount = nullptr;
 }
 
@@ -106,7 +103,7 @@ Device& Device::operator=(const Device& other)
 	return *this;
 }
 
-Device& Device::operator=(Device&& other)
+Device& Device::operator=(Device&& other) noexcept
 {
 	if (this == &other) {
 		return *this;

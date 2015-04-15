@@ -36,7 +36,7 @@ public:
 	Inquiry(uint8_t LUN, uint16_t allocationLength, uint8_t page);
     Inquiry(const CommandBlockWrapper& other);
     Inquiry(CommandBlockWrapper&& other);
-	Inquiry& operator=(Inquiry &&other) noexcept;
+    Inquiry& operator=(Inquiry &&other) noexcept = default;
 };
 
 }

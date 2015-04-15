@@ -39,7 +39,7 @@ MSDevice::MSDevice(const MSDevice& device) : Device(device)
 
 }
 
-MSDevice::MSDevice(MSDevice&& device) : Device(std::move(device))
+MSDevice::MSDevice(MSDevice&& device) noexcept: Device(std::move(device))
 {
 
 }
