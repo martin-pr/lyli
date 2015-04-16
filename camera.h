@@ -25,8 +25,13 @@
 #include <string>
 #include <vector>
 
+#include "filelist.h"
+
 namespace Usbpp {
 class Context;
+namespace MassStorage {
+class MSDevice;
+}
 }
 
 namespace Lyli {
@@ -36,17 +41,6 @@ typedef std::vector<Camera> CameraList;
 
 CameraList getCameras(Usbpp::Context &context);
 
-struct FileListEntry {
-	// the counter for file name
-	int id;
-	// a sha1 hash (stored as binary)
-	uint8_t sha1[20];
-	// a time the picture was taken
-	std::time_t time;
-};
-
-typedef std::vector<FileListEntry> FileList;
-
 struct CameraInformation {
 	std::string vendor;
 	std::string product;
@@ -54,9 +48,6 @@ struct CameraInformation {
 };
 
 class Camera {
-private:
-	class Impl;
-	
 public:
 	Camera();
 	~Camera();
@@ -72,24 +63,15 @@ public:
 	void getFirmware(std::ostream &os);
 	void getVCM(std::ostream &os);
 	
-	FileList getFileList();
-	
-	// all image data
-	// TODO: add progress
-	void getImageMetadata(std::ostream &os, int id);
-	/**
-	 * Download the image thumbnail.
-	 * 
-	 * The thumbnail is a 128x128 16-bit image in grayscale.
-	 */
-	void getImageThumbnail(std::ostream &os, int id);
-	void getImageData(std::ostream &os, int id);
+	FileList getPictureList();
+	void getFile(std::ostream &out, const std::string &fileName) const;
 	
 private:
+	class Impl;
 	Impl *pimpl;
 	
 	friend CameraList getCameras(Usbpp::Context &context);
-	Camera(Impl *impl);
+	Camera(const Usbpp::MassStorage::MSDevice &device);
 	
 	Camera(const Camera &other);
 	Camera &operator=(const Camera &other);

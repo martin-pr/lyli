@@ -65,7 +65,7 @@ void ImageListModel::changeCamera(Lyli::Camera* camera)
 		m_fileList.clear();
 		
 		if (m_camera != nullptr) {
-			Lyli::FileList fileList = std::move(m_camera->getFileList());
+			Lyli::FileList fileList = std::move(m_camera->getPictureList());
 			m_fileList.reserve(fileList.size());
 			for (Lyli::FileListEntry entry : fileList) {
 				m_fileList.push_back(ImageListItem(m_camera, entry));
@@ -80,21 +80,26 @@ void ImageListModel::downloadFile(const QModelIndex &index, const QString &outpu
 	QString outputFile;
 	QString outputFilePath;
 	std::ofstream ofs;
-	int id = m_fileList[index.row()].getId();
+	Lyli::FileListEntry &file(m_fileList[index.row()].getFileEntry());
+	
+	std::time_t time(file.getTime());
+	std::tm *tm = std::localtime(&time);
+	char buf[29];
+	std::strftime(buf, 28, "%c", tm);
 
-	QString outputFileBase =  outputDirectory + QDir::separator() + outputFile.sprintf("%04d", id);
+	QString outputFileBase =  outputDirectory + QDir::separator() + buf;
 
 	qDebug() << "downloading file " << outputFileBase;
 
 	outputFilePath = outputFileBase + ".TXT";
 	ofs.open(outputFilePath.toLocal8Bit().data(), std::ofstream::out | std::ofstream::binary);
-	m_camera->getImageMetadata(ofs, id);
+	file.getImageMetadata(ofs);
 	ofs.flush();
 	ofs.close();
 
 	outputFilePath = outputFileBase + ".RAW";
 	ofs.open(outputFilePath.toLocal8Bit().data(), std::ofstream::out | std::ofstream::binary);
-	m_camera->getImageData(ofs, id);
+	file.getImageData(ofs);
 	ofs.flush();
 	ofs.close();
 }

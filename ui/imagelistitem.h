@@ -42,14 +42,12 @@ public:
 	
 	bool isNull() const;
 	
-	int getId() const;
-	QString getSha1() const;
 	QDateTime getTime() const;
 	QImage getImage() const;
 	
+	Lyli::FileListEntry &getFileEntry();
+	
 	Q_PROPERTY(bool null READ isNull)
-	Q_PROPERTY(int id READ getId)
-	Q_PROPERTY(QString sha1 READ getSha1)
 	Q_PROPERTY(QDateTime time READ getTime)
 	Q_PROPERTY(QImage image READ getImage)
 

@@ -56,7 +56,8 @@ namespace Lyli {
 
 class Camera::Impl {
 public:
-	Impl(const Usbpp::MassStorage::MSDevice &device_) :
+	Impl(Camera *camera_, const Usbpp::MassStorage::MSDevice &device_) :
+		camera(camera_),
 		device(device_)
 	{
 		// ensure that the device is opened
@@ -127,7 +128,7 @@ public:
 		return info;
 	}
 	
-	FileList getFileList() {
+	FileList getPictureList() {
 		Usbpp::ByteBuffer response;
 		
 		std::unique_lock<std::mutex> cameraLock(cameraAccessMutex);
@@ -141,10 +142,11 @@ public:
 		
 		cameraLock.unlock();
 		
-		return parseFileList(response);
+		return parseFileList(camera, response);
 	}
 	
-	void getFile(std::ostream &out, const char *fileName) {
+	void getFile(std::ostream &out, const char *fileName)
+	{
 		int transferred;
 		unsigned char dataBuffer[65536];
 		Usbpp::ByteBuffer response;
@@ -174,7 +176,7 @@ public:
 #endif
 	}
 	
-private:
+	Camera *camera;
 	Usbpp::MassStorage::MSDevice device;
 	
 	mutable std::mutex cameraAccessMutex;
@@ -185,7 +187,7 @@ Camera::Camera() : pimpl(nullptr)
 
 }
 
-Camera::Camera(Camera::Impl* impl) : pimpl(impl)
+Camera::Camera(const Usbpp::MassStorage::MSDevice &device) : pimpl(new Impl(this, device))
 {
 	
 }
@@ -201,6 +203,7 @@ Camera::~Camera()
 Camera::Camera(Camera&& other) noexcept
 {
 	pimpl = other.pimpl;
+	pimpl->camera = this;
 	other.pimpl = nullptr;
 }
 
@@ -211,6 +214,8 @@ Camera& Camera::operator=(Camera&& other) noexcept
 	}
 	
 	std::swap(pimpl, other.pimpl);
+	pimpl->camera = this;
+	other.pimpl->camera = &other;
 	return *this;
 }
 
@@ -241,43 +246,16 @@ void Camera::getVCM(std::ostream &os)
 	pimpl->getFile(os, "A:\\VCM.TXT");
 }
 
-FileList Camera::getFileList()
+FileList Camera::getPictureList()
 {
 	assert(pimpl != nullptr);
 	
-	return pimpl->getFileList();
+	return pimpl->getPictureList();
 }
 
-void Camera::getImageMetadata(std::ostream& os, int id)
+void Camera::getFile(std::ostream &out, const std::string &fileName) const
 {
-	assert(pimpl != nullptr);
-	
-	char fileName[256];
-	std::snprintf(fileName, 256, "I:\\DCIM\\100PHOTO\\IMG_%04d.TXT", id);
-	fileName[255] = '\0';
-	return pimpl->getFile(os, fileName);
-}
-
-void Camera::getImageThumbnail(std::ostream& os, int id)
-{
-	assert(pimpl != nullptr);
-	
-	char fileName[256];
-	std::snprintf(fileName, 256, "I:\\DCIM\\100PHOTO\\IMG_%04d.128", id);
-	fileName[255] = '\0';
-	return pimpl->getFile(os, fileName);
-}
-
-// TODO: add checksum control
-// eg. http://piliopoulos.wordpress.com/2011/02/16/c-api-openssl-libcrypto-sample-code/
-void Camera::getImageData(std::ostream& os, int id)
-{
-	assert(pimpl != nullptr);
-	
-	char fileName[256];
-	std::snprintf(fileName, 256, "I:\\DCIM\\100PHOTO\\IMG_%04d.RAW", id);
-	fileName[255] = '\0';
-	return pimpl->getFile(os, fileName);
+	return pimpl->getFile(out, fileName.c_str());
 }
 
 CameraList getCameras(Usbpp::Context &context)
@@ -291,7 +269,7 @@ CameraList getCameras(Usbpp::Context &context)
 			dev.open(true);
 			libusb_device_descriptor descr(dev.getDescriptor());
 			if (descr.idVendor == 0x24cf && descr.idProduct == 0x00a1) {
-				cameras.push_back(Camera(new Camera::Impl(dev)));
+				cameras.push_back(Camera(dev));
 			}
 			else {
 				dev.close();

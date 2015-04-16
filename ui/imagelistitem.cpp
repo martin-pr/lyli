@@ -57,45 +57,17 @@ bool ImageListItem::isNull() const
 	return m_camera == nullptr;
 }
 
-int ImageListItem::getId() const
-{
-	if (m_camera == nullptr) {
-		return -1;
-	}
-	
-	return m_fileEntry.id;
-}
-
-QString ImageListItem::getSha1() const
-{
-	if (m_camera == nullptr) {
-		return QString();
-	}
-	
-	QString result;
-	result.setNum(m_fileEntry.sha1[0], 16);
-	// simple but extremely ineffective
-	for (int i = 1; i < 20; ++i) {
-		QString tmp;
-		tmp.setNum(m_fileEntry.sha1[i], 16);
-		result += QStringLiteral(" ") + tmp;
-	}
-	return result;
-}
-
 QDateTime ImageListItem::getTime() const
 {
 	if (m_camera == nullptr) {
 		return QDateTime();
 	}
 	
-	return QDateTime::fromTime_t(m_fileEntry.time);
+	return QDateTime::fromTime_t(m_fileEntry.getTime());
 }
 
 QImage ImageListItem::getImage() const
 {
-	
-	
 	if (m_image && ! m_image->isNull()) {
 		return *m_image;
 	}
@@ -108,7 +80,7 @@ QImage ImageListItem::getImage() const
 	}
 	
 	std::stringstream ss;
-	m_camera->getImageThumbnail(ss, m_fileEntry.id);
+	m_fileEntry.getImageThumbnail(ss);
 	
 	std::size_t pos(0);
 	char buf[2];
@@ -129,4 +101,9 @@ QImage ImageListItem::getImage() const
 	}
 	
 	return *m_image;
+}
+
+Lyli::FileListEntry &ImageListItem::getFileEntry()
+{
+	return m_fileEntry;
 }

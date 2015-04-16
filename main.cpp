@@ -51,22 +51,16 @@ void getCameraInformation(Lyli::Camera &camera) {
 }
 
 void listFiles(Lyli::Camera &camera) {
-	Lyli::FileList fileList(camera.getFileList());
+	Lyli::FileList fileList(camera.getPictureList());
 	
-	std::cout << std::setw(5) <<"id" << std::setw(42) << "sha1" << std::setw(28) << "date" << std::endl;
+	std::cout << std::setw(3) <<"id" << std::setw(28) << "date" << std::endl;
+	std::size_t i(0);
 	for (Lyli::FileListEntry file : fileList) {
-		// id
-		std::cout << std::setw(5) << file.id;
-		
-		// sha1
-		std::stringstream ss;
-		for (int i(0); i < 20; ++i) {
-			ss << std::setfill('0') << std::setw(2) << std::hex << (unsigned int) file.sha1[i];
-		}
-		std::cout << std::setw(42) << ss.str();
+		std::cout << std::setw(3) << i++;
 		
 		// time
-		std::tm *tm = std::localtime(&file.time);
+		std::time_t time(file.getTime());
+		std::tm *tm = std::localtime(&time);
 		char buf[29];
 		std::strftime(buf, 28, "%c", tm);
 		buf[28] = '\0';
@@ -77,24 +71,26 @@ void listFiles(Lyli::Camera &camera) {
 }
 
 void downloadImage(Lyli::Camera &camera, int id) {
+	Lyli::FileList fileList(camera.getPictureList());
+	
 	char outputFile[50];
 	std::ofstream ofs;
 	
 	std::snprintf(outputFile, 50, "%04d.TXT", id);
 	ofs.open(outputFile, std::ofstream::out | std::ofstream::binary);
-	camera.getImageMetadata(ofs, id);
+	fileList[id].getImageMetadata(ofs);
 	ofs.flush();
 	ofs.close();
 	
 	std::snprintf(outputFile, 50, "%04d.128", id);
 	ofs.open(outputFile, std::ofstream::out | std::ofstream::binary);
-	camera.getImageThumbnail(ofs, id);
+	fileList[id].getImageThumbnail(ofs);
 	ofs.flush();
 	ofs.close();
 	
 	std::snprintf(outputFile, 50, "%04d.RAW", id);
 	ofs.open(outputFile, std::ofstream::out | std::ofstream::binary);
-	camera.getImageData(ofs, id);
+	fileList[id].getImageData(ofs);
 	ofs.flush();
 	ofs.close();
 }

@@ -18,13 +18,14 @@
 #ifndef LYLI_FILELIST_PARSER_H_
 #define LYLI_FILELIST_PARSER_H_
 
-#include "camera.h"
-
 #include "usbpp/buffer.h"
+#include "filelist.h"
 
 namespace Lyli {
 
-FileList parseFileList(const Usbpp::ByteBuffer &buffer);
+class Camera;
+
+FileList parseFileList(Camera *camera, const Usbpp::ByteBuffer &buffer);
 
 }
 
