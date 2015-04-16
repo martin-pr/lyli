@@ -82,12 +82,8 @@ void ImageListModel::downloadFile(const QModelIndex &index, const QString &outpu
 	std::ofstream ofs;
 	Lyli::FileListEntry &file(m_fileList[index.row()].getFileEntry());
 	
-	std::time_t time(file.getTime());
-	std::tm *tm = std::localtime(&time);
-	char buf[29];
-	std::strftime(buf, 28, "%c", tm);
-
-	QString outputFileBase =  outputDirectory + QDir::separator() + buf;
+	QDateTime datetime = m_fileList[index.row()].getTime();
+	QString outputFileBase =  outputDirectory + QDir::separator() + datetime.toString("yyyy-MM-dd_HH:mm:ss");
 
 	qDebug() << "downloading file " << outputFileBase;
 
