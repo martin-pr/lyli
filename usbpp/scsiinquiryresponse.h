@@ -78,7 +78,7 @@ public:
 	 * 
 	 * \param descriptor a descriptor in range 0-7
 	 */
-	ByteBuffer getVersionDescriptor(int descriptor) const;
+	ByteBuffer getVersionDescriptor(unsigned int descriptor) const;
 	
 	ByteBuffer getVendorSpecific() const;
 

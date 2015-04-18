@@ -192,6 +192,8 @@ std::ostream& operator<<(std::ostream& os, const CommandBlockWrapper::Flags& fla
 		case Usbpp::MassStorage::CommandBlockWrapper::Flags::INVALID:
 			return os << "INVALID (0x7F)";
 	}
+	
+	return os;
 }
 
 }

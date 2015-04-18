@@ -55,11 +55,12 @@ CommandStatusWrapper MSDevice::sendCommand(unsigned char endpoint, const Command
 	
 	// if the command is an outgoing command that expects a response, read it
 	if ((endpoint & LIBUSB_ENDPOINT_IN) == 0 && command.getTransferLength() != 0) {
-		unsigned char tmpBuf[command.getTransferLength()];
+		unsigned char *tmpBuf = new unsigned char[command.getTransferLength()];
 		bulkTransfer(inEndpoint, tmpBuf, command.getTransferLength(), &transferred, 2000);
 		if (data != nullptr) {
 			*data = ByteBuffer(tmpBuf, transferred);
 		}
+		delete tmpBuf;
 	}
 	
 	// read status

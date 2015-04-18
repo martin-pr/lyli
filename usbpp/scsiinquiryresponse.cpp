@@ -210,7 +210,7 @@ bool InquiryResponse::getIUS() const
 	return 0;
 }
 
-ByteBuffer InquiryResponse::getVersionDescriptor(int descriptor) const
+ByteBuffer InquiryResponse::getVersionDescriptor(unsigned int descriptor) const
 {
 	if (mbuffer.size() >= 60 + 2*descriptor) {
 		return ByteBuffer(mbuffer.data() + 58 + 2*descriptor, 2);

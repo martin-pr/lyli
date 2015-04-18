@@ -69,10 +69,10 @@ m_data(height, width, CV_16UC3)
 	std::size_t pos(0);
 	
 	uint16_t *data = reinterpret_cast<uint16_t*>(m_data.data);
-	for (int y = 0; y < height; ++y) {
+	for (std::size_t y = 0; y < height; ++y) {
 		// this assumes that the x-dimension has even number of pixels
 		// so two pixels can be read at once
-		for (int x = 0; x < width;) {
+		for (std::size_t x = 0; x < width;) {
 			is.read(reinterpret_cast<char*>(buf), 3);
 		
 			// mask out the first twelve bits
@@ -102,9 +102,9 @@ cv::Mat &RawImage::getData()
 void RawImage::demosaic()
 {
 	uint16_t *data = reinterpret_cast<uint16_t*>(m_data.data);
-	const std::size_t Y_OFF = m_data.cols * 3; // the offset used when adding (or subtracting) 1 to y-dimension
-	const std::size_t X_OFF = 3; // // the offset used when adding (or subtracting) 1 to x-dimension
-	std::size_t x, y, pos;
+	const int Y_OFF = m_data.cols * 3; // the offset used when adding (or subtracting) 1 to y-dimension
+	const int X_OFF = 3; // // the offset used when adding (or subtracting) 1 to x-dimension
+	int x, y, pos;
 	// red lines and blue stripes
 	for (y = 1; y < m_data.rows; y += 2) {
 		for (x = 2; x < m_data.cols; x += 2) {

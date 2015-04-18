@@ -96,7 +96,7 @@ std::vector< Device > Context::getDevices()
 	int count = libusb_get_device_list(ctx, &devices);
 	
 	std::vector<Device> devicesRes;
-	for (std::size_t i(0); i < count; ++i) {
+	for (int i(0); i < count; ++i) {
 		devicesRes.push_back(Device(devices[i]));
 	}
 	

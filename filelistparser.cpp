@@ -52,14 +52,14 @@ namespace {
 		Lyli::Sha1Array sha1;
 		const char *psha1(reinterpret_cast<const char*>(line + 48 + 5));
 		for (int i(0); i < 20; ++i) {
-			int tmp;
+			unsigned int tmp;
 			std::sscanf(psha1+ 2*i, "%02x", &tmp);
 			sha1[i] = tmp;
 		}
 		
 		// parse time
 		const char *ptime(reinterpret_cast<const char*>(line + 96));
-		std::tm timeStruct = {};
+		std::tm timeStruct;
 		std::sscanf(ptime, "%04d-%02d-%02d", &(timeStruct.tm_year), &(timeStruct.tm_mon), &(timeStruct.tm_mday));
 		std::sscanf(ptime + 11, "%02d:%02d:%02d", &(timeStruct.tm_hour), &(timeStruct.tm_min), &(timeStruct.tm_sec));
 		// fix the std::tm weirdness...
@@ -79,7 +79,7 @@ FileList parseFileList(Camera *camera, const Usbpp::ByteBuffer& buffer)
 	// length of the line
 	std::ptrdiff_t linelen(* reinterpret_cast<const uint32_t*>(buffer.data() + 4));
 	// position in the data (begins at the first entry)
-	std::ptrdiff_t pos((*reinterpret_cast<const uint32_t*>(buffer.data() + 8)) * 8 + 12);
+	std::size_t pos((*reinterpret_cast<const uint32_t*>(buffer.data() + 8)) * 8 + 12);
 	
 	// each file has an entry long exactly 124 bytes
 	while (pos + linelen <= buffer.size()) {

@@ -163,6 +163,8 @@ std::ostream& operator<<(std::ostream& os, const CommandStatusWrapper::Status &s
 		case Usbpp::MassStorage::CommandStatusWrapper::Status::RESERVED:
 			return os << "RESERVED";
 	}
+	
+	return os;
 }
 
 }
