@@ -60,7 +60,7 @@ CommandStatusWrapper MSDevice::sendCommand(unsigned char endpoint, const Command
 		if (data != nullptr) {
 			*data = ByteBuffer(tmpBuf, transferred);
 		}
-		delete tmpBuf;
+		delete[] tmpBuf;
 	}
 	
 	// read status
