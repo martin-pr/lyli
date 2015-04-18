@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(lyli CXX)
 
+set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wstrict-aliasing -Wextra")
+
 ################
 # Dependencies #
 ################
