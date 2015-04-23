@@ -10,6 +10,7 @@ may work, too.
 * c++14 enabled compiler - tested with gcc 4.9
 * libusb 1.0
 * Qt 5 (Qt5Core, Qt5Widgets) - tested with Qt 5.4, required for GUI
+* OpenCV
 
 ### Compilation
 To obtain the sources, you can either use mercurial to clone the repository, or you can download the repository snapshot from [downloads](https://bitbucket.org/stativ/lyli/downloads).
@@ -36,3 +37,4 @@ There are two binaries build:
 ## License
 Most of the Lyli is licensed under LGPL v3, only the Qt GUI (in the ui/ subdirectory)
 is licensed under GPL v3.
+
