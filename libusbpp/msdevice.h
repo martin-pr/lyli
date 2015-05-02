@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIBUSBPP_MASS_DEBICE_H_
-#define LIBUSBPP_MASS_DEBICE_H_
+#ifndef LIBUSBPP_MASS_DEVICE_H_
+#define LIBUSBPP_MASS_DEVICE_H_
 
 #include "buffer.h"
 #include "device.h"
@@ -34,8 +34,9 @@ class InquiryResponse;
 class MSDevice : public Device {
 public:
 	using Device::Device;
-	
-    MSDevice(const Device &device);
+
+	MSDevice();
+	MSDevice(const Device &device);
 	MSDevice(const MSDevice &device);
 	MSDevice(MSDevice &&device) noexcept;
 	

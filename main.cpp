@@ -24,7 +24,7 @@
 #include <sstream>
 #include <unistd.h>
 
-#include "usbpp/context.h"
+#include "libusbpp/context.h"
 #include "camera.h"
 
 void showHelp() {

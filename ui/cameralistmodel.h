@@ -22,7 +22,7 @@
 #include <QtCore/QAbstractListModel>
 
 #include <camera.h>
-#include <usbpp/context.h>
+#include <libusbpp/context.h>
 
 class CameraListModel : public QAbstractListModel
 {

@@ -15,31 +15,42 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIBUSBPP_MASS_SCSI_INQUIRY_H_
-#define LIBUSBPP_MASS_SCSI_INQUIRY_H_
+#ifndef LIBUSBPP_HID_DEVICE_H_
+#define LIBUSBPP_HID_DEVICE_H_
 
-#include "cbw.h"
+#include "device.h"
+#include "hidreport.h"
 
 namespace Usbpp {
-namespace MassStorage {
-namespace SCSI {
+namespace HID {
 
-class Inquiry : public CommandBlockWrapper {
+/**
+ * USB HID device.
+ *
+ * The HID device can be constructed from a standard Device class.
+ * It provides an easy interface to HID specific features.
+ */
+class HIDDevice : public Device {
 public:
+	using Device::Device;
+
+	HIDDevice();
+	HIDDevice(const Device &device);
+	HIDDevice(const HIDDevice &device);
+	HIDDevice(HIDDevice &&device) noexcept;
+	
+	HIDDevice& operator=(const HIDDevice &other) = default;
+	HIDDevice& operator=(HIDDevice &&other) noexcept = default;
+	
 	/**
-	 * \param allocationLength the allocation length should be at least 36
-	 *                         Note that the 36 bytes is minimum for the Inquiry
-	 *                         response. It may be necessary to increase the allocationLength
-	 *                         based on the additional length field from response.
+	 * Get the USB HID report descriptor.
+	 *
+	 * @param bInterfaceNumber interface to use.
+	 * @return report descriptor parsed as a tree.
 	 */
-	Inquiry(uint8_t LUN, uint16_t allocationLength);
-	Inquiry(uint8_t LUN, uint16_t allocationLength, uint8_t page);
-    Inquiry(const CommandBlockWrapper& other);
-    Inquiry(CommandBlockWrapper&& other);
-    Inquiry& operator=(Inquiry &&other) noexcept = default;
+	ReportTree getHidReport(int bInterfaceNumber) const;
 };
 
-}
 }
 }
 

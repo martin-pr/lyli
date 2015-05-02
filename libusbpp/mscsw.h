@@ -29,7 +29,7 @@ namespace MassStorage {
 
 class CommandStatusWrapper {
 public:
-	enum class Status {
+	enum class Status : uint8_t {
 		PASSED = 0x00,
 		FAILED = 0x01,
 		PHASE_ERROR = 0x02,
@@ -50,15 +50,11 @@ public:
 	uint32_t getTag() const;
 	uint32_t getDataResidue() const;
 	Status getStatus() const;
-	
-	std::size_t getDataLength() const;
-	unsigned char* getData() const;
-	
-	ByteBuffer getBuffer() const;
+
+	const ByteBuffer &getBuffer() const;
 	
 private:
-	static constexpr std::size_t CSW_LEN = 13;
-	uint8_t *data;
+	ByteBuffer mdata;
 };
 
 std::ostream &operator<<(std::ostream &os, const CommandStatusWrapper::Status &status);

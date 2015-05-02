@@ -33,6 +33,11 @@ public:
 	Buffer() : mdata(nullptr), msize(0) {
 		
 	}
+
+	Buffer(std::size_t msize_) {
+		mdata = static_cast<T*>(malloc(msize_ * sizeof(T)));
+		msize = msize_;
+	}
 	
 	Buffer(const T* data_, std::size_t msize_) {
 		mdata = static_cast<T*>(malloc(msize_ * sizeof(T)));
@@ -65,6 +70,10 @@ public:
 		if (this == &other) {
 			return *this;
 		}
+		if(msize == other.msize) {
+			std::memcpy(mdata, other.mdata, msize);
+			return *this;
+		}
 		Buffer tmp(other);
 		std::swap(mdata, tmp.mdata);
 		std::swap(msize, tmp.msize);
@@ -79,6 +88,14 @@ public:
 		std::swap(msize, other.msize);
 		return *this;
 	}
+
+	T &operator[](std::size_t i) {
+		return mdata[i];
+	}
+
+	const T &operator[](std::size_t i) const {
+		return mdata[i];
+	}
 	
 	Buffer<T> &append(const Buffer<T> &other) {
 		T *tmp(static_cast<T*>(realloc(mdata, msize + other.msize)));
@@ -92,6 +109,18 @@ public:
 		msize += other.msize;
 		
 		return *this;
+	}
+
+	void resize(std::size_t size) {
+		if(size == msize) {
+			return;
+		}
+		T *tmp(static_cast<T*>(realloc(mdata, size)));
+		if (tmp == nullptr) {
+			// TODO: throw
+		}
+		mdata = tmp;
+		msize = size;
 	}
 	
 	std::size_t size() const {

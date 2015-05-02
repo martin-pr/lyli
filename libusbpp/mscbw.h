@@ -59,16 +59,11 @@ public:
 	uint8_t getCommandBlockLength() const;
 	std::vector<uint8_t> getCommandBlock() const;
 	
-	std::size_t getDataLength() const;
-	unsigned char *getData() const;
-	
-	ByteBuffer getBuffer() const;
+	const ByteBuffer &getBuffer() const;
 	
 protected:
-	uint32_t generateTag() const;
-	
-	static constexpr std::size_t CBW_LEN = 31;
-	uint8_t *data;
+	virtual uint32_t generateTag() const;
+	ByteBuffer mdata;
 };
 
 std::ostream &operator<<(std::ostream &os, const CommandBlockWrapper::Flags &flags);

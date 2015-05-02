@@ -19,18 +19,19 @@
 
 #include "filelistparser.h"
 
-#include "usbpp/buffer.h"
-#include "usbpp/context.h"
-#include "usbpp/msdevice.h"
-#include "usbpp/cbw.h"
-#include "usbpp/csw.h"
-#include "usbpp/scsiinquiryresponse.h"
+#include "libusbpp/buffer.h"
+#include "libusbpp/context.h"
+#include "libusbpp/msdevice.h"
+#include "libusbpp/mscbw.h"
+#include "libusbpp/mscsw.h"
+#include "libusbpp/msscsiinquiryresponse.h"
 
 #include <cassert>
 #include <cstring>
-#include <thread>
+#include <libusb.h>
 #include <mutex>
 #include <ostream>
+#include <thread>
 
 // TODO: remove this later
 #define NDEBUG
@@ -147,21 +148,21 @@ public:
 	
 	void getFile(std::ostream &out, const char *fileName)
 	{
-		int transferred;
-		unsigned char dataBuffer[65536];
+		Usbpp::ByteBuffer dataBuffer(65536);
 		Usbpp::ByteBuffer response;
 		
 		std::size_t len(std::strlen(fileName) + 1);
+		Usbpp::ByteBuffer fileBuf(reinterpret_cast<const uint8_t*>(fileName), len);
 		
 		std::unique_lock<std::mutex> cameraLock(cameraAccessMutex);
 		
 		// request the file
 		Usbpp::MassStorage::CommandBlockWrapper cmdReqFile(len, 0, 0, {0xc2, 00, 01, 00, 00, 00, 00, 00, 00, 00, 00, 00});
-		device.bulkTransfer(LIBUSB_ENDPOINT_OUT | 0x02, cmdReqFile.getData(), cmdReqFile.getDataLength(), &transferred, 0);
-		device.bulkTransfer(LIBUSB_ENDPOINT_OUT | 0x02, (unsigned char*) fileName, len, &transferred, 0);
+		device.bulkTransferOut(LIBUSB_ENDPOINT_OUT | 0x02, cmdReqFile.getBuffer(), 0);
+		device.bulkTransferOut(LIBUSB_ENDPOINT_OUT | 0x02, fileBuf, 0);
 		
 		// check the request status
-		device.bulkTransfer(LIBUSB_ENDPOINT_IN | 0x02, dataBuffer, 65536, &transferred, 0);
+		device.bulkTransferIn(LIBUSB_ENDPOINT_IN | 0x02, dataBuffer, 0);
 		
 		// get the data
 		response = downloadData();

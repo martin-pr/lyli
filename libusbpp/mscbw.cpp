@@ -15,86 +15,82 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cbw.h"
+#include "mscbw.h"
 
 #include <cassert>
 #include <cstring>
 
+namespace {
+constexpr std::size_t CBW_LEN = 31;
+}
+
 namespace Usbpp {
 namespace MassStorage {
 
-CommandBlockWrapper::CommandBlockWrapper() {
-	data = new uint8_t[CBW_LEN];
-	std::memset(data, 0, CBW_LEN);
+CommandBlockWrapper::CommandBlockWrapper() : mdata(CBW_LEN) {
+	std::memset(&mdata[0], 0, CBW_LEN);
 }
 
 CommandBlockWrapper::CommandBlockWrapper(const ByteBuffer &buffer) {
 	assert(buffer.size() <= CBW_LEN);
-	
-	data = new uint8_t[CBW_LEN];
-	std::memcpy(data, buffer.data(), buffer.size());
-}
 
-CommandBlockWrapper::CommandBlockWrapper(
-	uint32_t dCBWDataTransferLength,
-	uint8_t bmCBWFlags,
-	uint8_t bCBWLUN,
-	std::vector<uint8_t> CBWCB
-)
-{
-	data = new uint8_t[CBW_LEN];
-	// only CBWCB needs to be zeroed as the rest will be written into
-	std::memset(&data[15], 0, CBW_LEN - 15);
-	
-	// dCBWSignature
-	data[0] = 'U';
-	data[1] = 'S';
-	data[2] = 'B';
-	data[3] = 'C';
-	// dCBWTag
-	uint32_t tag(generateTag());
-	data[4] = tag & 0xFF;
-	data[5] = (tag >> 8) & 0xFF;
-	data[6] = (tag >> 16) & 0xFF;
-	data[7] = (tag >> 24) & 0xFF;
-	// dCBWDataTransferLength
-	data[8] = dCBWDataTransferLength & 0xFF;
-	data[9] = (dCBWDataTransferLength >> 8) & 0xFF;
-	data[10] = (dCBWDataTransferLength >> 16) & 0xFF;
-	data[11] = (dCBWDataTransferLength >> 24) & 0xFF;
-	// bmCBWFlags
-	assert((bmCBWFlags & 0x3F) ==  0); // reserved bits
-	assert((bmCBWFlags & 0x40) ==  0); // obsolete bits
-	data[12] = bmCBWFlags;
-	// bCBWLUN
-	assert((bCBWLUN & 0xF) ==  bCBWLUN);
-	data[13] = bCBWLUN;
-	// bCBWCBLength
-	assert((CBWCB.size() & 0x1F) ==  CBWCB.size());
-	data[14] = CBWCB.size() & 0x1F;
-	// CBWCB
-	std::memcpy(&data[15], &CBWCB[0], CBWCB.size());
-}
-
-CommandBlockWrapper::~CommandBlockWrapper()
-{
-	// required only because of the move constructor
-	if (data) {
-		delete[] data;
-		data = nullptr;
+	mdata = buffer;
+	mdata.resize(CBW_LEN);
+	// fill the rest with zeroes
+	if(buffer.size() != CBW_LEN) {
+		std::memset(&mdata[buffer.size()], 0, CBW_LEN - buffer.size());
 	}
 }
 
-CommandBlockWrapper::CommandBlockWrapper(const CommandBlockWrapper& other)
+CommandBlockWrapper::CommandBlockWrapper(uint32_t dCBWDataTransferLength,
+                                         uint8_t bmCBWFlags,
+                                         uint8_t bCBWLUN,
+                                         std::vector<uint8_t> CBWCB) :
+	mdata(CBW_LEN)
 {
-	data = new uint8_t[CBW_LEN];
-	std::memcpy(data, other.data, CBW_LEN);
+	// only CBWCB needs to be zeroed as the rest will be written into
+	std::memset(&mdata[15], 0, CBW_LEN - 15);
+	
+	// dCBWSignature
+	mdata[0] = 'U';
+	mdata[1] = 'S';
+	mdata[2] = 'B';
+	mdata[3] = 'C';
+	// dCBWTag
+	uint32_t tag(generateTag());
+	mdata[4] = tag & 0xFF;
+	mdata[5] = (tag >> 8) & 0xFF;
+	mdata[6] = (tag >> 16) & 0xFF;
+	mdata[7] = (tag >> 24) & 0xFF;
+	// dCBWDataTransferLength
+	mdata[8] = dCBWDataTransferLength & 0xFF;
+	mdata[9] = (dCBWDataTransferLength >> 8) & 0xFF;
+	mdata[10] = (dCBWDataTransferLength >> 16) & 0xFF;
+	mdata[11] = (dCBWDataTransferLength >> 24) & 0xFF;
+	// bmCBWFlags
+	assert((bmCBWFlags & 0x3F) ==  0); // reserved bits
+	assert((bmCBWFlags & 0x40) ==  0); // obsolete bits
+	mdata[12] = bmCBWFlags;
+	// bCBWLUN
+	assert((bCBWLUN & 0xF) ==  bCBWLUN);
+	mdata[13] = bCBWLUN;
+	// bCBWCBLength
+	assert((CBWCB.size() & 0x1F) ==  CBWCB.size());
+	mdata[14] = CBWCB.size() & 0x1F;
+	// CBWCB
+	std::memcpy(&mdata[15], &CBWCB[0], CBWCB.size());
 }
 
-CommandBlockWrapper::CommandBlockWrapper(CommandBlockWrapper&& other) noexcept
-{
-	data = other.data;
-	other.data = nullptr;
+CommandBlockWrapper::~CommandBlockWrapper() {
+
+}
+
+CommandBlockWrapper::CommandBlockWrapper(const CommandBlockWrapper& other) : mdata(other.mdata) {
+
+}
+
+CommandBlockWrapper::CommandBlockWrapper(CommandBlockWrapper&& other) noexcept : mdata(std::move(other.mdata)) {
+
 }
 
 CommandBlockWrapper& CommandBlockWrapper::operator=(const CommandBlockWrapper& other)
@@ -102,7 +98,7 @@ CommandBlockWrapper& CommandBlockWrapper::operator=(const CommandBlockWrapper& o
 	if (this == &other) {
 		return *this;
 	}
-	std::memcpy(data, other.data, CBW_LEN);
+	mdata = other.mdata;
 	
 	return *this;
 }
@@ -113,7 +109,7 @@ CommandBlockWrapper& CommandBlockWrapper::operator=(CommandBlockWrapper&& other)
 		return *this;
 	}
 	
-	std::swap(data, other.data);
+	std::swap(mdata, other.mdata);
 	
 	return *this;
 }
@@ -121,59 +117,49 @@ CommandBlockWrapper& CommandBlockWrapper::operator=(CommandBlockWrapper&& other)
 uint32_t CommandBlockWrapper::getTag() const
 {
 	uint32_t tag;
-	tag = data[7];
-	tag = (tag << 8) | data[6];
-	tag = (tag << 8) | data[5];
-	tag = (tag << 8) | data[4];
+	tag = mdata[7];
+	tag = (tag << 8) | mdata[6];
+	tag = (tag << 8) | mdata[5];
+	tag = (tag << 8) | mdata[4];
 	return tag;
 }
 
 uint32_t CommandBlockWrapper::getTransferLength() const
 {
 	uint32_t len;
-	len = data[11];
-	len = (len << 8) | data[10];
-	len = (len << 8) | data[9];
-	len = (len << 8) | data[8];
+	len = mdata[11];
+	len = (len << 8) | mdata[10];
+	len = (len << 8) | mdata[9];
+	len = (len << 8) | mdata[8];
 	return len;
 }
 
 CommandBlockWrapper::Flags CommandBlockWrapper::getFlags() const
 {
-	if ((data[12] & static_cast<uint8_t>(Flags::INVALID)) != 0) {
+	if ((mdata[12] & static_cast<uint8_t>(Flags::INVALID)) != 0) {
 		return Flags::INVALID;
 	}
-	return static_cast<Flags>(data[12]);
+	return static_cast<Flags>(mdata[12]);
 }
 
 uint8_t CommandBlockWrapper::getLun() const
 {
-	return data[13];
+	return mdata[13];
 }
 
 uint8_t CommandBlockWrapper::getCommandBlockLength() const
 {
-	return data[14];
+	return mdata[14];
 }
 
 std::vector< uint8_t > CommandBlockWrapper::getCommandBlock() const
 {
-	return std::vector<uint8_t>(&data[15], &data[15] + getCommandBlockLength());
+	return std::vector<uint8_t>(&mdata[15], &mdata[15] + getCommandBlockLength());
 }
 
-std::size_t CommandBlockWrapper::getDataLength() const
+const ByteBuffer &CommandBlockWrapper::getBuffer() const
 {
-	return CBW_LEN;
-}
-
-unsigned char* CommandBlockWrapper::getData() const
-{
-	return static_cast<unsigned char*>(const_cast<uint8_t*>(data));
-}
-
-ByteBuffer CommandBlockWrapper::getBuffer() const
-{
-	return ByteBuffer(getData(), getDataLength());
+	return mdata;
 }
 
 uint32_t CommandBlockWrapper::generateTag() const

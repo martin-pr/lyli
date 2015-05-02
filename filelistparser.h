@@ -18,7 +18,7 @@
 #ifndef LYLI_FILELIST_PARSER_H_
 #define LYLI_FILELIST_PARSER_H_
 
-#include "usbpp/buffer.h"
+#include "libusbpp/buffer.h"
 #include "filelist.h"
 
 namespace Lyli {

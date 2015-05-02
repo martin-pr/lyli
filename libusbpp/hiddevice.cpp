@@ -15,34 +15,42 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIBUSBPP_CONTEXT_H_
-#define LIBUSBPP_CONTEXT_H_
+#include "hiddevice.h"
 
-#include "device.h"
+#include "buffer.h"
 
-#include <vector>
-
-struct libusb_context;
+#include <libusb.h>
+#include <memory>
 
 namespace Usbpp {
+namespace HID {
 
-class Context {
-public:
-	Context();
-	Context(const Context &other);
-	Context(Context &&other) noexcept;
-	~Context();
-	
-	Context &operator=(const Context &other);
-	Context &operator=(Context &&other) noexcept;
-	
-	std::vector<Device> getDevices();
-	
-private:
-	int *refcount;
-	libusb_context *ctx;
-};
+HIDDevice::HIDDevice() {
 
 }
 
-#endif
+HIDDevice::HIDDevice(const Device& device): Device(device) {
+
+}
+
+HIDDevice::HIDDevice(const HIDDevice& device) : Device(device) {
+
+}
+
+HIDDevice::HIDDevice(HIDDevice&& device) noexcept: Device(std::move(device)) {
+
+}
+
+ReportTree HIDDevice::getHidReport(int bInterfaceNumber) const {
+	ByteBuffer tmpBuf(4096);
+	int res(controlTransferIn(LIBUSB_ENDPOINT_IN | LIBUSB_RECIPIENT_INTERFACE,
+	                  LIBUSB_REQUEST_GET_DESCRIPTOR,
+	                  (LIBUSB_DT_REPORT << 8)|bInterfaceNumber,
+	                  0,
+	                  tmpBuf, 2000));
+	tmpBuf.resize(res);
+	return ReportTree(tmpBuf);
+}
+
+}
+}

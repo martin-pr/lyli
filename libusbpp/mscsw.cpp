@@ -15,72 +15,64 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "csw.h"
+#include "mscsw.h"
 
 #include "buffer.h"
 
 #include <cassert>
 #include <cstring>
 
+namespace {
+constexpr std::size_t CSW_LEN = 13;
+}
+
 namespace Usbpp {
 namespace MassStorage {
 
-CommandStatusWrapper::CommandStatusWrapper() {
-	data = new uint8_t[CSW_LEN];
-	std::memset(data, 0, CSW_LEN);
+CommandStatusWrapper::CommandStatusWrapper() : mdata(CSW_LEN) {
+	std::memset(&mdata[0], 0, CSW_LEN);
 }
 
 CommandStatusWrapper::CommandStatusWrapper(const ByteBuffer &buffer) {
 	assert(buffer.size() == CSW_LEN);
-	
-	data = new uint8_t[CSW_LEN];
-	std::memcpy(data, buffer.data(), buffer.size());
+
+	mdata = buffer;
 }
 
-CommandStatusWrapper::CommandStatusWrapper(uint32_t dCSWTag, uint32_t dCSWDataResidue, uint8_t bCSWStatus)
+CommandStatusWrapper::CommandStatusWrapper(uint32_t dCSWTag, uint32_t dCSWDataResidue, uint8_t bCSWStatus) : mdata(CSW_LEN)
 {
-	data = new uint8_t[CSW_LEN];
-	std::memset(data, 0, CSW_LEN);
+	std::memset(&mdata[0], 0, CSW_LEN);
 	
 	// dCSWSignature
-	data[0] = 'U';
-	data[1] = 'S';
-	data[2] = 'B';
-	data[3] = 'S';
+	mdata[0] = 'U';
+	mdata[1] = 'S';
+	mdata[2] = 'B';
+	mdata[3] = 'S';
 	// dCSWTag
-	data[4] = (dCSWTag >> 24) & 0xFF;
-	data[5] = (dCSWTag >> 16) & 0xFF;
-	data[6] = (dCSWTag >> 8) & 0xFF;
-	data[7] = dCSWTag & 0xFF;
+	mdata[4] = (dCSWTag >> 24) & 0xFF;
+	mdata[5] = (dCSWTag >> 16) & 0xFF;
+	mdata[6] = (dCSWTag >> 8) & 0xFF;
+	mdata[7] = dCSWTag & 0xFF;
 	// dCSWDataResidue
-	data[8] = (dCSWDataResidue >> 24) & 0xFF;
-	data[9] = (dCSWDataResidue >> 16) & 0xFF;
-	data[10] = (dCSWDataResidue >> 8) & 0xFF;
-	data[11] = dCSWDataResidue & 0xFF;
+	mdata[8] = (dCSWDataResidue >> 24) & 0xFF;
+	mdata[9] = (dCSWDataResidue >> 16) & 0xFF;
+	mdata[10] = (dCSWDataResidue >> 8) & 0xFF;
+	mdata[11] = dCSWDataResidue & 0xFF;
 	// bCSWStatus
 	assert(bCSWStatus != 0x03 && bCSWStatus != 0x04); // obsolete
 	assert(bCSWStatus < 0x05); // reserved
-	data[12] = bCSWStatus;
+	mdata[12] = bCSWStatus;
 }
 
-CommandStatusWrapper::~CommandStatusWrapper()
-{
-	// required only because of the move constructor
-	if (data) {
-		delete[] data;
-		data = nullptr;
-	}
+CommandStatusWrapper::~CommandStatusWrapper() {
 }
 
-CommandStatusWrapper::CommandStatusWrapper(const CommandStatusWrapper& other)
-{
-	data = new uint8_t[CSW_LEN];
-	std::memcpy(data, other.data, CSW_LEN);
+CommandStatusWrapper::CommandStatusWrapper(const CommandStatusWrapper& other) : mdata(other.mdata) {
+
 }
 
-CommandStatusWrapper::CommandStatusWrapper(CommandStatusWrapper&& other) noexcept : data(other.data)
-{
-	other.data = nullptr;
+CommandStatusWrapper::CommandStatusWrapper(CommandStatusWrapper&& other) noexcept : mdata(std::move(other.mdata)) {
+
 }
 
 CommandStatusWrapper& CommandStatusWrapper::operator=(const CommandStatusWrapper& other)
@@ -88,7 +80,7 @@ CommandStatusWrapper& CommandStatusWrapper::operator=(const CommandStatusWrapper
 	if (this == &other) {
 		return *this;
 	}
-	std::memcpy(data, other.data, CSW_LEN);
+	mdata = other.mdata;
 	
 	return *this;
 }
@@ -98,7 +90,7 @@ CommandStatusWrapper& CommandStatusWrapper::operator=(CommandStatusWrapper&& oth
 	if (this == &other) {
 		return *this;
 	}
-	std::memcpy(data, other.data, CSW_LEN);
+	std::swap(mdata, other.mdata);
 	
 	return *this;
 }
@@ -106,47 +98,37 @@ CommandStatusWrapper& CommandStatusWrapper::operator=(CommandStatusWrapper&& oth
 uint32_t CommandStatusWrapper::getTag() const
 {
 	uint32_t tag;
-	tag = data[4];
-	tag = (tag << 8) | data[5];
-	tag = (tag << 8) | data[6];
-	tag = (tag << 8) | data[7];
+	tag = mdata[4];
+	tag = (tag << 8) | mdata[5];
+	tag = (tag << 8) | mdata[6];
+	tag = (tag << 8) | mdata[7];
 	return tag;
 }
 
 uint32_t CommandStatusWrapper::getDataResidue() const
 {
 	uint32_t residue;
-	residue = data[8];
-	residue = (residue << 8) | data[9];
-	residue = (residue << 8) | data[10];
-	residue = (residue << 8) | data[11];
+	residue = mdata[8];
+	residue = (residue << 8) | mdata[9];
+	residue = (residue << 8) | mdata[10];
+	residue = (residue << 8) | mdata[11];
 	return residue;
 }
 
 CommandStatusWrapper::Status CommandStatusWrapper::getStatus() const
 {
-	if (data[12] > 0x05) {
+	if (mdata[12] > 0x05) {
 		return Status::RESERVED;
 	}
-	if (data[12] >= 0x03) {
+	if (mdata[12] >= 0x03) {
 		return Status::OBSOLETE;
 	}
-	return static_cast<Status>(data[12]);
+	return static_cast<Status>(mdata[12]);
 }
 
-std::size_t CommandStatusWrapper::getDataLength() const
+const ByteBuffer &CommandStatusWrapper::getBuffer() const
 {
-	return CSW_LEN;
-}
-
-unsigned char* CommandStatusWrapper::getData() const
-{
-	return static_cast<unsigned char*>(const_cast<uint8_t*>(data));
-}
-
-ByteBuffer CommandStatusWrapper::getBuffer() const
-{
-	return ByteBuffer(getData(), getDataLength());
+	return mdata;
 }
 
 std::ostream& operator<<(std::ostream& os, const CommandStatusWrapper::Status &status)
