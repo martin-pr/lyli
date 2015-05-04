@@ -277,6 +277,7 @@ CameraList getCameras(Usbpp::Context &context)
 			}
 		}
 		catch (const Usbpp::DeviceException &e) {
+			dev.close();
 			// just silently ignore the exception and try the next device
 			continue;
 		}
