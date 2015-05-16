@@ -21,6 +21,7 @@
 
 #include "libusbpp/buffer.h"
 #include "libusbpp/context.h"
+#include "libusbpp/exception.h"
 #include "libusbpp/msdevice.h"
 #include "libusbpp/mscbw.h"
 #include "libusbpp/mscsw.h"
@@ -276,7 +277,7 @@ CameraList getCameras(Usbpp::Context &context)
 				dev.close();
 			}
 		}
-		catch (const Usbpp::DeviceException &e) {
+		catch (const Usbpp::Exception &e) {
 			dev.close();
 			// just silently ignore the exception and try the next device
 			continue;
