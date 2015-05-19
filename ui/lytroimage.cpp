@@ -27,6 +27,7 @@
 #include <cstdint>
 #include <fstream>
 
+#include <calibrator.h>
 #include <rawimage.h>
 
 namespace {
@@ -51,6 +52,12 @@ LytroImage::LytroImage(const char *file)
 	Lyli::RawImage image(fin, IMG_WIDTH, IMG_HEIGHT);
 	fin.close();
 	
+	// DEBUG: show prerocessed calibration image
+	/*Lyli::Calibrator calibrator;
+	calibrator.addImage(image.getData());
+	calibrator.calibrate();
+	uint16_t *rawImage = reinterpret_cast<uint16_t*>(calibrator.getcalibrationImage().data);*/
+
 	uint16_t *rawImage = reinterpret_cast<uint16_t*>(image.getData().data);
 	// combine the images
 	std::size_t pos(0);
