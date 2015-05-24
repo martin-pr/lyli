@@ -18,8 +18,13 @@
 #include "calibrator.h"
 
 #include <cstdint>
+#include <iostream>
 
 namespace {
+
+constexpr std::uint8_t MASK_EMPTY = 0;
+constexpr std::uint8_t MASK_PROCESSED = 128;
+constexpr std::uint8_t MASK_OBJECT = 255;
 
 /**
  * Finds the centroid of an object in image starting at the position start
@@ -62,17 +67,17 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 		int pos = image.cols * y + startx;
 		int endpos = image.cols * y + endx;
 
-		if (data[pos] > 0) {
+		if (maskData[pos] == MASK_OBJECT) {
 			// fill to the left
-			int tmppos = pos;
 			int oldstartx = startx;
+			int tmppos = pos - 1;
 			int x = startx - 1;
-			while(x >= 0 && data[tmppos - 1] > 0) {
+			while(x >= 0 && maskData[tmppos] == MASK_OBJECT) {
 				// compute
 				m10 += y * data[tmppos];
 				m01 += x * data[tmppos];
 				sum += data[tmppos];
-				maskData[tmppos] = 255;
+				maskData[tmppos] = MASK_PROCESSED;
 				// move to next
 				--tmppos;
 				--startx;
@@ -81,12 +86,12 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 			// fill to the right
 			tmppos = pos;
 			x = oldstartx;
-			while(x < image.cols && data[tmppos] > 0) {
+			while(x < image.cols && maskData[tmppos] == MASK_OBJECT) {
 				// compute
 				m10 += y * data[tmppos];
 				m01 += x * data[tmppos];
 				sum += data[tmppos];
-				maskData[tmppos] = 255;
+				maskData[tmppos] = MASK_PROCESSED;
 				// move to next
 				++tmppos;
 				++x;
@@ -96,7 +101,7 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 		else {
 			// find the start position
 			int tmppos = pos;
-			while(data[tmppos] == 0) {
+			while(maskData[tmppos] == MASK_EMPTY) {
 				if (tmppos == endpos) {
 					// stop fill
 					goto findCentroid_stop;
@@ -107,12 +112,12 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 			}
 			// fill to the right
 			int x = startx;
-			while(x < image.cols && data[tmppos] > 0) {
+			while(x < image.cols && maskData[tmppos] == MASK_OBJECT) {
 				// compute
 				m10 += y * data[tmppos];
 				m01 += x * data[tmppos];
 				sum += data[tmppos];
-				maskData[tmppos] = 255;
+				maskData[tmppos] = MASK_PROCESSED;
 				// move to next
 				++tmppos;
 				++x;
@@ -176,16 +181,13 @@ void Calibrator::calibrate() {
 	cv::dilate(tmp, dst, element, anchor, 1);
 
 	// start scanning at the top left corner
-	// first create a mask that we will use to makr processed pixels
-	cv::Mat processedMask(cv::Mat::zeros(dst.rows, dst.cols, CV_8U));
 	for (int row = 0; row < dst.rows; ++row) {
 		std::uint8_t* pixel = dst.ptr<std::uint8_t>(row);
-		std::uint8_t* maskPixel = processedMask.ptr<std::uint8_t>(row);
 		for (int col = 0; col < dst.cols; ++col) {
 			// if the pixel is not black and it is not marked, process
-			if (pixel[col] != 0 && maskPixel[col] == 0) {
-				cv::Point2f centroid = findCentroid(dst, processedMask, cv::Point2i(col, row));
-				dst.at<uchar>(centroid.x, centroid.y) = 128;
+			if (pixel[col] == MASK_OBJECT) {
+				cv::Point2f centroid = findCentroid(greyMat, dst, cv::Point2i(col, row));
+				dst.at<uchar>(centroid.x, centroid.y) = 192;
 			}
 		}
 	}
