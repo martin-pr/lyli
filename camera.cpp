@@ -88,7 +88,7 @@ public:
 		std::unique_lock<std::mutex> cameraLock(cameraAccessMutex);
 		bool ready = device.sendCommand(LIBUSB_ENDPOINT_OUT | 0x02, cmdUnitReady, nullptr).getStatus() ==
 			Usbpp::MassStorage::CommandStatusWrapper::Status::PASSED;
-		cameraLock.unlock();	
+		cameraLock.unlock();
 		
 		return ready;
 	}
