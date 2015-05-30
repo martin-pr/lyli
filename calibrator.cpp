@@ -17,8 +17,11 @@
 
 #include "calibrator.h"
 
+#include <cassert>
+#include <cmath>
 #include <cstdint>
 #include <iostream>
+#include <vector>
 
 namespace {
 
@@ -129,7 +132,84 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 	}
 	findCentroid_stop:
 
-	return cv::Point2f(m10/sum, m01/sum);
+	return cv::Point2f(m01/sum, m10/sum);
+}
+
+/**
+ * Get interpolated color at a non-integer position.
+ *
+ * Uses just bilinear interpolation.
+ */
+float getInterpolatedColor(const cv::Mat &image, cv::Point2f position) {
+	assert(image.channels() == 1);
+
+	const unsigned int xx = std::floor(position.x);
+	const unsigned int yy = std::floor(position.y);
+	int x0 = cv::borderInterpolate(xx,   image.cols, cv::BORDER_REFLECT_101);
+	int x1 = cv::borderInterpolate(xx+1, image.cols, cv::BORDER_REFLECT_101);
+	int y0 = cv::borderInterpolate(yy,   image.rows, cv::BORDER_REFLECT_101);
+	int y1 = cv::borderInterpolate(yy+1, image.rows, cv::BORDER_REFLECT_101);
+
+	const float f00 = image.at<uchar>(y0, x0);
+	const float f01 = image.at<uchar>(y0, x1);
+	const float f10 = image.at<uchar>(y1, x0);
+	const float f11 = image.at<uchar>(y1, x1);
+
+	const float x0dif = position.x - x0;
+	const float x1dif = 1.0 - x0dif;
+	const float y0dif = position.y - y0;
+	const float y1dif = 1.0 - y0dif;
+
+	// the denominator is always 1 (because we use x, x+1)
+	return f00*y1dif*x1dif + f10*x0dif*y1dif + f01*x1dif*y0dif + f11*x0dif*y0dif;
+}
+
+std::vector<cv::Point2f> computeMask(int radius) {
+	std::vector<cv::Point2f> mask;
+	float r2 = radius*radius;
+
+	for (int y = radius; y >= -radius; --y) {
+		int x0 = std::round(std::sqrt(r2 - y*y));
+		for (int x = -x0; x <= x0; ++x) {
+			mask.push_back(cv::Point2f(x, y));
+		}
+	}
+
+	mask.shrink_to_fit();
+	return mask;
+}
+
+/**
+ * Refine centroid.
+ *
+ * The initial centroid is iteratively refined using increasingly large circular neigborhood
+ * to better estimate of centroid.
+ */
+cv::Point2f refineCentroid(const cv::Mat &image, cv::Point2i start) {
+	// begin refining with radius 3px, stop at 5px radius
+	// use precomputed masks with relative offset to the start
+	static const std::vector<cv::Point2f> offsets3px = computeMask(3);
+	static const std::vector<cv::Point2f> offsets4px = computeMask(4);
+	static const std::vector<cv::Point2f> offsets5px = computeMask(5);
+	static const std::vector<cv::Point2f> offsets6px = computeMask(6);
+
+	double m01, m10, sum;
+	cv::Point2f estimate(start.x, start.y);
+	for (auto mask : { offsets3px, offsets4px, offsets5px, offsets6px } ) {
+		m01 = 0.0;
+		m10 = 0.0;
+		sum = 0.0;
+		for (auto point : mask) {
+			auto pos = point + estimate;
+			float pixel = getInterpolatedColor(image, pos);
+			m10 += pos.y * pixel;
+			m01 += pos.x * pixel;
+			sum += pixel;
+		}
+		estimate = cv::Point2f(m01/sum, m10/sum);
+	}
+
+	return estimate;
 }
 
 }
@@ -187,7 +267,8 @@ void Calibrator::calibrate() {
 			// if the pixel is not black and it is not marked, process
 			if (pixel[col] == MASK_OBJECT) {
 				cv::Point2f centroid = findCentroid(greyMat, dst, cv::Point2i(col, row));
-				dst.at<uchar>(centroid.x, centroid.y) = 192;
+				centroid = refineCentroid(greyMat, centroid);
+				dst.at<uchar>(centroid) = 192;
 			}
 		}
 	}
