@@ -327,8 +327,8 @@ void Calibrator::calibrate() {
 	cv::Mat dst, greyMat, tmp;
 
 	// convert to gray
-	cv::cvtColor(pimpl->image, tmp, CV_RGB2GRAY);
-	tmp.convertTo(greyMat, CV_8U, 1.0/256.0);
+	cv::cvtColor(pimpl->image, greyMat, CV_RGB2GRAY);
+	greyMat.convertTo(greyMat, CV_8U, 1.0/256.0);
 
 	// find edges and apply threshold
 	cv::Laplacian(greyMat, dst, CV_8U, 3);
