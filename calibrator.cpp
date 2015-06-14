@@ -17,10 +17,12 @@
 
 #include "calibrator.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdint>
 #include <iostream>
+#include <memory>
 #include <vector>
 
 namespace {
@@ -212,6 +214,93 @@ cv::Point2f refineCentroid(const cv::Mat &image, cv::Point2i start) {
 	return estimate;
 }
 
+// A class providing all necessary funcitons to create a line of points
+// see also:
+//   https://en.wikipedia.org/wiki/Simple_linear_regression
+//   http://stats.stackexchange.com/questions/23481/are-there-algorithms-for-computing-running-linear-or-logistic-regression-param
+//   http://stats.stackexchange.com/questions/22718/what-is-the-difference-between-linear-regression-on-y-with-x-and-x-with-y/22721#22721
+class LineComputer {
+public:
+	typedef std::vector<cv::Point2f> Line;
+
+	LineComputer() : n(0.0),
+		x_sum(0.0), x2_sum(0.0),
+		y_sum(0.0), y2_sum(0.0),
+		xy_sum(0.0),
+		line(std::make_shared<Line>()){
+
+		line->reserve(1024);
+	}
+
+	/**
+	 * Get the expected value of y for the given x
+	 */
+	double expect(double x) {
+		if (n < 2.0) {
+			return line->at(0).y;
+		}
+
+		double a = covariance() * (standardDeviationY() / standardDeviationX());
+		double b = (y_sum / n) - a * (x_sum / n);
+		return a*x + b;
+	}
+
+	/**
+	 * Add point to the line
+	 */
+	void addPoint(const cv::Point2f point) {
+		line->push_back(point);
+
+		n += 1.0;
+		x_sum += point.x;
+		x2_sum += point.x * point.x;
+		y_sum += point.y;
+		y2_sum += point.y * point.y;
+		xy_sum += point.x * point.y;
+	}
+
+	/**
+	 * Sort the stored line by x
+	 */
+	void sortLine() {
+		std::sort(line->begin(), line->end(), [](const cv::Point2f &a, const cv::Point2f &b) { return a.x < b.x; } );
+	}
+
+	/**
+	 * Get the stored line
+	 */
+	std::shared_ptr<Line> getLine() {
+		return line;
+	}
+
+private:
+	double n; // number of the stored values
+	double x_sum; //  sum of x
+	double x2_sum; // sum of x^2
+	double y_sum; // sum for the E[Y]
+	double y2_sum; // sum for the E[Y^2]
+	double xy_sum;
+
+	std::shared_ptr<Line> line;
+
+	double covariance() {
+		return (n*xy_sum - x_sum*y_sum) / (std::sqrt(n*x2_sum - x_sum*x_sum) * std::sqrt(n*y2_sum - y_sum*y_sum));
+	}
+
+	double standardDeviationX() {
+		double ex = x_sum / n; // expected value E[X]
+		double ex2 = x2_sum / n; // // expected value E[X^2]
+		return std::sqrt(ex2 - ex*ex);
+	}
+
+	double standardDeviationY() {
+		double ey = y_sum / n;
+		double ey2 = y2_sum / n;
+		return std::sqrt(ey2 - ey*ey);
+	}
+};
+
+
 }
 
 namespace Lyli {
@@ -235,11 +324,11 @@ void Calibrator::addImage(const cv::Mat& image) {
 }
 
 void Calibrator::calibrate() {
-	cv::Mat dst, greyMat, tmp, res;
+	cv::Mat dst, greyMat, tmp;
 
 	// convert to gray
-	cv::cvtColor(pimpl->image, greyMat, CV_RGB2GRAY);
-	greyMat.convertTo(greyMat, CV_8U, 1.0/256.0);
+	cv::cvtColor(pimpl->image, tmp, CV_RGB2GRAY);
+	tmp.convertTo(greyMat, CV_8U, 1.0/256.0);
 
 	// find edges and apply threshold
 	cv::Laplacian(greyMat, dst, CV_8U, 3);
@@ -260,6 +349,14 @@ void Calibrator::calibrate() {
 	cv::erode(dst, tmp, element, anchor, 2);
 	cv::dilate(tmp, dst, element, anchor, 1);
 
+	typedef std::vector<cv::Point2f> Line;
+	typedef std::vector<std::shared_ptr<Line>> LineArray;
+
+	LineComputer line;
+	LineArray calibrationArray;
+	calibrationArray.reserve(1024);
+	cv::Point2f lastCentroid(-1, -1);
+
 	// start scanning at the top left corner
 	for (int row = 0; row < dst.rows; ++row) {
 		std::uint8_t* pixel = dst.ptr<std::uint8_t>(row);
@@ -269,13 +366,42 @@ void Calibrator::calibrate() {
 				cv::Point2f centroid = findCentroid(greyMat, dst, cv::Point2i(col, row));
 				centroid = refineCentroid(greyMat, centroid);
 				dst.at<uchar>(centroid) = 192;
+
+				if (lastCentroid.x < 0) {
+					line.addPoint(centroid);
+				}
+				else {
+					double expected = line.expect(centroid.x);
+					if ( (std::abs(centroid.y - expected) < 2.0 ) && (std::abs(centroid.x - lastCentroid.x) < 500 )) {
+						line.addPoint(centroid);
+					}
+					else {
+						// store the line and create a new one
+						line.sortLine();
+						calibrationArray.push_back(line.getLine());
+						line = LineComputer();
+						line.addPoint(centroid);
+					}
+				}
+
+				lastCentroid = centroid;
 			}
 		}
 	}
+	calibrationArray.push_back(line.getLine());
+
+	// DEBUG: draw lines
+	/*dst = cv::Scalar(256, 256, 256);
+	for (auto line : calibrationArray) {
+		for (std::size_t i = 1; i < line->size(); ++i) {
+			cv::line(dst, line->at(i-1), line->at(i), cv::Scalar(0, 0, 0));
+		}
+	}*/
+
 
 	// DEBUG: convert to the format expected for viewwing
-	dst.convertTo(res, CV_16U, 256);
-	cv::cvtColor(res, pimpl->calibrationImage, CV_GRAY2RGB);
+	dst.convertTo(tmp, CV_16U, 256);
+	cv::cvtColor(tmp, pimpl->calibrationImage, CV_GRAY2RGB);
 }
 
 cv::Mat &Calibrator::getcalibrationImage() const {
