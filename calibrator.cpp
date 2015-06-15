@@ -223,11 +223,7 @@ class LineComputer {
 public:
 	typedef std::vector<cv::Point2f> Line;
 
-	LineComputer() : n(0.0),
-		x_sum(0.0), x2_sum(0.0),
-		y_sum(0.0), y2_sum(0.0),
-		xy_sum(0.0),
-		line(std::make_shared<Line>()){
+	LineComputer() : line(std::make_shared<Line>()) {
 
 		line->reserve(1024);
 	}
@@ -240,7 +236,7 @@ public:
 			return line->at(0).y;
 		}
 
-		double a = covariance() * (standardDeviationY() / standardDeviationX());
+		double a = covarianceXY() / varianceX();;
 		double b = (y_sum / n) - a * (x_sum / n);
 		return a*x + b;
 	}
@@ -252,10 +248,14 @@ public:
 		line->push_back(point);
 
 		n += 1.0;
+
+		// online variance of x
+		double delta = point.x - mean_x;;
+		mean_x = mean_x + delta/n;
+		M2_x = M2_x + delta*(point.x - mean_x);
+
 		x_sum += point.x;
-		x2_sum += point.x * point.x;
 		y_sum += point.y;
-		y2_sum += point.y * point.y;
 		xy_sum += point.x * point.y;
 	}
 
@@ -274,29 +274,24 @@ public:
 	}
 
 private:
-	double n; // number of the stored values
-	double x_sum; //  sum of x
-	double x2_sum; // sum of x^2
-	double y_sum; // sum for the E[Y]
-	double y2_sum; // sum for the E[Y^2]
-	double xy_sum;
+	double n = 0.0;
+    double mean_x = 0.0;
+    double M2_x = 0.0;
+	double mean_y = 0.0;
+    double M2_y = 0.0;
+
+	double x_sum = 0.0; //  sum of x
+	double y_sum = 0.0; // sum for the E[Y]
+	double xy_sum = 0.0;
 
 	std::shared_ptr<Line> line;
 
-	double covariance() {
-		return (n*xy_sum - x_sum*y_sum) / (std::sqrt(n*x2_sum - x_sum*x_sum) * std::sqrt(n*y2_sum - y_sum*y_sum));
+	double covarianceXY() {
+		return (xy_sum - (x_sum*y_sum / n)) / n;
 	}
 
-	double standardDeviationX() {
-		double ex = x_sum / n; // expected value E[X]
-		double ex2 = x2_sum / n; // // expected value E[X^2]
-		return std::sqrt(ex2 - ex*ex);
-	}
-
-	double standardDeviationY() {
-		double ey = y_sum / n;
-		double ey2 = y2_sum / n;
-		return std::sqrt(ey2 - ey*ey);
+	double varianceX() {
+		return M2_x / (n - 1.0);
 	}
 };
 
@@ -391,12 +386,12 @@ void Calibrator::calibrate() {
 	calibrationArray.push_back(line.getLine());
 
 	// DEBUG: draw lines
-	/*dst = cv::Scalar(256, 256, 256);
+	dst = cv::Scalar(256, 256, 256);
 	for (auto line : calibrationArray) {
 		for (std::size_t i = 1; i < line->size(); ++i) {
 			cv::line(dst, line->at(i-1), line->at(i), cv::Scalar(0, 0, 0));
 		}
-	}*/
+	}
 
 
 	// DEBUG: convert to the format expected for viewwing
