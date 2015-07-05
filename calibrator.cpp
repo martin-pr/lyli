@@ -22,7 +22,11 @@
 #include <cmath>
 #include <cstdint>
 #include <iostream>
+#include <iterator>
+#include <limits>
+#include <map>
 #include <memory>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -221,78 +225,83 @@ cv::Point2f refineCentroid(const cv::Mat &image, cv::Point2i start) {
 //   http://stats.stackexchange.com/questions/22718/what-is-the-difference-between-linear-regression-on-y-with-x-and-x-with-y/22721#22721
 class LineComputer {
 public:
-	typedef std::vector<cv::Point2f> Line;
-
-	LineComputer() : line(std::make_shared<Line>()) {
-
-		line->reserve(1024);
-	}
+	typedef std::vector<cv::Point2f> Line; //!< a line of centroids
+	typedef std::map<float, Line> LineMap; //!< maps the y-position of the last centroid for each line with the line
 
 	/**
-	 * Get the expected value of y for the given x
+	 * Add a centroid that may start a new line.
+	 *
+	 * The addHead() function should be used on a selected first number of columns to obtain
+	 * the beginning of all lines in the image. In contrary to add(), this function
+	 * can create new line entries in the map.
 	 */
-	double expect(double x) {
-		if (n < 2.0) {
-			return line->at(0).y;
+	void addHead(float key, cv::Point2f point) {
+		// initial fill - avoid need to check both lower and upper bound
+		if (lineMap.size() < 2) {
+			auto res = lineMap.emplace(key, Line());
+			res.first->second.push_back(point);
+			return;
 		}
 
-		double a = covarianceXY() / varianceX();;
-		double b = (y_sum / n) - a * (x_sum / n);
-		return a*x + b;
+		auto ub = lineMap.lower_bound(key);
+		auto lb = ub != lineMap.begin() ? std::prev(ub) : lineMap.end();
+
+		float diffLb = lb != lineMap.end() ? std::abs(lb->first - key) : std::numeric_limits<float>::max();
+		float diffUb = ub != lineMap.end() ? std::abs(ub->first - key) : std::numeric_limits<float>::max();
+
+		auto lineIt = diffLb < diffUb ? lb : ub;
+
+		// if the points is far from its bounds, it creates a new line
+		if(std::abs(lineIt->first - key) > MAX_DIFF) {
+			// construct a new line
+			auto res = lineMap.emplace(key, Line());
+			lineIt = res.first; // TODO: error handling
+		}
+		else {
+			// update the key
+			auto line = lineIt ->second;
+			auto nextLineIt = lineMap.erase(lineIt);
+			lineIt = lineMap.insert(nextLineIt, std::make_pair(key, line));
+		}
+
+		// add point to the line
+		lineIt->second.push_back(point);
 	}
 
 	/**
-	 * Add point to the line
+	 * Add a new centroid to the computer.
+	 *
+	 * The function tries to find the line to which the centroid corresponds. The points too
+	 * far off are ignored, as these are likely noise rather than lens centroids.
 	 */
-	void addPoint(const cv::Point2f point) {
-		line->push_back(point);
+	void add(float key, cv::Point2f point) {
+		auto ub = lineMap.lower_bound(key);
+		auto lb = ub != lineMap.begin() ? std::prev(ub) : lineMap.end();
 
-		n += 1.0;
+		float diffLb = lb != lineMap.end() ? std::abs(lb->first - key) : std::numeric_limits<float>::max();
+		float diffUb = ub != lineMap.end() ? std::abs(ub->first - key) : std::numeric_limits<float>::max();
 
-		// online variance of x
-		double delta = point.x - mean_x;;
-		mean_x = mean_x + delta/n;
-		M2_x = M2_x + delta*(point.x - mean_x);
+		auto lineIt = diffLb < diffUb ? lb : ub;
 
-		x_sum += point.x;
-		y_sum += point.y;
-		xy_sum += point.x * point.y;
+		// if the points is far from its bounds, it creates a new line
+		if(std::abs(lineIt->first - key) < MAX_DIFF) {
+			// update the key
+			auto line = lineIt ->second;
+			auto nextLineIt = lineMap.erase(lineIt);
+			lineIt = lineMap.insert(nextLineIt, std::make_pair(key, line));
+			// add point to the line
+			lineIt->second.push_back(point);
+		}
 	}
 
-	/**
-	 * Sort the stored line by x
-	 */
-	void sortLine() {
-		std::sort(line->begin(), line->end(), [](const cv::Point2f &a, const cv::Point2f &b) { return a.x < b.x; } );
-	}
-
-	/**
-	 * Get the stored line
-	 */
-	std::shared_ptr<Line> getLine() {
-		return line;
+	LineMap getLineMap() const {
+		return lineMap;
 	}
 
 private:
-	double n = 0.0;
-    double mean_x = 0.0;
-    double M2_x = 0.0;
-	double mean_y = 0.0;
-    double M2_y = 0.0;
+	constexpr static float MAX_DIFF = 2.0; //!< max difference in pixels
 
-	double x_sum = 0.0; //  sum of x
-	double y_sum = 0.0; // sum for the E[Y]
-	double xy_sum = 0.0;
-
-	std::shared_ptr<Line> line;
-
-	double covarianceXY() {
-		return (xy_sum - (x_sum*y_sum / n)) / n;
-	}
-
-	double varianceX() {
-		return M2_x / (n - 1.0);
-	}
+	LineMap lineMap;
 };
 
 
@@ -344,55 +353,60 @@ void Calibrator::calibrate() {
 	cv::erode(dst, tmp, element, anchor, 2);
 	cv::dilate(tmp, dst, element, anchor, 1);
 
-	typedef std::vector<cv::Point2f> Line;
-	typedef std::vector<std::shared_ptr<Line>> LineArray;
+	LineComputer lineComp;
+	constexpr static int HEADER = 20;
 
-	LineComputer line;
-	LineArray calibrationArray;
-	calibrationArray.reserve(1024);
-	cv::Point2f lastCentroid(-1, -1);
+	// transpose the greyMat image, as its easier to scan row by row rather than by column
+	// while row scanning on original is not problem for finding centroids, line detection
+	// needs to sweep orthogonaly to lines
+	cv::Mat greyMatTranspose(greyMat.t());
+	cv::Mat dstTranspose(dst.t());
 
-	// start scanning at the top left corner
-	for (int row = 0; row < dst.rows; ++row) {
-		std::uint8_t* pixel = dst.ptr<std::uint8_t>(row);
-		for (int col = 0; col < dst.cols; ++col) {
+	// find centroids and create map of lines
+	for (int row = 0; row < HEADER; ++row) {
+		std::uint8_t* pixel = dstTranspose.ptr<std::uint8_t>(row);
+		for (int col = 0; col < dstTranspose.cols; ++col) {
 			// if the pixel is not black and it is not marked, process
 			if (pixel[col] == MASK_OBJECT) {
-				cv::Point2f centroid = findCentroid(greyMat, dst, cv::Point2i(col, row));
-				centroid = refineCentroid(greyMat, centroid);
-				dst.at<uchar>(centroid) = 192;
+				cv::Point2f centroid = findCentroid(greyMatTranspose, dstTranspose, cv::Point2i(col, row));
+				centroid = refineCentroid(greyMatTranspose, centroid);
+				// construct line map
+				lineComp.addHead(centroid.x, centroid);
 
-				if (lastCentroid.x < 0) {
-					line.addPoint(centroid);
-				}
-				else {
-					double expected = line.expect(centroid.x);
-					if ( (std::abs(centroid.y - expected) < 2.0 ) && (std::abs(centroid.x - lastCentroid.x) < 500 )) {
-						line.addPoint(centroid);
-					}
-					else {
-						// store the line and create a new one
-						line.sortLine();
-						calibrationArray.push_back(line.getLine());
-						line = LineComputer();
-						line.addPoint(centroid);
-					}
-				}
-
-				lastCentroid = centroid;
+				// DEBUG: store centroid in image
+				dstTranspose.at<uchar>(centroid) = 192;
 			}
 		}
 	}
-	calibrationArray.push_back(line.getLine());
 
-	// DEBUG: draw lines
-	dst = cv::Scalar(256, 256, 256);
-	for (auto line : calibrationArray) {
-		for (std::size_t i = 1; i < line->size(); ++i) {
-			cv::line(dst, line->at(i-1), line->at(i), cv::Scalar(0, 0, 0));
+	for (int row = HEADER; row < dstTranspose.rows; ++row) {
+		std::uint8_t* pixel = dstTranspose.ptr<std::uint8_t>(row);
+		// find centroids and complete the lines by adding remaining centroids
+		for (int col = 0; col < dstTranspose.cols; ++col) {
+			// if the pixel is not black and it is not marked, process
+			if (pixel[col] == MASK_OBJECT) {
+				cv::Point2f centroid = findCentroid(greyMatTranspose, dstTranspose, cv::Point2i(col, row));
+				centroid = refineCentroid(greyMatTranspose, centroid);
+				// complete the line
+				lineComp.add(centroid.x, centroid);
+
+				// DEBUG: store centroid in image
+				dstTranspose.at<uchar>(centroid) = 192;
+			}
 		}
 	}
 
+	// DEBUG: draw lines
+	LineComputer::LineMap lineMap = lineComp.getLineMap();
+	dstTranspose = cv::Scalar(256, 256, 256);
+	for (auto line : lineMap) {
+		for (std::size_t i = 1; i < line.second.size(); ++i) {
+			cv::line(dstTranspose, line.second.at(i-1), line.second.at(i), cv::Scalar(0, 0, 0));
+		}
+	}
+
+	// DEBUG: transpose the debug image
+	dst = dstTranspose.t();
 
 	// DEBUG: convert to the format expected for viewwing
 	dst.convertTo(tmp, CV_16U, 256);
