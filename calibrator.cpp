@@ -299,7 +299,7 @@ public:
 	}
 
 private:
-	constexpr static float MAX_DIFF = 2.0; //!< max difference in pixels
+	constexpr static float MAX_DIFF = 3.0; //!< max difference in pixels
 
 	LineMap lineMap;
 };
