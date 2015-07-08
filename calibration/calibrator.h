@@ -15,15 +15,51 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LYLI_CALIBRATOR_H_
-#define LYLI_CALIBRATOR_H_
+#ifndef LYLI_CALIBRATION_CALIBRATOR_H_
+#define LYLI_CALIBRATION_CALIBRATOR_H_
 
+#include <ctype.h>
 #include <memory>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+namespace cv {
+	class Mat;
+}
 
 namespace Lyli {
+namespace Calibration {
+
+/**
+	* Defines constants for the contents of the mask.
+	*/
+struct Mask {
+	static constexpr uint8_t EMPTY = 0;
+	static constexpr uint8_t PROCESSED = 128;
+	static constexpr uint8_t OBJECT = 255;
+};
+
+class Preprocessor {
+public:
+	/**
+	 * A default constructor.
+	 */
+	Preprocessor();
+	/**
+	 * A destructor.
+	 */
+	virtual ~Preprocessor();
+
+	/**
+	 * Preprocess the image to create a mask for the Calibrator.
+	 *
+	 * @param gray grayscale image to process
+	 * @param outMask output mask for the calibrator using the constants from the Mask struct.
+	 */
+	virtual void preprocess(const cv::Mat &gray, cv::Mat &outMask) = 0;
+
+	// avoid copying
+	Preprocessor(const Preprocessor&) = delete;
+	Preprocessor& operator=(const Preprocessor&) = delete;
+};
 
 /**
  * A class providing means to calibrate camera from a set of images.
@@ -43,6 +79,7 @@ private:
 	std::unique_ptr<Impl> pimpl;
 };
 
+}
 }
 
 #endif

@@ -16,6 +16,7 @@
  */
 
 #include "calibrator.h"
+#include "stdpreprocessor.h"
 
 #include <algorithm>
 #include <cassert>
@@ -29,11 +30,10 @@
 #include <utility>
 #include <vector>
 
-namespace {
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
-constexpr std::uint8_t MASK_EMPTY = 0;
-constexpr std::uint8_t MASK_PROCESSED = 128;
-constexpr std::uint8_t MASK_OBJECT = 255;
+namespace {
 
 /**
  * Finds the centroid of an object in image starting at the position start
@@ -76,17 +76,17 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 		int pos = image.cols * y + startx;
 		int endpos = image.cols * y + endx;
 
-		if (maskData[pos] == MASK_OBJECT) {
+		if (maskData[pos] == Lyli::Calibration::Mask::OBJECT) {
 			// fill to the left
 			int oldstartx = startx;
 			int tmppos = pos - 1;
 			int x = startx - 1;
-			while(x >= 0 && maskData[tmppos] == MASK_OBJECT) {
+			while(x >= 0 && maskData[tmppos] == Lyli::Calibration::Mask::OBJECT) {
 				// compute
 				m10 += y * data[tmppos];
 				m01 += x * data[tmppos];
 				sum += data[tmppos];
-				maskData[tmppos] = MASK_PROCESSED;
+				maskData[tmppos] = Lyli::Calibration::Mask::PROCESSED;
 				// move to next
 				--tmppos;
 				--startx;
@@ -95,12 +95,12 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 			// fill to the right
 			tmppos = pos;
 			x = oldstartx;
-			while(x < image.cols && maskData[tmppos] == MASK_OBJECT) {
+			while(x < image.cols && maskData[tmppos] == Lyli::Calibration::Mask::OBJECT) {
 				// compute
 				m10 += y * data[tmppos];
 				m01 += x * data[tmppos];
 				sum += data[tmppos];
-				maskData[tmppos] = MASK_PROCESSED;
+				maskData[tmppos] = Lyli::Calibration::Mask::PROCESSED;
 				// move to next
 				++tmppos;
 				++x;
@@ -110,7 +110,7 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 		else {
 			// find the start position
 			int tmppos = pos;
-			while(maskData[tmppos] == MASK_EMPTY) {
+			while(maskData[tmppos] == Lyli::Calibration::Mask::EMPTY) {
 				if (tmppos == endpos) {
 					// stop fill
 					goto findCentroid_stop;
@@ -121,12 +121,12 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 			}
 			// fill to the right
 			int x = startx;
-			while(x < image.cols && maskData[tmppos] == MASK_OBJECT) {
+			while(x < image.cols && maskData[tmppos] == Lyli::Calibration::Mask::OBJECT) {
 				// compute
 				m10 += y * data[tmppos];
 				m01 += x * data[tmppos];
 				sum += data[tmppos];
-				maskData[tmppos] = MASK_PROCESSED;
+				maskData[tmppos] = Lyli::Calibration::Mask::PROCESSED;
 				// move to next
 				++tmppos;
 				++x;
@@ -308,6 +308,15 @@ private:
 }
 
 namespace Lyli {
+namespace Calibration {
+
+Preprocessor::Preprocessor() {
+
+}
+
+Preprocessor::~Preprocessor() {
+
+}
 
 class Calibrator::Impl {
 public:
@@ -334,24 +343,9 @@ void Calibrator::calibrate() {
 	cv::cvtColor(pimpl->image, greyMat, CV_RGB2GRAY);
 	greyMat.convertTo(greyMat, CV_8U, 1.0/256.0);
 
-	// find edges and apply threshold
-	cv::Laplacian(greyMat, dst, CV_8U, 3);
-	cv::threshold(dst, tmp, 64, 255, cv::THRESH_BINARY);
-
-	// filter out small specks
-	float m[3][3] = { { 0.125, 0.125, 0.125 }, { 0.125, 0, 0.125 }, { 0.125, 0.125, 0.125 } };
-	cv::Mat filterKernel(3, 3, CV_32F, m);
-	cv::filter2D(tmp, dst, CV_8U , filterKernel, cv::Point(1, 1));
-	cv::threshold(dst, dst, 95, 255, cv::THRESH_BINARY);
-
-	// invert
-	dst = dst.mul(tmp);
-	dst = cv::Scalar::all(255) - dst;
-
-	cv::Point anchor(1, 1);
-	cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), anchor);
-	cv::erode(dst, tmp, element, anchor, 2);
-	cv::dilate(tmp, dst, element, anchor, 1);
+	// preprocess the image - create a mask for the microlens array
+	StdPreprocessor preprocessor;
+	preprocessor.preprocess(greyMat, dst);
 
 	LineComputer lineComp;
 	constexpr static int HEADER = 20;
@@ -367,7 +361,7 @@ void Calibrator::calibrate() {
 		std::uint8_t* pixel = dstTranspose.ptr<std::uint8_t>(row);
 		for (int col = 0; col < dstTranspose.cols; ++col) {
 			// if the pixel is not black and it is not marked, process
-			if (pixel[col] == MASK_OBJECT) {
+			if (pixel[col] == Mask::OBJECT) {
 				cv::Point2f centroid = findCentroid(greyMatTranspose, dstTranspose, cv::Point2i(col, row));
 				centroid = refineCentroid(greyMatTranspose, centroid);
 				// construct line map
@@ -384,7 +378,7 @@ void Calibrator::calibrate() {
 		// find centroids and complete the lines by adding remaining centroids
 		for (int col = 0; col < dstTranspose.cols; ++col) {
 			// if the pixel is not black and it is not marked, process
-			if (pixel[col] == MASK_OBJECT) {
+			if (pixel[col] == Mask::OBJECT) {
 				cv::Point2f centroid = findCentroid(greyMatTranspose, dstTranspose, cv::Point2i(col, row));
 				centroid = refineCentroid(greyMatTranspose, centroid);
 				// complete the line
@@ -395,6 +389,8 @@ void Calibrator::calibrate() {
 			}
 		}
 	}
+
+	// filter out too short lines
 
 	// DEBUG: draw lines
 	LineComputer::LineMap lineMap = lineComp.getLineMap();
@@ -417,4 +413,5 @@ cv::Mat &Calibrator::getcalibrationImage() const {
 	return pimpl->calibrationImage;
 }
 
+}
 }

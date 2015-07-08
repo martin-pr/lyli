@@ -27,7 +27,7 @@
 #include <cstdint>
 #include <fstream>
 
-#include <calibrator.h>
+#include <calibration/calibrator.h>
 #include <rawimage.h>
 
 namespace {
