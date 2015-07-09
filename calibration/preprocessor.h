@@ -31,7 +31,7 @@ public:
 	 * @param gray grayscale image to process
 	 * @param outMask output mask for the calibrator using the values from the Mask enum.
 	 */
-	void preprocess(const cv::Mat &gray, cv::Mat &outMask) override;
+	virtual void preprocess(const cv::Mat &gray, cv::Mat &outMask) override;
 };
 
 }
