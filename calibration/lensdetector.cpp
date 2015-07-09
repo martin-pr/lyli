@@ -338,8 +338,6 @@ LineMap LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
 		}
 	}
 
-	// filter out too short lines
-
 	// DEBUG: draw lines
 	LineComputer::LineMap lineMap = lineComp.getLineMap();
 	maskTranspose = cv::Scalar(256, 256, 256);
