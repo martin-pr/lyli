@@ -18,6 +18,7 @@
 #include "calibrator.h"
 #include "preprocessor.h"
 #include "lensdetector.h"
+#include "lensfilter.h"
 
 #include <algorithm>
 #include <cassert>
@@ -91,7 +92,10 @@ void Calibrator::calibrate() {
 	preprocessor.preprocess(greyMat, dst);
 
 	LensDetector lensDetector;
-	lensDetector.detect(greyMat, dst);
+	LineMap lineMap = lensDetector.detect(greyMat, dst);
+
+	LensFilter lensFilter;
+	lineMap = lensFilter.filter(lineMap);
 
 	// DEBUG: convert to the format expected for viewwing
 	dst.convertTo(tmp, CV_16U, 256);
