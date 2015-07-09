@@ -218,11 +218,9 @@ cv::Point2f refineCentroid(const cv::Mat &image, cv::Point2i start) {
 	return estimate;
 }
 
-// A class providing all necessary funcitons to create a line of points
-// see also:
-//   https://en.wikipedia.org/wiki/Simple_linear_regression
-//   http://stats.stackexchange.com/questions/23481/are-there-algorithms-for-computing-running-linear-or-logistic-regression-param
-//   http://stats.stackexchange.com/questions/22718/what-is-the-difference-between-linear-regression-on-y-with-x-and-x-with-y/22721#22721
+/**
+ * A class providing all necessary functions to create lines from separate points.
+ */
 class LineComputer {
 public:
 	typedef std::vector<cv::Point2f> Line; //!< a line of centroids
