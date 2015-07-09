@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "stdpreprocessor.h"
+#include "preprocessor.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -23,7 +23,7 @@
 namespace Lyli {
 namespace Calibration {
 
-void StdPreprocessor::preprocess(const cv::Mat& gray, cv::Mat& outMask) {
+void Preprocessor::preprocess(const cv::Mat& gray, cv::Mat& outMask) {
 	cv::Mat tmp;
 
 	// find edges and apply threshold
