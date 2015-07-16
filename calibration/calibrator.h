@@ -41,11 +41,11 @@ struct Mask {
 };
 
 /**
- * A line of centroids.
+ * A line of lens centroids.
  */
 using Line = std::vector<cv::Point2f>;
 /**
- * Maps the y-position of the last centroid for each line with the line
+ * Map of the y-position of the last centroid for each line.
  */
 using LineMap = std::map<float, Line>;
 

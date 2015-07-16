@@ -17,6 +17,7 @@
 
 #include "lensdetector.h"
 
+#include <algorithm>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -221,8 +222,8 @@ public:
 	 * can create new line entries in the map.
 	 */
 	void addHead(float key, cv::Point2f point) {
-		// initial fill - avoid need to check both lower and upper bound
-		if (lineMap.size() < 2) {
+		// initial fill - always create a new line
+		if (lineMap.empty()) {
 			auto res = lineMap.emplace(key, Line());
 			res.first->second.push_back(point);
 			return;
@@ -236,7 +237,7 @@ public:
 
 		auto lineIt = diffLb < diffUb ? lb : ub;
 
-		// if the points is far from its bounds, it creates a new line
+		// if a point is far from its bounds, it creates a new line
 		if(std::abs(lineIt->first - key) > MAX_DIFF) {
 			// construct a new line
 			auto res = lineMap.emplace(key, Line());
@@ -268,7 +269,7 @@ public:
 
 		auto lineIt = diffLb < diffUb ? lb : ub;
 
-		// if the points is far from its bounds, it creates a new line
+		// the points too far from the nearest line are ignored
 		if(std::abs(lineIt->first - key) < MAX_DIFF) {
 			// update the key
 			auto line = lineIt ->second;
@@ -338,8 +339,14 @@ LineMap LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
 		}
 	}
 
-	// DEBUG: draw lines
 	LineComputer::LineMap lineMap = lineComp.getLineMap();
+
+	// ensure the lines are sorted
+	for (auto &line : lineMap) {
+		std::sort(line.second.begin(), line.second.end(), [](const cv::Point2f &a, const cv::Point2f &b){return a.y < b.y;});
+	}
+
+	// DEBUG: draw lines
 	maskTranspose = cv::Scalar(256, 256, 256);
 	for (auto line : lineMap) {
 		for (std::size_t i = 1; i < line.second.size(); ++i) {
