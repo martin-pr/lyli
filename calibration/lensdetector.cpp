@@ -346,17 +346,6 @@ LineMap LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
 		std::sort(line.second.begin(), line.second.end(), [](const cv::Point2f &a, const cv::Point2f &b){return a.y < b.y;});
 	}
 
-	// DEBUG: draw lines
-	maskTranspose = cv::Scalar(256, 256, 256);
-	for (auto line : lineMap) {
-		for (std::size_t i = 1; i < line.second.size(); ++i) {
-			cv::line(maskTranspose, line.second.at(i-1), line.second.at(i), cv::Scalar(0, 0, 0));
-		}
-	}
-
-	// DEBUG: transpose the debug image
-	mask = maskTranspose.t();
-
 	return lineMap;
 }
 

@@ -97,6 +97,15 @@ void Calibrator::calibrate() {
 	LensFilter lensFilter;
 	lineMap = lensFilter.filter(lineMap);
 
+	// DEBUG: draw lines
+	dst = cv::Scalar(256, 256, 256);
+	for (auto line : lineMap) {
+		for (std::size_t i = 1; i < line.second.size(); ++i) {
+			cv::line(dst, line.second.at(i-1), line.second.at(i), cv::Scalar(0, 0, 0));
+		}
+	}
+	dst = dst.t();
+
 	// DEBUG: convert to the format expected for viewwing
 	dst.convertTo(tmp, CV_16U, 256);
 	cv::cvtColor(tmp, pimpl->calibrationImage, CV_GRAY2RGB);
