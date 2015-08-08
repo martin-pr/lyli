@@ -19,7 +19,7 @@ include(ExternalProject)
 ExternalProject_Add(libusbpp_project
 	HG_REPOSITORY https://bitbucket.org/stativ/libusbpp
 	PREFIX "libusbpp"
-	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/libusbpp/install"
+	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/libusbpp/install" "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
 )
 add_library(usbpp STATIC IMPORTED)
 set_property(TARGET usbpp PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/libusbpp/install/lib/libusbpp.a)
