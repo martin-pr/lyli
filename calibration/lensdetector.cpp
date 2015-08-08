@@ -211,7 +211,7 @@ cv::Point2f refineCentroid(const cv::Mat &image, cv::Point2i start) {
  */
 class LineComputer {
 public:
-	typedef std::vector<cv::Point2f> Line; //!< a line of centroids
+	typedef std::vector<cv::Point2d> Line; //!< a line of centroids
 	typedef std::map<float, Line> LineMap; //!< maps the y-position of the last centroid for each line with the line
 
 	/**

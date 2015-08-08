@@ -24,10 +24,61 @@
 #include <iostream>
 #endif
 
-using LinePtrList = std::vector<Lyli::Calibration::Line*>;
-using DPair = std::pair<double, double>;
+/**
+ * \WARNING Due to the fact ht elines are detected in a rotated image, the
+ * point corrdinates are swapped, ie.
+ *  -> the lines are horizontal
+ *  -> but the horizontal coordinate is y instead of x
+ */
 
 namespace {
+
+template <typename LineType, typename LambdaOdd, typename LambdaEven>
+void applyAlternating(LineType lines, LambdaOdd funcOdd, LambdaEven funcEven) {
+	const std::size_t evenSize = lines.size() % 2 == 0 ? lines.size() : lines.size() - 1;
+	const std::size_t iterations = evenSize / 2;
+	auto it = lines.begin();
+	for (std::size_t i = 0; i < iterations; ++i) {
+		funcOdd(it++);
+		funcEven(it++);
+	}
+	if (lines.size() - evenSize != 0) {
+		funcOdd(it++);
+	}
+}
+
+/**
+ * Represents a boundary edge of the image.
+ *
+ * The edge is fitted using quadratic function as the barrel distortion and
+ * pincushion distortion are quadratic.
+ */
+class BoundaryEdge {
+public:
+	BoundaryEdge()
+		: m_a(0.0), m_b(0.0), m_c(0.0) {
+
+	}
+
+	BoundaryEdge(double a, double b, double c)
+		: m_a(a), m_b(b), m_c(c) {
+
+	}
+
+	double interpolate(double val) const {
+		return val*(m_a*val + m_b) + m_c;
+	}
+
+private:
+	double m_a;
+	double m_b;
+	double m_c;
+};
+
+using LinePtrList = std::vector<Lyli::Calibration::Line*>;
+using DPair = std::pair<double, double>;
+using ImgEdge = std::pair<BoundaryEdge, BoundaryEdge>;
+using ImgBoundary = std::pair<ImgEdge, ImgEdge>;
 
 /**
  * Compute the average line length.
@@ -35,24 +86,19 @@ namespace {
  * \param lines lines for which the average is computed
  * \return pair <odd averafe, even average>
  */
-DPair averageLineLen(const Lyli::Calibration::LineMap& lines) {
+DPair averageLineLen(const ::Lyli::Calibration::LineMap& lines) {
 	double sumOdd = 0.0;
 	double sumEven = 0.0;
 
-	std::size_t iterations = lines.size() % 2 == 0 ? lines.size() : lines.size() - 1;
-	auto it = lines.begin();
-	for (std::size_t i = 0; i < iterations; ++i) {
-		sumOdd = (it++)->second.size();
-		sumEven = (it++)->second.size();
-	}
-	if (lines.size() - iterations != 0) {
-		sumOdd = (it++)->second.size();
-	}
+	applyAlternating(lines,
+	                 [&sumOdd](const decltype(lines.begin()) &lineit){sumOdd += lineit->second.size();},
+	                 [&sumEven](const decltype(lines.begin()) &lineit){sumEven += lineit->second.size();});
 
-	double countEven = iterations / 2.0;
-	double countOdd = countEven + (lines.size() - iterations);
+	const std::size_t evenSize = lines.size() % 2 == 0 ? lines.size() : lines.size() - 1;
+	const std::size_t iterations = evenSize / 2;
+	double countOdd = iterations + (lines.size() - evenSize);
 
-	return std::make_pair(sumOdd / countOdd, sumEven / countEven);
+	return std::make_pair(sumOdd / countOdd, sumEven / iterations);
 }
 
 /**
@@ -77,6 +123,9 @@ int shortLineFilter(const Lyli::Calibration::LineMap& lines, DPair avgLen, Lyli:
 	return lines.size() - filteredList.size();
 }
 
+/**
+ * Compute average distance between lens centroid for odd and even lines
+ */
 DPair averageLensDist(const LinePtrList &filteredList) {
 	// the middle two lines are used to compute the average
 	std::size_t posOdd = (filteredList.size() / 2) & 1u ? (filteredList.size() / 2) - 1 : (filteredList.size() / 2);
@@ -95,6 +144,103 @@ DPair averageLensDist(const LinePtrList &filteredList) {
 	return std::make_pair(sumOdd / (lineOdd.size() - 1.0), sumEven / (lineEven.size() - 1.0));
 }
 
+/**
+ * Compute the coefficients of the boundary by fitting quadratic function using least squares.
+ *
+ * The least squares are computed using the Gram–Schmidt process
+ */
+BoundaryEdge leastSquaresBoundary(const ::Lyli::Calibration::Line &points) {
+	cv::Mat ma(3, points.size(), CV_64FC1);
+	cv::Mat mb(1, points.size(), CV_64FC1);
+	double* a1 = ma.ptr<double>(0);
+	double* a2 = ma.ptr<double>(1);
+	double* a3 = ma.ptr<double>(2);
+	double* b = mb.ptr<double>(0);
+
+	std::size_t i = 0;
+	for (auto point : points) {
+		a1[i] = point.x * point.x;
+		a2[i] = point.x;
+		a3[i] = 1.0;
+		b[i] = point.y;
+		++i;
+	}
+
+	cv::Mat ma0(3, 3, CV_64FC1);
+	for (i = 0; i < 3; ++i) {
+		for (std::size_t j = 0; j < 3; ++j) {
+			ma0.at<double>(i, j) = ma.row(i).dot(ma.row(j));
+		}
+	}
+
+	cv::Mat mb0(ma * mb.t());
+
+	// solve ma0 * x = b0;
+	cv::Mat x(ma0.inv() * mb0);
+
+	return BoundaryEdge(x.at<double>(0, 0), x.at<double>(1, 0), x.at<double>(2, 0));
+}
+
+/**
+ * Compute coeficients of an image boundary.
+ *
+ * \return pair \<LeftEdge,RightEdge\>, where each edge is a pair \<Odd,Even\>
+ */
+ImgBoundary computeBound(const LinePtrList &lines) {
+	::Lyli::Calibration::Line leftOdd;
+	::Lyli::Calibration::Line leftEven;
+	::Lyli::Calibration::Line rightOdd;
+	::Lyli::Calibration::Line rightEven;
+
+	applyAlternating(lines,
+	                 [&leftOdd,&rightOdd](const decltype(lines.begin()) &lineit){
+	                 	leftOdd.push_back((*lineit)->front());
+	                 	rightOdd.push_back((*lineit)->back());
+	                 },
+	                 [&leftEven,&rightEven](const decltype(lines.begin()) &lineit){
+	                 	leftEven.push_back((*lineit)->front());
+	                 	rightEven.push_back((*lineit)->back());
+	                 });
+
+	ImgEdge left(leastSquaresBoundary(leftOdd), leastSquaresBoundary(leftEven));
+	ImgEdge right(leastSquaresBoundary(rightOdd), leastSquaresBoundary(rightEven));
+
+	return std::make_pair(left, right);
+}
+
+/**
+ * Add missing boundary points.
+ */
+void repairBounds(const LinePtrList &lines, ImgBoundary boundary, DPair avgLensDist) {
+	const ImgEdge &edgeLeft = boundary.first;
+	const ImgEdge &edgeRight = boundary.second;
+	const double maxLensDistOdd = 0.5 * avgLensDist.first;
+	const double maxLensDistEven = 0.5 * avgLensDist.second;
+	applyAlternating(lines,
+	                 [&](const decltype(lines.begin()) &lineit){
+	                 	::Lyli::Calibration::Line &line = **lineit;
+	                 	double expectedL = edgeLeft.first.interpolate(line.front().x);
+	                 	double expectedR = edgeRight.first.interpolate(line.back().x);
+	                 	if (std::abs(line.front().y - expectedL) > maxLensDistOdd) {
+	                 		line.insert(line.begin(), cv::Point2f(line.front().x, expectedL));
+	                 	}
+	                 	if (std::abs(line.back().y - expectedR) > maxLensDistOdd) {
+	                 		line.push_back(cv::Point2f(line.back().x, expectedR));
+	                 	}
+	                 },
+	                 [&](const decltype(lines.begin()) &lineit){
+	                 	::Lyli::Calibration::Line &line = **lineit;
+	                 	double expectedL = edgeLeft.second.interpolate(line.front().x);
+	                 	double expectedR = edgeRight.second.interpolate(line.back().x);
+	                 	if (std::abs(line.front().y - expectedL) > maxLensDistEven) {
+	                 		line.insert(line.begin(), cv::Point2f(line.front().x, expectedL));
+	                 	}
+	                 	if (std::abs(line.back().x - expectedR) > maxLensDistEven) {
+	                 		line.push_back(cv::Point2f(line.back().x, expectedR));
+	                 	}
+	                 });
+}
+
 }
 
 namespace Lyli {
@@ -109,67 +255,16 @@ LineMap LensFilter::filter(const LineMap& lines) {
 	LinePtrList filteredList;
 	shortLineFilter(lines, avgLen, filtered, filteredList);
 
+	// find the left and the right boundary
+	ImgBoundary boundary = computeBound(filteredList);
+
 	// now compute average distance between lenses for odd and even lines,
 	// it will be used to detect and add missing centroids
 	DPair avgLensDist = averageLensDist(filteredList);
 
-	// find the average position of the boundary pixels
-	std::pair<double, double> boundsSumOdd = std::make_pair(0.0, 0.0);
-	std::pair<double, double> boundsSumEven = std::make_pair(0.0, 0.0);
-	bool isOdd = true;
-	std::size_t oddNumber = 0;
-	for (const auto &line : filtered) {
-		if (isOdd) {
-			boundsSumOdd.first += line.second.front().y;
-			boundsSumOdd.second += line.second.back().y;
-			++oddNumber;
-		}
-		else {
-			boundsSumEven.first += line.second.front().y;
-			boundsSumEven.second += line.second.back().y;
-		}
-		isOdd = !isOdd;
-	}
-	std::pair<double, double> boundsOdd = std::make_pair(boundsSumOdd.first / oddNumber, boundsSumOdd.second / oddNumber);
-	std::pair<double, double> boundsEven = std::make_pair(boundsSumEven.first / (filtered.size() - oddNumber), boundsSumEven.second / (filtered.size() - oddNumber));
-
-	// add the boundary pixels (first and last pixel in each line) if they are missing
-	// special handling of the first two lines
-	for (std::size_t i = 0; i < 2; ++i) {
-		Line &line = *filteredList[i];
-		double avgDiff = (i&1u) ? avgLensDist.first : avgLensDist.second;
-		std::pair<double, double> bounds = (i&1u) ? boundsEven : boundsOdd;
-		if (std::abs(line.front().y - bounds.first) > 0.5*avgDiff) {
-			line.insert(line.begin(), cv::Point2f(line.front().x, bounds.first));
-		}
-		if (std::abs(line.back().y - bounds.second) > 0.5*avgDiff) {
-			line.push_back(cv::Point2f(line.back().x, bounds.second));
-		}
-	}
-	// intermediate lines
-	for (std::size_t i = 2; i < filteredList.size() - 2; ++i) {
-		Line &line = *filteredList[i];
-		double avgDiff = (i&1u) ? avgLensDist.first : avgLensDist.second;
-		std::pair<double, double> bounds = (i&1u) ? boundsEven : boundsOdd;
-		if (std::abs(line.front().y - bounds.first) > 0.5*avgDiff) {
-			line.insert(line.begin(), cv::Point2f(line.front().x, bounds.first));
-		}
-		if (std::abs(line.back().y - bounds.second) > 0.5*avgDiff) {
-			line.push_back(cv::Point2f(line.back().x, bounds.second));
-		}
-	}
-	// special handling of the last two lines
-	for (std::size_t i = filteredList.size() - 2; i < filteredList.size(); ++i) {
-		Line &line = *filteredList[i];
-		double avgDiff = (i&1u) ? avgLensDist.first : avgLensDist.second;
-		std::pair<double, double> bounds = (i&1u) ? boundsEven : boundsOdd;
-		if (std::abs(line.front().y - bounds.first) > 0.5*avgDiff) {
-			line.insert(line.begin(), cv::Point2f(line.front().x, bounds.first));
-		}
-		if (std::abs(line.back().y - bounds.second) > 0.5*avgDiff) {
-			line.push_back(cv::Point2f(line.back().x, bounds.second));
-		}
-	}
+	// ensure all boundary pixels are detected and fill the missing ones using interpolation
+	// if needed
+	repairBounds(filteredList, boundary, avgLensDist);
 
 	// now go through all lines and detect and missing centroids, possibly also remove outliers
 	// TODO
