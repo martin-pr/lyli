@@ -235,7 +235,7 @@ void repairBounds(const LinePtrList &lines, ImgBoundary boundary, DPair avgLensD
 	                 	if (std::abs(line.front().y - expectedL) > maxLensDistEven) {
 	                 		line.insert(line.begin(), cv::Point2f(line.front().x, expectedL));
 	                 	}
-	                 	if (std::abs(line.back().x - expectedR) > maxLensDistEven) {
+	                 	if (std::abs(line.back().y - expectedR) > maxLensDistEven) {
 	                 		line.push_back(cv::Point2f(line.back().x, expectedR));
 	                 	}
 	                 });
