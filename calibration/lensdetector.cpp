@@ -17,6 +17,9 @@
 
 #include "lensdetector.h"
 
+#include "linecomputer.h"
+#include "linecomputerimpl.h"
+
 #include <algorithm>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -206,90 +209,6 @@ cv::Point2f refineCentroid(const cv::Mat &image, cv::Point2i start) {
 	return estimate;
 }
 
-/**
- * A class providing all necessary functions to create lines from separate points.
- */
-class LineComputer {
-public:
-	typedef std::vector<cv::Point2d> Line; //!< a line of centroids
-	typedef std::map<float, Line> LineMap; //!< maps the y-position of the last centroid for each line with the line
-
-	/**
-	 * Add a centroid that may start a new line.
-	 *
-	 * The addHead() function should be used on a selected first number of columns to obtain
-	 * the beginning of all lines in the image. In contrary to add(), this function
-	 * can create new line entries in the map.
-	 */
-	void addHead(float key, cv::Point2f point) {
-		// initial fill - always create a new line
-		if (lineMap.empty()) {
-			auto res = lineMap.emplace(key, Line());
-			res.first->second.push_back(point);
-			return;
-		}
-
-		auto ub = lineMap.lower_bound(key);
-		auto lb = ub != lineMap.begin() ? std::prev(ub) : lineMap.end();
-
-		float diffLb = lb != lineMap.end() ? std::abs(lb->first - key) : std::numeric_limits<float>::max();
-		float diffUb = ub != lineMap.end() ? std::abs(ub->first - key) : std::numeric_limits<float>::max();
-
-		auto lineIt = diffLb < diffUb ? lb : ub;
-
-		// if a point is far from its bounds, it creates a new line
-		if(std::abs(lineIt->first - key) > MAX_DIFF) {
-			// construct a new line
-			auto res = lineMap.emplace(key, Line());
-			lineIt = res.first; // TODO: error handling
-		}
-		else {
-			// update the key
-			auto line = lineIt ->second;
-			auto nextLineIt = lineMap.erase(lineIt);
-			lineIt = lineMap.insert(nextLineIt, std::make_pair(key, line));
-		}
-
-		// add point to the line
-		lineIt->second.push_back(point);
-	}
-
-	/**
-	 * Add a new centroid to the computer.
-	 *
-	 * The function tries to find the line to which the centroid corresponds. The points too
-	 * far off are ignored, as these are likely noise rather than lens centroids.
-	 */
-	void add(float key, cv::Point2f point) {
-		auto ub = lineMap.lower_bound(key);
-		auto lb = ub != lineMap.begin() ? std::prev(ub) : lineMap.end();
-
-		float diffLb = lb != lineMap.end() ? std::abs(lb->first - key) : std::numeric_limits<float>::max();
-		float diffUb = ub != lineMap.end() ? std::abs(ub->first - key) : std::numeric_limits<float>::max();
-
-		auto lineIt = diffLb < diffUb ? lb : ub;
-
-		// the points too far from the nearest line are ignored
-		if(std::abs(lineIt->first - key) < MAX_DIFF) {
-			// update the key
-			auto line = lineIt ->second;
-			auto nextLineIt = lineMap.erase(lineIt);
-			lineIt = lineMap.insert(nextLineIt, std::make_pair(key, line));
-			// add point to the line
-			lineIt->second.push_back(point);
-		}
-	}
-
-	LineMap getLineMap() const {
-		return lineMap;
-	}
-
-private:
-	constexpr static float MAX_DIFF = 3.0; //!< max difference in pixels
-
-	LineMap lineMap;
-};
-
 }
 
 namespace Lyli {
@@ -304,7 +223,7 @@ LineMap LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
 	cv::Mat greyMatTranspose(gray.t());
 	cv::Mat maskTranspose(mask.t());
 
-	LineComputer lineComp;
+	LineComputer<Line> lineComp;
 	// find centroids and create map of lines
 	for (int row = 0; row < HEADER; ++row) {
 		std::uint8_t* pixel = maskTranspose.ptr<std::uint8_t>(row);
@@ -314,7 +233,7 @@ LineMap LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
 				cv::Point2f centroid = findCentroid(greyMatTranspose, maskTranspose, cv::Point2i(col, row));
 				centroid = refineCentroid(greyMatTranspose, centroid);
 				// construct line map
-				lineComp.addHead(centroid.x, centroid);
+				lineComp.findHead(centroid.x)->push_back(centroid);
 
 				// DEBUG: store centroid in image
 				maskTranspose.at<uchar>(centroid) = 192;
@@ -331,7 +250,10 @@ LineMap LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
 				cv::Point2f centroid = findCentroid(greyMatTranspose, maskTranspose, cv::Point2i(col, row));
 				centroid = refineCentroid(greyMatTranspose, centroid);
 				// complete the line
-				lineComp.add(centroid.x, centroid);
+				Line *line = lineComp.find(centroid.x);
+				if (line != nullptr) {
+					line->push_back(centroid);
+				}
 
 				// DEBUG: store centroid in image
 				maskTranspose.at<uchar>(centroid) = 192;
@@ -339,7 +261,7 @@ LineMap LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
 		}
 	}
 
-	LineComputer::LineMap lineMap = lineComp.getLineMap();
+	LineComputer<Line>::LineMap lineMap = lineComp.getLineMap();
 
 	// ensure the lines are sorted
 	for (auto &line : lineMap) {
