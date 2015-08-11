@@ -25,7 +25,7 @@ namespace Calibration {
 
 class LensDetector : public LensDetectorInterface {
 public:
-	virtual LineMap detect(const cv::Mat &gray, cv::Mat &mask) override;
+	virtual LineGrid detect(const cv::Mat &gray, cv::Mat &mask) override;
 };
 
 }

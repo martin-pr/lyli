@@ -44,10 +44,8 @@ struct Mask {
  * A line of lens centroids.
  */
 using Line = std::vector<cv::Point2d>;
-/**
- * Map of the y-position of the last centroid for each line.
- */
-using LineMap = std::map<float, Line>;
+
+class LineGrid;
 
 /**
  * Interface for the image preprocessing and the mask creation
@@ -97,7 +95,7 @@ public:
 	 * @param mask mask with lenses set as Mask::OBJECT
 	 * @return lens centroids grouped in lines
 	 */
-	virtual LineMap detect(const cv::Mat &gray, cv::Mat &mask) = 0;
+	virtual LineGrid detect(const cv::Mat &gray, cv::Mat &mask) = 0;
 
 	// avoid copying
 	LensDetectorInterface(const LensDetectorInterface&) = delete;
@@ -125,7 +123,7 @@ public:
 	 * @param lines lines to filter
 	 * @return filtered lines
 	 */
-	virtual LineMap filter(const LineMap &lines) = 0;
+	virtual LineGrid filter(const LineGrid &lines) = 0;
 
 	// avoid copying
 	LensFilterInterface(const LensFilterInterface&) = delete;

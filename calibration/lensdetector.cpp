@@ -17,8 +17,7 @@
 
 #include "lensdetector.h"
 
-#include "linecomputer.h"
-#include "linecomputerimpl.h"
+#include "linegrid.h"
 
 #include <algorithm>
 #include <opencv2/core/core.hpp>
@@ -214,18 +213,16 @@ cv::Point2f refineCentroid(const cv::Mat &image, cv::Point2i start) {
 namespace Lyli {
 namespace Calibration {
 
-LineMap LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
-	constexpr static int HEADER = 20;
-
+LineGrid LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
 	// transpose the greyMat image, as its easier to scan row by row rather than by column
 	// while row scanning on original is not problem for finding centroids, line detection
 	// needs to sweep orthogonaly to lines
 	cv::Mat greyMatTranspose(gray.t());
 	cv::Mat maskTranspose(mask.t());
 
-	LineComputer<Line> lineComp;
+	LineGrid lineGrid;
 	// find centroids and create map of lines
-	for (int row = 0; row < HEADER; ++row) {
+	for (int row = 0; row < maskTranspose.rows; ++row) {
 		std::uint8_t* pixel = maskTranspose.ptr<std::uint8_t>(row);
 		for (int col = 0; col < maskTranspose.cols; ++col) {
 			// if the pixel is not black and it is not marked, process
@@ -233,7 +230,7 @@ LineMap LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
 				cv::Point2f centroid = findCentroid(greyMatTranspose, maskTranspose, cv::Point2i(col, row));
 				centroid = refineCentroid(greyMatTranspose, centroid);
 				// construct line map
-				lineComp.findHead(centroid.x)->push_back(centroid);
+				lineGrid.addPoint(centroid);
 
 				// DEBUG: store centroid in image
 				maskTranspose.at<uchar>(centroid) = 192;
@@ -241,34 +238,8 @@ LineMap LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
 		}
 	}
 
-	for (int row = HEADER; row < maskTranspose.rows; ++row) {
-		std::uint8_t* pixel = maskTranspose.ptr<std::uint8_t>(row);
-		// find centroids and complete the lines by adding remaining centroids
-		for (int col = 0; col < maskTranspose.cols; ++col) {
-			// if the pixel is not black and it is not marked, process
-			if (pixel[col] == Mask::OBJECT) {
-				cv::Point2f centroid = findCentroid(greyMatTranspose, maskTranspose, cv::Point2i(col, row));
-				centroid = refineCentroid(greyMatTranspose, centroid);
-				// complete the line
-				Line *line = lineComp.find(centroid.x);
-				if (line != nullptr) {
-					line->push_back(centroid);
-				}
-
-				// DEBUG: store centroid in image
-				maskTranspose.at<uchar>(centroid) = 192;
-			}
-		}
-	}
-
-	LineComputer<Line>::LineMap lineMap = lineComp.getLineMap();
-
-	// ensure the lines are sorted
-	for (auto &line : lineMap) {
-		std::sort(line.second.begin(), line.second.end(), [](const cv::Point2f &a, const cv::Point2f &b){return a.y < b.y;});
-	}
-
-	return lineMap;
+	//lineGrid.finalize();
+	return lineGrid;
 }
 
 }

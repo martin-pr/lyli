@@ -36,9 +36,10 @@ include_directories(${LIBUSB_INCLUDE_DIRS})
 # Build #
 #########
 
-add_library(lyliiface STATIC camera.cpp filelist.cpp filelistparser.cpp rawimage.cpp
-	calibration/calibrator.cpp calibration/preprocessor.cpp calibration/lensdetector.cpp calibration/lensfilter.cpp)
-target_link_libraries(lyliiface usbpp ${OpenCV_LIBS} ${LIBUSB_LIBRARIES})
+add_subdirectory(calibration)
+
+add_library(lyliiface STATIC camera.cpp filelist.cpp filelistparser.cpp rawimage.cpp)
+target_link_libraries(lyliiface lylicalib usbpp ${OpenCV_LIBS} ${LIBUSB_LIBRARIES})
 add_dependencies(lyliiface libusbpp_project)
 
 add_executable(lyli main.cpp)

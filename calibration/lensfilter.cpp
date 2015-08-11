@@ -17,6 +17,8 @@
 
 #include "lensfilter.h"
 
+#include "linegrid.h"
+
 #include <cmath>
 #include <utility>
 
@@ -86,7 +88,7 @@ using ImgBoundary = std::pair<ImgEdge, ImgEdge>;
  * \param lines lines for which the average is computed
  * \return pair <odd averafe, even average>
  */
-DPair averageLineLen(const ::Lyli::Calibration::LineMap& lines) {
+DPair averageLineLen(const ::Lyli::Calibration::LineGrid& lines) {
 	double sumOdd = 0.0;
 	double sumEven = 0.0;
 
