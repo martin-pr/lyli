@@ -17,6 +17,7 @@
 
 #include "linegrid.h"
 
+#include <algorithm>
 #include <cmath>
 #include <iterator>
 #include <limits>
@@ -62,6 +63,17 @@ void LineGrid::finalize() {
 	verticalLineConstructor(constructStart, lineMapHorizontal.size(),
 	                        [&](const cv::Point2f &point) {this->mapAdd(tmpLineMapOdd, point.y, point);},
 	                        [&](const cv::Point2f &point) {this->mapAdd(tmpLineMapEven, point.y, point);});
+
+	// we must sort the generated lines, as we did not add points to the in order
+	// (we first cerated header, then processed points before header and then after)
+	for (auto &line : tmpLineMapOdd) {
+		std::sort(line.second.begin(), line.second.end(),
+		          [](const cv::Point2f *a, const cv::Point2f *b){return a->x < b->x;});
+	}
+	for (auto &line : tmpLineMapEven) {
+		std::sort(line.second.begin(), line.second.end(),
+		          [](const cv::Point2f *a, const cv::Point2f *b){return a->x < b->x;});
+	}
 
 	// create final line maps that is used for public interfaces
 	lineMapVerticalOdd = LineMap(tmpLineMapOdd.begin(), tmpLineMapOdd.end());
