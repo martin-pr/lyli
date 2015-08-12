@@ -40,11 +40,6 @@ struct Mask {
 	static constexpr uint8_t OBJECT = 255;
 };
 
-/**
- * A line of lens centroids.
- */
-using Line = std::vector<cv::Point2d>;
-
 class LineGrid;
 
 /**

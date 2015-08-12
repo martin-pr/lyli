@@ -20,6 +20,7 @@
 #include "lensdetector.h"
 //#include "lensfilter.h"
 #include "linegrid.h"
+#include "linemap.h"
 
 #include <algorithm>
 #include <cassert>
@@ -99,11 +100,11 @@ void Calibrator::calibrate() {
 	lineMap = lensFilter.filter(lineMap);*/
 
 	// DEBUG: draw lines
-	LineGrid::LineMap lineMap = lineGrid.getHorizontalMap();
+	LineMap lineMap = lineGrid.getHorizontalMap();
 	dst = cv::Scalar(256, 256, 256);
 	for (auto &line : lineMap) {
-		for (std::size_t i = 1; i < line.second.size(); ++i) {
-			cv::line(dst, *(line.second.at(i-1)), *(line.second.at(i)), cv::Scalar(0, 0, 0));
+		for (std::size_t i = 1; i < line->size(); ++i) {
+			cv::line(dst, *(line->at(i-1)), *(line->at(i)), cv::Scalar(0, 0, 0));
 		}
 	}
 	dst = dst.t();

@@ -18,6 +18,9 @@
 #ifndef LYLI_CALIBRATION_LINEGRID_H_
 #define LYLI_CALIBRATION_LINEGRID_H_
 
+#include "line.h"
+#include "linemap.h"
+
 #include <functional>
 #include <map>
 #include <memory>
@@ -38,10 +41,6 @@ namespace Calibration {
  */
 class LineGrid {
 public:
-	using Line = std::vector<cv::Point2f*>;
-	using LineMap = std::map<float, Line>;
-	using LineVector = std::vector<Line*>;
-
 	/// The limiting coordinate until which new lines may be constructed
 	constexpr static int CONSTRUCT_LIM = 20;
 	/// max difference in pixels for constructing new lines
@@ -79,21 +78,19 @@ public:
 
 private:
 	using PointList = std::vector<std::unique_ptr<cv::Point2f>>;
+	using TmpLineMap = std::map<float, PtrLine>;
+
+	// temporary line map
+	TmpLineMap tmpLineMap;
 
 	/// The point storage
 	PointList storage;
 	/// Map of horizontal lines
 	LineMap lineMapHorizontal;
-	/// The horizontal lines stored in a vector
-	LineVector lineVecHorizontal;
 	/// Map of odd vertical lines
 	LineMap lineMapVerticalOdd;
 	/// Map of even vertical lines
 	LineMap lineMapVerticalEven;
-	/// The odd vertical lines stored in a vector
-	LineVector lineVecVerticalOdd;
-	/// The even vertical lines stored in a vector
-	LineVector lineVecVerticalEven;
 
 	/**
 	 * Add point to the storage.
@@ -108,24 +105,14 @@ private:
 	 * \param lineMap map to add point to
 	 * \param point to add
 	 */
-	void mapAddConstruct(LineMap &lineMap, const cv::Point2f &point);
+	void mapAddConstruct(TmpLineMap &lineMap, const cv::Point2f &point);
 	/**
 	 * Add pointer to the selected line map if there is a suitable line
 	 *
 	 * \param lineMap map to add point to
 	 * \param point to add
 	 */
-	void mapAdd(LineMap &lineMap, const cv::Point2f &point);
-	/**
-	 * Create a lince vector from a map.
-	 *
-	 * The vector DOES NOT take ownership of lines, so the map
-	 * must exist for the whole lifetime of the vector
-	 *
-	 * \param map source map
-	 * \param vector the output vector
-	 */
-	void mapToLineVec(LineMap &map, LineVector &vector);
+	void mapAdd(TmpLineMap &lineMap, const cv::Point2f &point);
 	/**
 	 * Helper function to construct vertical lines
 	 *

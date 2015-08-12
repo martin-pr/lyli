@@ -20,6 +20,7 @@
 #include <cmath>
 #include <iterator>
 #include <limits>
+#include <memory>
 
 namespace Lyli {
 namespace Calibration {
@@ -27,16 +28,17 @@ namespace Calibration {
 void LineGrid::addPoint(const cv::Point2f& point) {
 	// add point to the horizontal line map
 	if (point.y <= CONSTRUCT_LIM) {
-		mapAddConstruct(lineMapHorizontal, point);
+		mapAddConstruct(tmpLineMap, point);
 	}
 	else {
-		mapAdd(lineMapHorizontal, point);
+		mapAdd(tmpLineMap, point);
 	}
 }
 
 void LineGrid::finalize() {
-	// create a vector of the horizontal lines for easier random access
-	mapToLineVec(lineMapHorizontal, lineVecHorizontal);
+	// create a final line map that is used for public interfaces
+	lineMapHorizontal = LineMap(tmpLineMap.begin(), tmpLineMap.end());
+	tmpLineMap.clear();
 
 	// the points in horizontal lines are sorted implicityl due to the nature
 	// of the sweep algorithm
@@ -46,29 +48,29 @@ void LineGrid::finalize() {
 
 	// construct lines, we will use 6 lines in the first quarter of the image
 	// as these should be the most high-quality lines
-	std::size_t constructStart = lineVecHorizontal.size() / 4;
+	std::size_t constructStart = lineMapHorizontal.size() / 4;
 	verticalLineConstructor(constructStart, constructStart+6,
-	                        [&](LineMap &lineMap, const cv::Point2f &point) {this->mapAddConstruct(lineMap, point);});
+	                        [&](LineMap &lineMap, const cv::Point2f &point) {this->mapAddConstruct(tmpLineMap, point);});
 
 	// add remaining points to lines
 	verticalLineConstructor(0, constructStart,
-	                        [&](LineMap &lineMap, const cv::Point2f &point) {this->mapAdd(lineMap, point);});
-	verticalLineConstructor(constructStart, lineVecHorizontal.size(),
-	                        [&](LineMap &lineMap, const cv::Point2f &point) {this->mapAdd(lineMap, point);});
+	                        [&](LineMap &lineMap, const cv::Point2f &point) {this->mapAdd(tmpLineMap, point);});
+	verticalLineConstructor(constructStart, lineMapHorizontal.size(),
+	                        [&](LineMap &lineMap, const cv::Point2f &point) {this->mapAdd(tmpLineMap, point);});
 
 	// remove points that are not in both horizontal and a vertical line
 	// TODO
 }
 
-const LineGrid::LineMap& LineGrid::getHorizontalMap() const {
+const LineMap& LineGrid::getHorizontalMap() const {
 	return lineMapHorizontal;
 }
 
-const LineGrid::LineMap& LineGrid::getVerticalMapOdd() const {
+const LineMap& LineGrid::getVerticalMapOdd() const {
 	return lineMapVerticalOdd;
 }
 
-const LineGrid::LineMap& LineGrid::getVerticalMapEven() const {
+const LineMap& LineGrid::getVerticalMapEven() const {
 	return lineMapVerticalEven;
 }
 
@@ -77,12 +79,12 @@ cv::Point2f * LineGrid::storageAdd(const cv::Point2f& point) {
 	return storage.back().get();
 }
 
-void LineGrid::mapAddConstruct(LineMap &lineMap, const cv::Point2f &point) {
+void LineGrid::mapAddConstruct(TmpLineMap &lineMap, const cv::Point2f &point) {
 	float position = point.x;
 
 	// initial fill - always create a new line
 	if (lineMap.empty()) {
-		auto res = lineMap.emplace(position, Line());
+		auto res = lineMap.emplace(position, PtrLine());
 		// add point to the new line
 		res.first->second.push_back(storageAdd(point));
 		return;
@@ -99,7 +101,7 @@ void LineGrid::mapAddConstruct(LineMap &lineMap, const cv::Point2f &point) {
 	// if a point is far from its bounds, it creates a new line
 	if(std::abs(lineIt->first - position) > MAX_DIFF) {
 		// construct a new line
-		auto res = lineMap.emplace(position, Line());
+		auto res = lineMap.emplace(position, PtrLine());
 		lineIt = res.first; // TODO: error handling
 	}
 	else {
@@ -113,7 +115,7 @@ void LineGrid::mapAddConstruct(LineMap &lineMap, const cv::Point2f &point) {
 	return lineIt->second.push_back(storageAdd(point));
 }
 
-void LineGrid::mapAdd(LineMap &lineMap, const cv::Point2f& point) {
+void LineGrid::mapAdd(TmpLineMap &lineMap, const cv::Point2f& point) {
 	float position = point.x;
 
 	// find
@@ -136,16 +138,10 @@ void LineGrid::mapAdd(LineMap &lineMap, const cv::Point2f& point) {
 	}
 }
 
-void LineGrid::mapToLineVec(LineMap& map, LineVector& vector) {
-	for (auto &line : map) {
-		vector.push_back(&(line.second));
-	}
-}
-
 void LineGrid::verticalLineConstructor(std::size_t start, std::size_t end,
                                        std::function<void(LineMap &, const cv::Point2f &)> inserter) {
 	for (std::size_t i = start; i < end; ++i) {
-		const Line &tmpline = *(lineVecHorizontal[i]);
+		const PtrLine &tmpline = *(lineMapHorizontal.at(i));
 		if (i & static_cast<std::size_t>(1)) { // even
 			for (const auto &point : tmpline) {
 				inserter(lineMapVerticalEven, *point);

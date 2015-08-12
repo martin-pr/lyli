@@ -238,7 +238,7 @@ LineGrid LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
 		}
 	}
 
-	//lineGrid.finalize();
+	lineGrid.finalize();
 	return lineGrid;
 }
 
