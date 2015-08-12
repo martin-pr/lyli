@@ -100,9 +100,15 @@ void Calibrator::calibrate() {
 	lineMap = lensFilter.filter(lineMap);*/
 
 	// DEBUG: draw lines
-	LineMap lineMap = lineGrid.getHorizontalMap();
 	dst = cv::Scalar(256, 256, 256);
-	for (auto &line : lineMap) {
+	const LineMap &lineMapHorizontal = lineGrid.getHorizontalMap();
+	for (const auto &line : lineMapHorizontal) {
+		for (std::size_t i = 1; i < line->size(); ++i) {
+			cv::line(dst, *(line->at(i-1)), *(line->at(i)), cv::Scalar(0, 0, 0));
+		}
+	}
+	const LineMap &lineMapVertical = lineGrid.getVerticalMapEven();
+	for (const auto &line : lineMapVertical) {
 		for (std::size_t i = 1; i < line->size(); ++i) {
 			cv::line(dst, *(line->at(i-1)), *(line->at(i)), cv::Scalar(0, 0, 0));
 		}

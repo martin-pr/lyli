@@ -103,25 +103,29 @@ private:
 	 * if necessary.
 	 *
 	 * \param lineMap map to add point to
+	 * \param position position that serves as a key
 	 * \param point to add
 	 */
-	void mapAddConstruct(TmpLineMap &lineMap, const cv::Point2f &point);
+	void mapAddConstruct(TmpLineMap &lineMap, float position, const cv::Point2f &point);
 	/**
 	 * Add pointer to the selected line map if there is a suitable line
 	 *
 	 * \param lineMap map to add point to
+	 * \param position position that serves as a key
 	 * \param point to add
 	 */
-	void mapAdd(TmpLineMap &lineMap, const cv::Point2f &point);
+	void mapAdd(TmpLineMap &lineMap, float position, const cv::Point2f &point);
 	/**
 	 * Helper function to construct vertical lines
 	 *
 	 * \param start start of the line range to process (inclusive)
 	 * \param end end of the line range (exclusive)
-	 * \param inserter function that processes a point and adds it a corresponding line
+	 * \param inserterOdd function that processes a point and adds it a corresponding line, used for odd lines
+	 * \param inserterEven as above, used for even lines
 	 */
 	void verticalLineConstructor(std::size_t start, std::size_t end,
-	                             std::function<void(LineMap &, const cv::Point2f &)> inserter);
+	                             std::function<void(const cv::Point2f &)> inserterOdd,
+	                             std::function<void(const cv::Point2f &)> inserterEven);
 };
 
 }

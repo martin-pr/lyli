@@ -28,10 +28,10 @@ namespace Calibration {
 void LineGrid::addPoint(const cv::Point2f& point) {
 	// add point to the horizontal line map
 	if (point.y <= CONSTRUCT_LIM) {
-		mapAddConstruct(tmpLineMap, point);
+		mapAddConstruct(tmpLineMap, point.x, point);
 	}
 	else {
-		mapAdd(tmpLineMap, point);
+		mapAdd(tmpLineMap, point.x, point);
 	}
 }
 
@@ -48,15 +48,24 @@ void LineGrid::finalize() {
 
 	// construct lines, we will use 6 lines in the first quarter of the image
 	// as these should be the most high-quality lines
+	TmpLineMap tmpLineMapOdd;
+	TmpLineMap tmpLineMapEven;
 	std::size_t constructStart = lineMapHorizontal.size() / 4;
 	verticalLineConstructor(constructStart, constructStart+6,
-	                        [&](LineMap &lineMap, const cv::Point2f &point) {this->mapAddConstruct(tmpLineMap, point);});
+	                        [&](const cv::Point2f &point) {this->mapAddConstruct(tmpLineMapOdd, point.y, point);},
+	                        [&](const cv::Point2f &point) {this->mapAddConstruct(tmpLineMapEven, point.y, point);});
 
 	// add remaining points to lines
 	verticalLineConstructor(0, constructStart,
-	                        [&](LineMap &lineMap, const cv::Point2f &point) {this->mapAdd(tmpLineMap, point);});
+	                        [&](const cv::Point2f &point) {this->mapAdd(tmpLineMapOdd, point.y, point);},
+	                        [&](const cv::Point2f &point) {this->mapAdd(tmpLineMapEven, point.y, point);});
 	verticalLineConstructor(constructStart, lineMapHorizontal.size(),
-	                        [&](LineMap &lineMap, const cv::Point2f &point) {this->mapAdd(tmpLineMap, point);});
+	                        [&](const cv::Point2f &point) {this->mapAdd(tmpLineMapOdd, point.y, point);},
+	                        [&](const cv::Point2f &point) {this->mapAdd(tmpLineMapEven, point.y, point);});
+
+	// create final line maps that is used for public interfaces
+	lineMapVerticalOdd = LineMap(tmpLineMapOdd.begin(), tmpLineMapOdd.end());
+	lineMapVerticalEven = LineMap(tmpLineMapEven.begin(), tmpLineMapEven.end());
 
 	// remove points that are not in both horizontal and a vertical line
 	// TODO
@@ -79,9 +88,7 @@ cv::Point2f * LineGrid::storageAdd(const cv::Point2f& point) {
 	return storage.back().get();
 }
 
-void LineGrid::mapAddConstruct(TmpLineMap &lineMap, const cv::Point2f &point) {
-	float position = point.x;
-
+void LineGrid::mapAddConstruct(TmpLineMap &lineMap, float position, const cv::Point2f &point) {
 	// initial fill - always create a new line
 	if (lineMap.empty()) {
 		auto res = lineMap.emplace(position, PtrLine());
@@ -115,9 +122,7 @@ void LineGrid::mapAddConstruct(TmpLineMap &lineMap, const cv::Point2f &point) {
 	return lineIt->second.push_back(storageAdd(point));
 }
 
-void LineGrid::mapAdd(TmpLineMap &lineMap, const cv::Point2f& point) {
-	float position = point.x;
-
+void LineGrid::mapAdd(TmpLineMap &lineMap, float position, const cv::Point2f& point) {
 	// find
 	auto ub = lineMap.lower_bound(position);
 	auto lb = ub != lineMap.begin() ? std::prev(ub) : lineMap.end();
@@ -139,17 +144,18 @@ void LineGrid::mapAdd(TmpLineMap &lineMap, const cv::Point2f& point) {
 }
 
 void LineGrid::verticalLineConstructor(std::size_t start, std::size_t end,
-                                       std::function<void(LineMap &, const cv::Point2f &)> inserter) {
+                                       std::function<void(const cv::Point2f &)> inserterOdd,
+                                       std::function<void(const cv::Point2f &)> inserterEven) {
 	for (std::size_t i = start; i < end; ++i) {
 		const PtrLine &tmpline = *(lineMapHorizontal.at(i));
 		if (i & static_cast<std::size_t>(1)) { // even
 			for (const auto &point : tmpline) {
-				inserter(lineMapVerticalEven, *point);
+				inserterEven(*point);
 			}
 		}
 		else { // odd
 			for (const auto &point : tmpline) {
-				inserter(lineMapVerticalOdd, *point);
+				inserterOdd(*point);
 			}
 		}
 	}
