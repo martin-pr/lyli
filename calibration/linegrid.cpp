@@ -27,12 +27,14 @@ namespace Lyli {
 namespace Calibration {
 
 void LineGrid::addPoint(const cv::Point2f& point) {
+	// add point to the point storage
+	cv::Point2f *stored = storageAdd(point);
 	// add point to the horizontal line map
 	if (point.y <= CONSTRUCT_LIM) {
-		mapAddConstruct(tmpLineMap, point.x, point);
+		mapAddConstruct(tmpLineMap, point.x, stored);
 	}
 	else {
-		mapAdd(tmpLineMap, point.x, point);
+		mapAdd(tmpLineMap, point.x, stored);
 	}
 }
 
@@ -53,16 +55,16 @@ void LineGrid::finalize() {
 	TmpLineMap tmpLineMapEven;
 	std::size_t constructStart = lineMapHorizontal.size() / 4;
 	verticalLineConstructor(constructStart, constructStart+6,
-	                        [&](const cv::Point2f &point) {this->mapAddConstruct(tmpLineMapOdd, point.y, point);},
-	                        [&](const cv::Point2f &point) {this->mapAddConstruct(tmpLineMapEven, point.y, point);});
+	                        [&](cv::Point2f *point) {this->mapAddConstruct(tmpLineMapOdd, point->y, point);},
+	                        [&](cv::Point2f *point) {this->mapAddConstruct(tmpLineMapEven, point->y, point);});
 
 	// add remaining points to lines
 	verticalLineConstructor(0, constructStart,
-	                        [&](const cv::Point2f &point) {this->mapAdd(tmpLineMapOdd, point.y, point);},
-	                        [&](const cv::Point2f &point) {this->mapAdd(tmpLineMapEven, point.y, point);});
+	                        [&](cv::Point2f *point) {this->mapAdd(tmpLineMapOdd, point->y, point);},
+	                        [&](cv::Point2f *point) {this->mapAdd(tmpLineMapEven, point->y, point);});
 	verticalLineConstructor(constructStart, lineMapHorizontal.size(),
-	                        [&](const cv::Point2f &point) {this->mapAdd(tmpLineMapOdd, point.y, point);},
-	                        [&](const cv::Point2f &point) {this->mapAdd(tmpLineMapEven, point.y, point);});
+	                        [&](cv::Point2f *point) {this->mapAdd(tmpLineMapOdd, point->y, point);},
+	                        [&](cv::Point2f *point) {this->mapAdd(tmpLineMapEven, point->y, point);});
 
 	// we must sort the generated lines, as we did not add points to the in order
 	// (we first cerated header, then processed points before header and then after)
@@ -96,16 +98,16 @@ const LineMap& LineGrid::getVerticalMapEven() const {
 }
 
 cv::Point2f * LineGrid::storageAdd(const cv::Point2f& point) {
-	storage.push_back(std::make_unique<cv::Point2f>(point));
-	return storage.back().get();
+	auto res = storage.insert(std::make_unique<cv::Point2f>(point));
+	return res.first->get();
 }
 
-void LineGrid::mapAddConstruct(TmpLineMap &lineMap, float position, const cv::Point2f &point) {
+void LineGrid::mapAddConstruct(TmpLineMap &lineMap, float position, cv::Point2f *point) {
 	// initial fill - always create a new line
 	if (lineMap.empty()) {
 		auto res = lineMap.emplace(position, PtrLine());
 		// add point to the new line
-		res.first->second.push_back(storageAdd(point));
+		res.first->second.push_back(point);
 		return;
 	}
 
@@ -131,10 +133,10 @@ void LineGrid::mapAddConstruct(TmpLineMap &lineMap, float position, const cv::Po
 	}
 
 	// add point to the closest line
-	return lineIt->second.push_back(storageAdd(point));
+	return lineIt->second.push_back(point);
 }
 
-void LineGrid::mapAdd(TmpLineMap &lineMap, float position, const cv::Point2f& point) {
+void LineGrid::mapAdd(TmpLineMap &lineMap, float position, cv::Point2f *point) {
 	// find
 	auto ub = lineMap.lower_bound(position);
 	auto lb = ub != lineMap.begin() ? std::prev(ub) : lineMap.end();
@@ -151,23 +153,23 @@ void LineGrid::mapAdd(TmpLineMap &lineMap, float position, const cv::Point2f& po
 		auto nextLineIt = lineMap.erase(lineIt);
 		lineIt = lineMap.insert(nextLineIt, std::make_pair(position, line));
 		// add point to the closest line
-		return lineIt->second.push_back(storageAdd(point));
+		return lineIt->second.push_back(point);
 	}
 }
 
 void LineGrid::verticalLineConstructor(std::size_t start, std::size_t end,
-                                       std::function<void(const cv::Point2f &)> inserterOdd,
-                                       std::function<void(const cv::Point2f &)> inserterEven) {
+                                       std::function<void(cv::Point2f *)> inserterOdd,
+                                       std::function<void(cv::Point2f *)> inserterEven) {
 	for (std::size_t i = start; i < end; ++i) {
 		const PtrLine &tmpline = *(lineMapHorizontal.at(i));
 		if (i & static_cast<std::size_t>(1)) { // even
 			for (const auto &point : tmpline) {
-				inserterEven(*point);
+				inserterEven(point);
 			}
 		}
 		else { // odd
 			for (const auto &point : tmpline) {
-				inserterOdd(*point);
+				inserterOdd(point);
 			}
 		}
 	}

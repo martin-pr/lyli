@@ -25,6 +25,7 @@
 #include <map>
 #include <memory>
 #include <opencv2/core/core.hpp>
+#include <unordered_set>
 #include <vector>
 
 namespace Lyli {
@@ -77,14 +78,14 @@ public:
 	const LineMap& getVerticalMapEven() const;
 
 private:
-	using PointList = std::vector<std::unique_ptr<cv::Point2f>>;
+	using PointSet = std::unordered_set<std::unique_ptr<cv::Point2f>>;
 	using TmpLineMap = std::map<float, PtrLine>;
 
 	// temporary line map
 	TmpLineMap tmpLineMap;
 
 	/// The point storage
-	PointList storage;
+	PointSet storage;
 	/// Map of horizontal lines
 	LineMap lineMapHorizontal;
 	/// Map of odd vertical lines
@@ -106,7 +107,7 @@ private:
 	 * \param position position that serves as a key
 	 * \param point to add
 	 */
-	void mapAddConstruct(TmpLineMap &lineMap, float position, const cv::Point2f &point);
+	void mapAddConstruct(TmpLineMap &lineMap, float position, cv::Point2f *point);
 	/**
 	 * Add pointer to the selected line map if there is a suitable line
 	 *
@@ -114,7 +115,7 @@ private:
 	 * \param position position that serves as a key
 	 * \param point to add
 	 */
-	void mapAdd(TmpLineMap &lineMap, float position, const cv::Point2f &point);
+	void mapAdd(TmpLineMap &lineMap, float position, cv::Point2f *point);
 	/**
 	 * Helper function to construct vertical lines
 	 *
@@ -124,8 +125,8 @@ private:
 	 * \param inserterEven as above, used for even lines
 	 */
 	void verticalLineConstructor(std::size_t start, std::size_t end,
-	                             std::function<void(const cv::Point2f &)> inserterOdd,
-	                             std::function<void(const cv::Point2f &)> inserterEven);
+	                             std::function<void(cv::Point2f *)> inserterOdd,
+	                             std::function<void(cv::Point2f *)> inserterEven);
 };
 
 }
