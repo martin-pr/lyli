@@ -20,7 +20,6 @@
 #include "lensdetector.h"
 //#include "lensfilter.h"
 #include "linegrid.h"
-#include "linemap.h"
 
 #include <algorithm>
 #include <cassert>
@@ -101,16 +100,16 @@ void Calibrator::calibrate() {
 
 	// DEBUG: draw lines
 	dst = cv::Scalar(256, 256, 256);
-	const LineMap &lineMapHorizontal = lineGrid.getHorizontalMap();
-	for (const auto &line : lineMapHorizontal) {
-		for (std::size_t i = 1; i < line->size(); ++i) {
-			cv::line(dst, *(line->at(i-1)), *(line->at(i)), cv::Scalar(0, 0, 0));
+	const PtrLineList &linesHorizontal = lineGrid.getHorizontalLines();
+	for (const auto &line : linesHorizontal) {
+		for (std::size_t i = 1; i < line.size(); ++i) {
+			cv::line(dst, *(line.at(i-1)), *(line.at(i)), cv::Scalar(0, 0, 0));
 		}
 	}
-	const LineMap &lineMapVertical = lineGrid.getVerticalMapEven();
-	for (const auto &line : lineMapVertical) {
-		for (std::size_t i = 1; i < line->size(); ++i) {
-			cv::line(dst, *(line->at(i-1)), *(line->at(i)), cv::Scalar(0, 0, 0));
+	const PtrLineList &linesVertical = lineGrid.getVerticalLinesEven();
+	for (const auto &line : linesVertical) {
+		for (std::size_t i = 1; i < line.size(); ++i) {
+			cv::line(dst, *(line.at(i-1)), *(line.at(i)), cv::Scalar(0, 0, 0));
 		}
 	}
 	dst = dst.t();

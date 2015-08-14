@@ -19,7 +19,6 @@
 #define LYLI_CALIBRATION_LINEGRID_H_
 
 #include "line.h"
-#include "linemap.h"
 
 #include <functional>
 #include <map>
@@ -30,6 +29,7 @@
 
 namespace Lyli {
 namespace Calibration {
+
 
 /**
  * A grid of lines constructed from the detected lens centroids.
@@ -65,33 +65,33 @@ public:
 	void finalize();
 
 	/**
-	 * Get the map storing horizontal lines
+	 * Get the horizontal lines
 	 */
-	const LineMap& getHorizontalMap() const;
+	const PtrLineList& getHorizontalLines() const;
 	/**
-	 * Get the map storing odd vertical lines
+	 * Get vertical lines for odd horizontal lines.
 	 */
-	const LineMap& getVerticalMapOdd() const;
+	const PtrLineList& getVerticalLinesOdd() const;
 	/**
-	 * Get the map storing even vertical lines
+	 * Get vertical lines for even horizontal lines.
 	 */
-	const LineMap& getVerticalMapEven() const;
+	const PtrLineList& getVerticalLinesEven() const;
 
 private:
-	using PointMap = std::unordered_map<cv::Point2f*, std::unique_ptr<cv::Point2f>>;
+	using PointStore = std::unordered_map<cv::Point2f*, std::unique_ptr<cv::Point2f>>;
 	using TmpLineMap = std::map<float, PtrLine>;
 
 	// temporary line map
 	TmpLineMap tmpLineMap;
 
 	/// The point storage
-	PointMap storage;
+	PointStore storage;
 	/// Map of horizontal lines
-	LineMap lineMapHorizontal;
+	PtrLineList linesHorizontal;
 	/// Map of odd vertical lines
-	LineMap lineMapVerticalOdd;
+	PtrLineList linesVerticalOdd;
 	/// Map of even vertical lines
-	LineMap lineMapVerticalEven;
+	PtrLineList linesVerticalEven;
 
 	/**
 	 * Add point to the storage.
@@ -116,6 +116,12 @@ private:
 	 * \param point to add
 	 */
 	void mapAdd(TmpLineMap &lineMap, float position, cv::Point2f *point);
+	/**
+	 * Create a list from temporary line map.
+	 * \param map source map
+	 * \param list output list
+	 */
+	void tmpLineMap2LineList(const TmpLineMap &map, PtrLineList &list);
 	/**
 	 * Helper function to construct vertical lines
 	 *

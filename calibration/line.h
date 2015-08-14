@@ -36,6 +36,10 @@ using Line = std::vector<cv::Point2d>;
  * such as in LineGrid.
  */
 using PtrLine = std::vector<cv::Point2f*>;
+/**
+ * List of PtrLines.
+ */
+using PtrLineList = std::vector<PtrLine>;
 
 }
 }

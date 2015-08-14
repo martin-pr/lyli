@@ -41,7 +41,7 @@ void LineGrid::addPoint(const cv::Point2f& point) {
 
 void LineGrid::finalize() {
 	// create a final line map that is used for public interfaces
-	lineMapHorizontal = LineMap(tmpLineMap.begin(), tmpLineMap.end());
+	tmpLineMap2LineList(tmpLineMap, linesHorizontal);
 	tmpLineMap.clear();
 
 	// the points in horizontal lines are sorted implicityl due to the nature
@@ -54,12 +54,12 @@ void LineGrid::finalize() {
 	// as these should be the most high-quality lines
 	TmpLineMap tmpLineMapOdd;
 	TmpLineMap tmpLineMapEven;
-	std::size_t constructStart = lineMapHorizontal.size() / 4;
+	std::size_t constructStart = linesHorizontal.size() / 4;
 	verticalLineConstructor(constructStart, constructStart+6,
 	                        [&](cv::Point2f *point) {this->mapAddConstruct(tmpLineMapOdd, point->y, point);},
 	                        [&](cv::Point2f *point) {this->mapAddConstruct(tmpLineMapEven, point->y, point);});
 	// add the following points to the lines
-	verticalLineConstructor(constructStart, lineMapHorizontal.size(),
+	verticalLineConstructor(constructStart, linesHorizontal.size(),
 	                        [&](cv::Point2f *point) {this->mapAdd(tmpLineMapOdd, point->y, point);},
 	                        [&](cv::Point2f *point) {this->mapAdd(tmpLineMapEven, point->y, point);});
 	// process the first few lines
@@ -94,13 +94,13 @@ void LineGrid::finalize() {
 	}
 
 	// create final line maps that is used for public interfaces
-	lineMapVerticalOdd = LineMap(tmpLineMapOdd.begin(), tmpLineMapOdd.end());
-	lineMapVerticalEven = LineMap(tmpLineMapEven.begin(), tmpLineMapEven.end());
+	tmpLineMap2LineList(tmpLineMapOdd, linesVerticalOdd);
+	tmpLineMap2LineList(tmpLineMapEven, linesVerticalEven);
 
 	std::unordered_set<cv::Point2f*> testPoints;
 	// remove points that are not in any horizontal line from storage
-	for (auto &line : lineMapHorizontal) {
-		for (auto &point : *line) {
+	for (auto &line : linesHorizontal) {
+		for (auto &point : line) {
 			testPoints.insert(point);
 		}
 	}
@@ -114,40 +114,40 @@ void LineGrid::finalize() {
 	}
 	// remove points that are not in any vertical line
 	testPoints.clear();
-	for (auto &line : lineMapVerticalOdd) {
-		for (auto &point : *line) {
+	for (auto &line : linesVerticalOdd) {
+		for (auto &point : line) {
 			testPoints.insert(point);
 		}
 	}
-	for (auto &line : lineMapVerticalEven) {
-		for (auto &point : *line) {
+	for (auto &line : linesVerticalEven) {
+		for (auto &point : line) {
 			testPoints.insert(point);
 		}
 	}
-	for (auto &line : lineMapHorizontal) {
-		for (auto it = line->begin(); it != line->end();) {
+	for (auto &line : linesHorizontal) {
+		for (auto it = line.begin(); it != line.end();) {
 			auto point = *it;
 			if (testPoints.find(point) != testPoints.end()) {
 				++it;
 			}
 			else {
-				it = line->erase(it);
+				it = line.erase(it);
 				storage.erase(point);
 			}
 		}
 	}
 }
 
-const LineMap& LineGrid::getHorizontalMap() const {
-	return lineMapHorizontal;
+const PtrLineList& LineGrid::getHorizontalLines() const {
+	return linesHorizontal;
 }
 
-const LineMap& LineGrid::getVerticalMapOdd() const {
-	return lineMapVerticalOdd;
+const PtrLineList& LineGrid::getVerticalLinesOdd() const {
+	return linesVerticalOdd;
 }
 
-const LineMap& LineGrid::getVerticalMapEven() const {
-	return lineMapVerticalEven;
+const PtrLineList& LineGrid::getVerticalLinesEven() const {
+	return linesVerticalEven;
 }
 
 cv::Point2f * LineGrid::storageAdd(const cv::Point2f& point) {
@@ -211,12 +211,18 @@ void LineGrid::mapAdd(TmpLineMap &lineMap, float position, cv::Point2f *point) {
 	}
 }
 
+void LineGrid::tmpLineMap2LineList(const TmpLineMap &map, PtrLineList &list) {
+	for (auto entry : map) {
+		list.push_back(entry.second);
+	}
+}
+
 void LineGrid::verticalLineConstructor(int start, int end,
                                        std::function<void(cv::Point2f *)> inserterOdd,
                                        std::function<void(cv::Point2f *)> inserterEven) {
 	int step = (end > start) ? 1 : -1;
 	for (int i = start; i != end; i+= step) {
-		const PtrLine &tmpline = *(lineMapHorizontal.at(i));
+		const PtrLine &tmpline = linesHorizontal[i];
 		if (i & 1) { // even
 			for (const auto &point : tmpline) {
 				inserterEven(point);
