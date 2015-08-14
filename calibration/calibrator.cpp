@@ -67,7 +67,73 @@ class Calibrator::Impl {
 public:
 	cv::Mat image;
 	cv::Mat calibrationImage;
+
+	/**
+	 * Create target line grid.
+	 *
+	 * The target line grid is an "optimal" line grid. The calibration
+	 * tries to find mapping from the image line grid to the target line grid.
+	 */
+	LineGrid createTarget(const LineGrid &grid);
 };
+
+LineGrid Calibrator::Impl::createTarget(const LineGrid &grid) {
+	// createTarget makes use of the fact that the points are shared
+	// between both vertical and horintal lines
+	LineGrid result(grid);
+
+	// set the x value in each horizontal line to the average x
+	for (auto &line : result.getHorizontalLines()) {
+		// first compute average
+		double sum = 0.0;
+		double count = 0.0;
+		for (std::size_t i = line.size() / 3; i < 2 * line.size() / 3; ++i) {
+			sum += line[i]->x;
+			count += 1.0;
+		}
+		double avg = sum / count;
+		// set the average to all points
+		for (auto &point : line) {
+			point->x = avg;
+		}
+	}
+	// set the y value in each vertical line for odd rows to the average
+	for (auto &line : result.getVerticalLinesOdd()) {
+		// first compute average
+		double sum = 0.0;
+		double count = 0.0;
+		std::size_t start = line.size() / 3;
+		start = (start & 1) == 0 ? start : start - 1;
+		for (std::size_t i = start; i < 2 * line.size() / 3; i += 2) {
+			sum += line[i]->y;
+			count += 1.0;
+		}
+		double avg = sum / count;
+		// set the average to all points
+		for (std::size_t i = 0; i < line.size(); i += 2) {
+			line[i]->y = avg;
+		}
+	}
+	// set the y value in each vertical line for even rows to the average
+	for (auto &line : result.getVerticalLinesEven()) {
+		// first compute average
+		double sum = 0.0;
+		double count = 0.0;
+		std::size_t start = line.size() / 3;
+		start = (start & 1) != 0 ? start : start - 1;
+		for (std::size_t i = start; i < 2 * line.size() / 3; i += 2) {
+			sum += line[i]->y;
+			count += 1.0;
+		}
+		double avg = sum / count;
+		// set the average to all points
+		for (std::size_t i = 1; i < line.size(); i += 2) {
+			line[i]->y = avg;
+		}
+	}
+
+	return result;
+}
 
 Calibrator::Calibrator() : pimpl(new Impl) {
 
@@ -94,6 +160,7 @@ void Calibrator::calibrate() {
 
 	LensDetector lensDetector;
 	LineGrid lineGrid = lensDetector.detect(greyMat, dst);
+	LineGrid targetGrid = pimpl->createTarget(lineGrid);
 
 	/*LensFilter lensFilter;
 	lineMap = lensFilter.filter(lineMap);*/
