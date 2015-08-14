@@ -58,12 +58,27 @@ void LineGrid::finalize() {
 	verticalLineConstructor(constructStart, constructStart+6,
 	                        [&](cv::Point2f *point) {this->mapAddConstruct(tmpLineMapOdd, point->y, point);},
 	                        [&](cv::Point2f *point) {this->mapAddConstruct(tmpLineMapEven, point->y, point);});
-
-	// add remaining points to lines
-	verticalLineConstructor(0, constructStart,
+	// add the following points to the lines
+	verticalLineConstructor(constructStart, lineMapHorizontal.size(),
 	                        [&](cv::Point2f *point) {this->mapAdd(tmpLineMapOdd, point->y, point);},
 	                        [&](cv::Point2f *point) {this->mapAdd(tmpLineMapEven, point->y, point);});
-	verticalLineConstructor(constructStart, lineMapHorizontal.size(),
+	// process the first few lines
+	// first, we have to change the keys in the lineMap to the keys of the first point in each line
+	// the reason is that we want to use the closest key to the point, but currently the key is for the last point
+	for (const auto &entry : tmpLineMapOdd) {
+		float key = entry.second.front()->y;
+		tmpLineMap.insert(std::make_pair(key, std::move(entry.second)));
+	}
+	std::swap(tmpLineMapOdd, tmpLineMap);
+	tmpLineMap.clear();
+	for (const auto &entry : tmpLineMapEven) {
+		float key = entry.second.front()->y;
+		tmpLineMap.insert(std::make_pair(key, std::move(entry.second)));
+	}
+	std::swap(tmpLineMapEven, tmpLineMap);
+	tmpLineMap.clear();
+	// we will process them in reverse, to ensure the closest key is used
+	verticalLineConstructor(constructStart, -1,
 	                        [&](cv::Point2f *point) {this->mapAdd(tmpLineMapOdd, point->y, point);},
 	                        [&](cv::Point2f *point) {this->mapAdd(tmpLineMapEven, point->y, point);});
 
@@ -196,12 +211,13 @@ void LineGrid::mapAdd(TmpLineMap &lineMap, float position, cv::Point2f *point) {
 	}
 }
 
-void LineGrid::verticalLineConstructor(std::size_t start, std::size_t end,
+void LineGrid::verticalLineConstructor(int start, int end,
                                        std::function<void(cv::Point2f *)> inserterOdd,
                                        std::function<void(cv::Point2f *)> inserterEven) {
-	for (std::size_t i = start; i < end; ++i) {
+	int step = (end > start) ? 1 : -1;
+	for (int i = start; i != end; i+= step) {
 		const PtrLine &tmpline = *(lineMapHorizontal.at(i));
-		if (i & static_cast<std::size_t>(1)) { // even
+		if (i & 1) { // even
 			for (const auto &point : tmpline) {
 				inserterEven(point);
 			}

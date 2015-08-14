@@ -120,11 +120,12 @@ private:
 	 * Helper function to construct vertical lines
 	 *
 	 * \param start start of the line range to process (inclusive)
-	 * \param end end of the line range (exclusive)
+	 * \param end end of the line range (exclusive).
+	 *        end may be smaller than start, in which case the loop is executed in reverse.
 	 * \param inserterOdd function that processes a point and adds it a corresponding line, used for odd lines
 	 * \param inserterEven as above, used for even lines
 	 */
-	void verticalLineConstructor(std::size_t start, std::size_t end,
+	void verticalLineConstructor(int start, int end,
 	                             std::function<void(cv::Point2f *)> inserterOdd,
 	                             std::function<void(cv::Point2f *)> inserterEven);
 };
