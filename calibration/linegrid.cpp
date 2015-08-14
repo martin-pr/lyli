@@ -22,6 +22,7 @@
 #include <iterator>
 #include <limits>
 #include <memory>
+#include <unordered_set>
 
 namespace Lyli {
 namespace Calibration {
@@ -81,8 +82,21 @@ void LineGrid::finalize() {
 	lineMapVerticalOdd = LineMap(tmpLineMapOdd.begin(), tmpLineMapOdd.end());
 	lineMapVerticalEven = LineMap(tmpLineMapEven.begin(), tmpLineMapEven.end());
 
-	// remove points that are not in both horizontal and a vertical line
-	// TODO
+	std::unordered_set<cv::Point2f*> testPoints;
+	// remove points that are not in horizontal line from storage
+	for (auto &line : lineMapHorizontal) {
+		for (auto &point : *line) {
+			testPoints.insert(point);
+		}
+	}
+	for (auto it = storage.begin(); it != storage.end();) {
+		if (testPoints.find(it->get()) != testPoints.end()) {
+			++it;
+		}
+		else {
+			it = storage.erase(it);
+		}
+	}
 }
 
 const LineMap& LineGrid::getHorizontalMap() const {
