@@ -189,12 +189,24 @@ void LineGrid::finalize() {
 	}
 }
 
+PtrLineList& LineGrid::getHorizontalLines() {
+	return linesHorizontal;
+}
+
 const PtrLineList& LineGrid::getHorizontalLines() const {
 	return linesHorizontal;
 }
 
+PtrLineList& LineGrid::getVerticalLinesOdd() {
+	return linesVerticalOdd;
+}
+
 const PtrLineList& LineGrid::getVerticalLinesOdd() const {
 	return linesVerticalOdd;
+}
+
+PtrLineList& LineGrid::getVerticalLinesEven() {
+	return linesVerticalEven;
 }
 
 const PtrLineList& LineGrid::getVerticalLinesEven() const {

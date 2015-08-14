@@ -84,14 +84,17 @@ public:
 	/**
 	 * Get the horizontal lines
 	 */
+	PtrLineList& getHorizontalLines();
 	const PtrLineList& getHorizontalLines() const;
 	/**
 	 * Get vertical lines for odd horizontal lines.
 	 */
+	PtrLineList& getVerticalLinesOdd();
 	const PtrLineList& getVerticalLinesOdd() const;
 	/**
 	 * Get vertical lines for even horizontal lines.
 	 */
+	PtrLineList& getVerticalLinesEven();
 	const PtrLineList& getVerticalLinesEven() const;
 
 private:
