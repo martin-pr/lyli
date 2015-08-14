@@ -25,7 +25,7 @@
 #include <map>
 #include <memory>
 #include <opencv2/core/core.hpp>
-#include <unordered_set>
+#include <unordered_map>
 #include <vector>
 
 namespace Lyli {
@@ -78,14 +78,14 @@ public:
 	const LineMap& getVerticalMapEven() const;
 
 private:
-	using PointSet = std::unordered_set<std::unique_ptr<cv::Point2f>>;
+	using PointMap = std::unordered_map<cv::Point2f*, std::unique_ptr<cv::Point2f>>;
 	using TmpLineMap = std::map<float, PtrLine>;
 
 	// temporary line map
 	TmpLineMap tmpLineMap;
 
 	/// The point storage
-	PointSet storage;
+	PointMap storage;
 	/// Map of horizontal lines
 	LineMap lineMapHorizontal;
 	/// Map of odd vertical lines

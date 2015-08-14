@@ -83,18 +83,42 @@ void LineGrid::finalize() {
 	lineMapVerticalEven = LineMap(tmpLineMapEven.begin(), tmpLineMapEven.end());
 
 	std::unordered_set<cv::Point2f*> testPoints;
-	// remove points that are not in horizontal line from storage
+	// remove points that are not in any horizontal line from storage
 	for (auto &line : lineMapHorizontal) {
 		for (auto &point : *line) {
 			testPoints.insert(point);
 		}
 	}
 	for (auto it = storage.begin(); it != storage.end();) {
-		if (testPoints.find(it->get()) != testPoints.end()) {
+		if (testPoints.find(it->second.get()) != testPoints.end()) {
 			++it;
 		}
 		else {
 			it = storage.erase(it);
+		}
+	}
+	// remove points that are not in any vertical line
+	testPoints.clear();
+	for (auto &line : lineMapVerticalOdd) {
+		for (auto &point : *line) {
+			testPoints.insert(point);
+		}
+	}
+	for (auto &line : lineMapVerticalEven) {
+		for (auto &point : *line) {
+			testPoints.insert(point);
+		}
+	}
+	for (auto &line : lineMapHorizontal) {
+		for (auto it = line->begin(); it != line->end();) {
+			auto point = *it;
+			if (testPoints.find(point) != testPoints.end()) {
+				++it;
+			}
+			else {
+				it = line->erase(it);
+				storage.erase(point);
+			}
 		}
 	}
 }
@@ -112,8 +136,9 @@ const LineMap& LineGrid::getVerticalMapEven() const {
 }
 
 cv::Point2f * LineGrid::storageAdd(const cv::Point2f& point) {
-	auto res = storage.insert(std::make_unique<cv::Point2f>(point));
-	return res.first->get();
+	cv::Point2f *newPoint = new cv::Point2f(point);
+	storage.insert(std::make_pair(newPoint, std::unique_ptr<cv::Point2f>(newPoint)));
+	return newPoint;
 }
 
 void LineGrid::mapAddConstruct(TmpLineMap &lineMap, float position, cv::Point2f *point) {

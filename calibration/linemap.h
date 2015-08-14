@@ -78,6 +78,10 @@ public:
 	 * Erase line at a given index.
 	 */
 	void erase(std::size_t index);
+	/**
+	 * Erase line using iterator.
+	 */
+	ConstIterator erase(ConstIterator iterator);
 
 	/**
 	 * Get iterator to first element.
