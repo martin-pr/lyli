@@ -23,9 +23,60 @@
 #include <limits>
 #include <memory>
 #include <unordered_set>
+#include <unordered_map>
 
 namespace Lyli {
 namespace Calibration {
+
+LineGrid::LineGrid() {
+
+}
+
+LineGrid::LineGrid(const LineGrid &other) {
+	using PointCopyMap = std::unordered_map<cv::Point2f*, cv::Point2f*>;
+
+	// maps old points to new points
+	PointCopyMap pointMap;
+	for (const auto &entry : other.storage) {
+		cv::Point2f *point = new cv::Point2f(* entry.second.get());
+		storage.insert(std::make_pair(point, std::unique_ptr<cv::Point2f>(point)));
+		pointMap.insert(std::make_pair(entry.first, point));
+	}
+	for (const auto &line : other.linesHorizontal) {
+		PtrLine newline;
+		for (const auto &point : line) {
+			newline.push_back(pointMap[point]);
+		}
+		linesHorizontal.push_back(newline);
+	}
+	for (const auto &line : other.linesVerticalOdd) {
+		PtrLine newline;
+		for (const auto &point : line) {
+			newline.push_back(pointMap[point]);
+		}
+		linesVerticalOdd.push_back(newline);
+	}
+	for (const auto &line : other.linesVerticalEven) {
+		PtrLine newline;
+		for (const auto &point : line) {
+			newline.push_back(pointMap[point]);
+		}
+		linesVerticalEven.push_back(newline);
+	}
+}
+
+LineGrid::~LineGrid() {
+
+}
+
+LineGrid &LineGrid::operator=(const LineGrid &other) {
+	LineGrid tmp(other);
+	std::swap(storage, tmp.storage);
+	std::swap(linesHorizontal, tmp.linesHorizontal);
+	std::swap(linesVerticalOdd, tmp.linesVerticalOdd);
+	std::swap(linesVerticalEven, tmp.linesVerticalEven);
+	return *this;
+}
 
 void LineGrid::addPoint(const cv::Point2f& point) {
 	// add point to the point storage

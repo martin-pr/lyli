@@ -48,6 +48,23 @@ public:
 	constexpr static float MAX_DIFF = 3.0;
 
 	/**
+	 * Default constructor.
+	 */
+	LineGrid();
+	/**
+	 * Copy constructor.
+	 */
+	LineGrid(const LineGrid &other);
+	/**
+	 * A destructor
+	 */
+	~LineGrid();
+	/**
+	 * Assignment operator.
+	 */
+	LineGrid &operator=(const LineGrid &other);
+
+	/**
 	 * Add a point to the grid.
 	 *
 	 * The points whose y-dimension is smaller than CONSTRUCT_LIM will
