@@ -33,6 +33,7 @@
 #include <utility>
 #include <vector>
 
+#include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -165,21 +166,58 @@ void Calibrator::calibrate() {
 	/*LensFilter lensFilter;
 	lineMap = lensFilter.filter(lineMap);*/
 
+	// use the opencv lens calibration
+	// create object points (source, in 3D)
+	std::vector<std::vector<cv::Point3f> > objectPoints(1);
+	for (const auto &line : lineGrid.getHorizontalLines()) {
+		for (const auto &point : line) {
+			objectPoints[0].push_back(cv::Point3f(point->x, point->y, 0.0));
+		}
+	}
+	// create image points (destination, in 2D)
+	std::vector<std::vector<cv::Point2f> > imagePoints(1);
+	for (const auto &line : targetGrid.getHorizontalLines()) {
+		for (const auto &point : line) {
+			imagePoints[0].push_back(cv::Point2f(point->x, point->y));
+		}
+	}
+	// remaining parameters
+	cv::Mat cameraMatrix = cv::Mat::eye(3, 3, CV_64F);
+	cv::Mat distCoeffs = cv::Mat::zeros(8, 1, CV_64F);
+	std::vector<cv::Mat> rvecs, tvecs;
+	std::vector<float> reprojErrs;
+
+	// run the calibration
+	cv::calibrateCamera(objectPoints, imagePoints, pimpl->image.size(), cameraMatrix, distCoeffs, rvecs, tvecs);
+
 	// DEBUG: draw lines
 	dst = cv::Scalar(256, 256, 256);
 	const PtrLineList &linesHorizontal = lineGrid.getHorizontalLines();
+	bool alternator = false;
 	for (const auto &line : linesHorizontal) {
+		cv::Scalar color = alternator ? cv::Scalar(0, 0, 0) : cv::Scalar(128, 128, 128);
 		for (std::size_t i = 1; i < line.size(); ++i) {
-			cv::line(dst, *(line.at(i-1)), *(line.at(i)), cv::Scalar(0, 0, 0));
+			cv::line(dst, *(line.at(i-1)), *(line.at(i)), color);
+		}
+		alternator = !alternator;
+	}
+	const PtrLineList &linesVerticalEven = lineGrid.getVerticalLinesEven();
+	for (const auto &line : linesVerticalEven) {
+		for (std::size_t i = 3; i < line.size(); i+=2) {
+			cv::line(dst, *(line.at(i-2)), *(line.at(i)), cv::Scalar(128, 128, 128));
 		}
 	}
-	const PtrLineList &linesVertical = lineGrid.getVerticalLinesEven();
-	for (const auto &line : linesVertical) {
-		for (std::size_t i = 1; i < line.size(); ++i) {
-			cv::line(dst, *(line.at(i-1)), *(line.at(i)), cv::Scalar(0, 0, 0));
+	const PtrLineList &linesVerticalOdd = lineGrid.getVerticalLinesOdd();
+	for (const auto &line : linesVerticalOdd) {
+		for (std::size_t i = 2; i < line.size(); i+=2) {
+			cv::line(dst, *(line.at(i-2)), *(line.at(i)), cv::Scalar(0, 0, 0));
 		}
 	}
 	dst = dst.t();
+
+	// DEBUG: undistort the grid
+	cv::undistort(dst, tmp, cameraMatrix, distCoeffs);
+	dst = tmp;
 
 	// DEBUG: convert to the format expected for viewwing
 	dst.convertTo(tmp, CV_16U, 256);
