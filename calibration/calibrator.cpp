@@ -190,6 +190,26 @@ void Calibrator::calibrate() {
 	// run the calibration
 	cv::calibrateCamera(objectPoints, imagePoints, pimpl->image.size(), cameraMatrix, distCoeffs, rvecs, tvecs);
 
+	// get the 2D affine transform
+	cv::Mat rotation3D;
+	cv::Rodrigues(rvecs[0], rotation3D); // get 3D rotation
+	cv::Mat rotation = cv::Mat::eye(3, 3, CV_64F);
+	cv::Mat editRot = rotation(cv::Range(0, 2), cv::Range(0, 2));
+	rotation3D(cv::Range(0, 2), cv::Range(0, 2)).copyTo(editRot); // we we need 2D, so we set z = 0 => top left submatrix suffice
+
+	std::cout << "rotation 3D" << rotation3D << std::endl;
+	std::cout << "rotation 2D" << rotation << std::endl;
+
+	cv::Mat translation = cv::Mat::eye(3, 3, CV_64F);
+	cv::Mat editTransl = translation.col(2).rowRange(0, 2);
+	tvecs[0].rowRange(0, 2).copyTo(editTransl);
+
+	std::cout << "translation" << translation << std::endl;
+
+	cv::Mat transform = translation.inv() * rotation * translation;
+
+	std::cout << "transform" << transform << std::endl;
+
 	// DEBUG: draw lines
 	dst = cv::Scalar(256, 256, 256);
 	const PtrLineList &linesHorizontal = lineGrid.getHorizontalLines();
@@ -213,13 +233,13 @@ void Calibrator::calibrate() {
 			cv::line(dst, *(line.at(i-2)), *(line.at(i)), cv::Scalar(0, 0, 0));
 		}
 	}
-	dst = dst.t();
 
 	// DEBUG: undistort the grid
 	cv::undistort(dst, tmp, cameraMatrix, distCoeffs);
-	dst = tmp;
+	cv::warpAffine(tmp, dst, transform.rowRange(0,2), dst.size());
 
-	// DEBUG: convert to the format expected for viewwing
+	// DEBUG: convert to the format expected for viewing
+	dst = dst.t();
 	dst.convertTo(tmp, CV_16U, 256);
 	cv::cvtColor(tmp, pimpl->calibrationImage, CV_GRAY2RGB);
 }
