@@ -34,6 +34,8 @@ void showHelp() {
 	std::cout << "\t-l\t list files" << std::endl;
 	std::cout << "\t-d id\t download image with the specified id" << std::endl;
 	std::cout << "\t     \t The image is downloaded to the current directory" << std::endl;
+	std::cout << "\t-f path\t download a file specified by a full path, potentialy dangerous" << std::endl;
+	std::cout << "\t     \t Requires knowledge of the camera file structure." << std::endl;
 }
 
 void waitForCamera(Lyli::Camera &camera) {
@@ -95,6 +97,14 @@ void downloadImage(Lyli::Camera &camera, int id) {
 	ofs.close();
 }
 
+void downloadFile(Lyli::Camera &camera, const std::string path) {
+	std::size_t sepPos = path.find_last_of("/\\");
+	std::string outputFile(sepPos != std::string::npos ? path.substr(sepPos + 1) : path);
+	std::ofstream ofs(outputFile.c_str(), std::ofstream::out | std::ofstream::binary);
+
+	camera.getFile(ofs, path);
+}
+
 int main(int argc, char *argv[]) {
 	if (argc == 1) {
 		showHelp();
@@ -112,7 +122,7 @@ int main(int argc, char *argv[]) {
 	Lyli::Camera &camera(cameras[0]);
 	
 	int c;
-	while ((c = getopt(argc, argv, "ild:")) != -1) {
+	while ((c = getopt(argc, argv, "ild:f:")) != -1) {
 		switch (c) {
 			case 'i':
 				waitForCamera(camera);
@@ -125,6 +135,10 @@ int main(int argc, char *argv[]) {
 			case 'd':
 				waitForCamera(camera);
 				downloadImage(camera, atoi(optarg));
+				return 0;
+			case 'f':
+				waitForCamera(camera);
+				downloadFile(camera, optarg);
 				return 0;
 			default:
 				showHelp();
