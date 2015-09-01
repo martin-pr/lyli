@@ -20,6 +20,7 @@
 #include "linegrid.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
