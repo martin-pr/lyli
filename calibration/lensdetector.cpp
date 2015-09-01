@@ -101,7 +101,10 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 		else {
 			// find the start position
 			int tmppos = pos;
-			while(maskData[tmppos] == Lyli::Calibration::Mask::EMPTY) {
+			// compare against OBJECT rather than EMPTY, as we may hit PROCESSED pixels too
+			// in case there is a little "spur" that sticks out on top of already processed pixels
+			// which may happen if there are lenses that are fused together in the image
+			while(maskData[tmppos] != Lyli::Calibration::Mask::OBJECT) {
 				if (tmppos == endpos) {
 					// stop fill
 					goto findCentroid_stop;
