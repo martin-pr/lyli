@@ -27,6 +27,12 @@
 namespace {
 
 /**
+ * A constant that limits the find centroid search to search MAX_LENS_SIZE pixels
+ * from the start point at most.
+ */
+constexpr int MAX_LENS_SIZE = 15;
+
+/**
  * Finds the centroid of an object in image starting at the position start
  * while filling the mask
  */
@@ -63,7 +69,13 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 	double m10 = 0.0;
 	double sum = 0.0;
 
-	while (y < image.rows) {
+	// limits for search
+	const int maxy = std::min(y + MAX_LENS_SIZE, image.rows);
+	const int maxx = std::min(startx + MAX_LENS_SIZE, image.cols);
+	const int minx = std::max(startx - MAX_LENS_SIZE, 0);
+
+	// the search algorithm
+	while (y < maxy) {
 		int pos = image.cols * y + startx;
 		int endpos = image.cols * y + endx;
 
@@ -72,7 +84,7 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 			int oldstartx = startx;
 			int tmppos = pos - 1;
 			int x = startx - 1;
-			while(x >= 0 && maskData[tmppos] == Lyli::Calibration::Mask::OBJECT) {
+			while(x >= minx && maskData[tmppos] == Lyli::Calibration::Mask::OBJECT) {
 				// compute
 				m10 += y * data[tmppos];
 				m01 += x * data[tmppos];
@@ -86,7 +98,7 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 			// fill to the right
 			tmppos = pos;
 			x = oldstartx;
-			while(x < image.cols && maskData[tmppos] == Lyli::Calibration::Mask::OBJECT) {
+			while(x < maxx && maskData[tmppos] == Lyli::Calibration::Mask::OBJECT) {
 				// compute
 				m10 += y * data[tmppos];
 				m01 += x * data[tmppos];
@@ -115,7 +127,7 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 			}
 			// fill to the right
 			int x = startx;
-			while(x < image.cols && maskData[tmppos] == Lyli::Calibration::Mask::OBJECT) {
+			while(x < maxx && maskData[tmppos] == Lyli::Calibration::Mask::OBJECT) {
 				// compute
 				m10 += y * data[tmppos];
 				m01 += x * data[tmppos];
