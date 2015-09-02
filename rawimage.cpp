@@ -104,10 +104,14 @@ void RawImage::demosaic()
 	uint16_t *data = reinterpret_cast<uint16_t*>(m_data.data);
 	const int Y_OFF = m_data.cols * 3; // the offset used when adding (or subtracting) 1 to y-dimension
 	const int X_OFF = 3; // // the offset used when adding (or subtracting) 1 to x-dimension
+	// bounds, the -1 is required as the computation use 1px neighborhood
+	const int ROW_MAX = m_data.rows - 1;
+	const int COL_MAX = m_data.cols - 1;
+	// temp variables for keeping position
 	int x, y, pos;
 	// red lines and blue stripes
-	for (y = 1; y < m_data.rows; y += 2) {
-		for (x = 2; x < m_data.cols; x += 2) {
+	for (y = 1; y < ROW_MAX - 1; y += 2) {
+		for (x = 2; x < COL_MAX; x += 2) {
 			pos = (y * m_data.cols + x) * 3;
 			// red line
 			data[pos] = 0.5 * (data[pos - X_OFF]+ data[pos + X_OFF]);
@@ -116,8 +120,8 @@ void RawImage::demosaic()
 		}
 	}
 	// blue lines and red stripes
-	for (y = 2; y < m_data.rows; y += 2) {
-		for (x = 1; x < m_data.cols; x += 2) {
+	for (y = 2; y < ROW_MAX; y += 2) {
+		for (x = 1; x < COL_MAX; x += 2) {
 			pos = (y * m_data.cols + x) * 3;
 			// red stripe
 			data[pos] = 0.5 * (data[pos - Y_OFF] + data[pos + Y_OFF]);
@@ -126,8 +130,8 @@ void RawImage::demosaic()
 		}
 	}
 	// red middle, green #1
-	for (y = 2; y < m_data.rows; y += 2) {
-		for (x = 2; x < m_data.cols; x += 2) {
+	for (y = 2; y < ROW_MAX; y += 2) {
+		for (x = 2; x < COL_MAX; x += 2) {
 			pos = (y * m_data.cols + x) * 3;
 			data[pos] = bilinearInterpolation(data[pos - X_OFF + Y_OFF], data[pos - X_OFF - Y_OFF],
 			                                  data[pos + X_OFF + Y_OFF], data[pos + X_OFF - Y_OFF]);
@@ -136,8 +140,8 @@ void RawImage::demosaic()
 		}
 	}
 	// blue middle, green #2
-	for (y = 1; y < m_data.rows; y += 2) {
-		for (x = 1; x < m_data.cols; x += 2) {
+	for (y = 1; y < ROW_MAX; y += 2) {
+		for (x = 1; x < COL_MAX; x += 2) {
 			pos = (y * m_data.cols + x) * 3;
 			data[pos + 2] = bilinearInterpolation(data[pos - X_OFF + Y_OFF + 2], data[pos - X_OFF - Y_OFF + 2],
 			                                      data[pos + X_OFF + Y_OFF + 2], data[pos + X_OFF - Y_OFF + 2]);
@@ -146,6 +150,5 @@ void RawImage::demosaic()
 		}
 	}
 }
-
 
 }
