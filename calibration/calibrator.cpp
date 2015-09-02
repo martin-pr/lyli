@@ -163,8 +163,8 @@ void Calibrator::calibrate() {
 	LineGrid lineGrid = lensDetector.detect(greyMat, dst);
 	LineGrid targetGrid = pimpl->createTarget(lineGrid);
 
-	/*LensFilter lensFilter;
-	lineMap = lensFilter.filter(lineMap);*/
+	//LensFilter lensFilter;
+	//lineMap = lensFilter.filter(lineMap);
 
 	// use the opencv lens calibration
 	// create object points (source, in 3D)
