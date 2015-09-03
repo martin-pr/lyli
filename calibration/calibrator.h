@@ -18,7 +18,7 @@
 #ifndef LYLI_CALIBRATION_CALIBRATOR_H_
 #define LYLI_CALIBRATION_CALIBRATOR_H_
 
-#include <ctype.h>
+#include <cstdint>
 #include <memory>
 #include <vector>
 
@@ -35,9 +35,9 @@ namespace Calibration {
  * Defines constants for the contents of the mask.
  */
 struct Mask {
-	static constexpr uint8_t EMPTY = 0;
-	static constexpr uint8_t PROCESSED = 128;
-	static constexpr uint8_t OBJECT = 255;
+	static constexpr std::uint8_t EMPTY = 0;
+	static constexpr std::uint8_t PROCESSED = 128;
+	static constexpr std::uint8_t OBJECT = 255;
 };
 
 class LineGrid;
