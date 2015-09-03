@@ -197,7 +197,7 @@ std::vector<cv::Point2f> computeMask(int radius) {
  * The initial centroid is iteratively refined using increasingly large circular neigborhood
  * to better estimate of centroid.
  */
-cv::Point2f refineCentroid(const cv::Mat &image, cv::Point2i start) {
+cv::Point2f refineCentroid(const cv::Mat &image, cv::Point2f start) {
 	// begin refining with radius 3px, stop at 5px radius
 	// use precomputed masks with relative offset to the start
 	static const std::vector<cv::Point2f> offsets3px = computeMask(3);
