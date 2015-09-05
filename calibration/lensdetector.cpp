@@ -20,6 +20,7 @@
 #include "linegrid.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -204,14 +205,15 @@ cv::Point2f refineCentroid(const cv::Mat &image, cv::Point2f start) {
 	static const std::vector<cv::Point2f> offsets4px = computeMask(4);
 	static const std::vector<cv::Point2f> offsets5px = computeMask(5);
 	static const std::vector<cv::Point2f> offsets6px = computeMask(6);
+	static const auto offsetlist = { offsets3px, offsets4px, offsets5px, offsets6px };
 
 	double m01, m10, sum;
 	cv::Point2f estimate(start.x, start.y);
-	for (auto mask : { offsets3px, offsets4px, offsets5px, offsets6px } ) {
+	for (const auto &mask : offsetlist) {
 		m01 = 0.0;
 		m10 = 0.0;
 		sum = 0.0;
-		for (auto point : mask) {
+		for (const auto &point : mask) {
 			auto pos = point + estimate;
 			float pixel = getInterpolatedColor(image, pos);
 			m10 += pos.y * pixel;

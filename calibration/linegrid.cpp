@@ -263,12 +263,12 @@ void LineGrid::mapAdd(TmpLineMap &lineMap, float position, cv::Point2f *point) {
 
 	auto lineIt = diffLb < diffUb ? lb : ub;
 
-	// the points too far from the nearest line are ignored
+	// only the points close enough to the nearest line are added
 	if(std::abs(lineIt->first - position) < MAX_DIFF) {
 		// update the key
-		auto line = lineIt ->second;
+		Lyli::Calibration::PtrLine line = std::move(lineIt->second);
 		auto nextLineIt = lineMap.erase(lineIt);
-		lineIt = lineMap.insert(nextLineIt, std::make_pair(position, line));
+		lineIt = lineMap.emplace_hint(nextLineIt, position, std::move(line));
 		// add point to the closest line
 		return lineIt->second.push_back(point);
 	}
