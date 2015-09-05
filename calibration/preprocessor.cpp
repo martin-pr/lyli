@@ -17,18 +17,30 @@
 
 #include "preprocessor.h"
 
+#include <cstdint>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
 namespace Lyli {
 namespace Calibration {
 
+/**
+ * Compute optimal threshold for thresholding the edge image
+ *
+ * @return threshold
+ */
+std::uint8_t computeEdgeThreshold(const cv::Mat& edges) {
+	// compute mean and use it as average
+	return cv::mean(edges)[0];
+}
+
 void Preprocessor::preprocess(const cv::Mat& gray, cv::Mat& outMask) {
 	cv::Mat tmp;
 
 	// find edges and apply threshold
 	cv::Laplacian(gray, outMask, CV_8U, 3);
-	cv::threshold(outMask, tmp, 64, Mask::OBJECT, cv::THRESH_BINARY);
+	std::uint8_t threshold = computeEdgeThreshold(outMask);
+	cv::threshold(outMask, tmp, threshold, Mask::OBJECT, cv::THRESH_BINARY);
 
 	// filter out small specks
 	float m[3][3] = { { 0.125, 0.125, 0.125 }, { 0.125, 0, 0.125 }, { 0.125, 0.125, 0.125 } };
