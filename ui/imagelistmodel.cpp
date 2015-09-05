@@ -40,7 +40,7 @@ ImageListModel::~ImageListModel()
 
 QVariant ImageListModel::data(const QModelIndex& index, int role) const
 {
-	if (! index.isValid() || static_cast<Lyli::FileList::size_type>(index.row()) >= m_fileList.size()) {
+	if (! index.isValid() || static_cast<ModelFileList::size_type>(index.row()) >= m_fileList.size()) {
 		return QVariant();
 	}
 	

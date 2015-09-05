@@ -44,8 +44,9 @@ public slots:
 	void changeCamera(Lyli::Camera *camera);
 
 private:
+	using ModelFileList = QVector<ImageListItem>;
 	Lyli::Camera *m_camera;
-	QVector<ImageListItem> m_fileList;
+	ModelFileList m_fileList;
 };
 
 #endif // IMAGELIST_H
