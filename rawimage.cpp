@@ -149,6 +149,17 @@ void RawImage::demosaic()
 			                                 data[pos - Y_OFF + 1], data[pos + Y_OFF + 1]);
 		}
 	}
+
+	// and now borders!
+	// actually use a braindead solution - just extend the first valid row/col to the border
+	// top
+	m_data.row(1).copyTo(m_data.row(0));
+	// bottom
+	m_data.row(ROW_MAX - 1).copyTo(m_data.row(ROW_MAX));
+	// left
+	m_data.col(1).copyTo(m_data.col(0));
+	// right
+	m_data.col(COL_MAX - 1).copyTo(m_data.col(COL_MAX));
 }
 
 }
