@@ -110,7 +110,7 @@ void RawImage::demosaic()
 	// temp variables for keeping position
 	int x, y, pos;
 	// red lines and blue stripes
-	for (y = 1; y < ROW_MAX - 1; y += 2) {
+	for (y = 1; y < ROW_MAX; y += 2) {
 		for (x = 2; x < COL_MAX; x += 2) {
 			pos = (y * m_data.cols + x) * 3;
 			// red line
