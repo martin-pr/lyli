@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LYLI_RAWIMAGE_H_
-#define LYLI_RAWIMAGE_H_
+#ifndef LYLI_IMAGE_RAWIMAGE_H_
+#define LYLI_IMAGE_RAWIMAGE_H_
 
 #include <opencv2/core/core.hpp>
 
@@ -25,6 +25,7 @@
 #include <iostream>
 
 namespace Lyli {
+namespace Image {
 
 /** A class providing a simple interface for accessing the Lytro RAW images.
  * 
@@ -50,6 +51,7 @@ private:
 	void demosaic();
 };
 
+}
 }
 
 #endif

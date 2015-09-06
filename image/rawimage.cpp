@@ -60,6 +60,7 @@ uint16_t avgInterpolation(double f00, double f01, double f10, double f11) {
 }
 
 namespace Lyli {
+namespace Image {
 
 RawImage::RawImage(std::istream& is, std::size_t width, std::size_t height) :
 m_data(height, width, CV_16UC3)
@@ -162,4 +163,5 @@ void RawImage::demosaic()
 	m_data.col(COL_MAX - 1).copyTo(m_data.col(COL_MAX));
 }
 
+}
 }

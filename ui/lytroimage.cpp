@@ -28,7 +28,7 @@
 #include <fstream>
 
 #include <calibration/calibrator.h>
-#include <rawimage.h>
+#include <image/rawimage.h>
 
 namespace {
 
@@ -49,7 +49,7 @@ LytroImage::LytroImage(const char *file)
 	m_image = new QImage(IMG_WIDTH, IMG_HEIGHT, QImage::Format_RGB32);
 	std::fstream fin(file, std::fstream::in | std::fstream::binary);
 	
-	Lyli::RawImage image(fin, IMG_WIDTH, IMG_HEIGHT);
+	Lyli::Image::RawImage image(fin, IMG_WIDTH, IMG_HEIGHT);
 	fin.close();
 	
 	// DEBUG: show prerocessed calibration image
