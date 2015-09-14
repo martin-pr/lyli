@@ -80,7 +80,7 @@ QImage ImageListItem::getImage() const
 	}
 	
 	std::stringstream ss;
-	m_fileEntry.getImageThumbnail(ss);
+	m_fileEntry.getImageThumbnail()->download(ss);
 	
 	std::size_t pos(0);
 	char buf[2];

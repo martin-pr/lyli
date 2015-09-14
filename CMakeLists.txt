@@ -41,7 +41,7 @@ include_directories(${LIBUSB_INCLUDE_DIRS})
 add_subdirectory(image)
 add_subdirectory(calibration)
 
-add_library(lyliiface STATIC camera.cpp filelist.cpp filelistparser.cpp)
+add_library(lyliiface STATIC camera.cpp file.cpp filelist.cpp filelistparser.cpp)
 target_link_libraries(lyliiface lylicalib lyliimage usbpp ${OpenCV_LIBS} ${LIBUSB_LIBRARIES})
 add_dependencies(lyliiface libusbpp_project)
 

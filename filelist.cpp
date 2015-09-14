@@ -105,25 +105,27 @@ std::time_t FileListEntry::getTime() const
 	return pimpl->time;
 }
 
-void FileListEntry::getImageMetadata(std::ostream& os) const
+FilePtr FileListEntry::getImageMetadata() const
 {
 	std::stringstream ss;
 	ss << pimpl->getPathBase() << ".TXT";
-	pimpl->camera->getFile(os, ss.str());
+	return std::make_shared<File>(pimpl->camera, ss.str());
 }
 
-void FileListEntry::getImageThumbnail(std::ostream& os) const
+FilePtr FileListEntry::getImageThumbnail() const
 {
 	std::stringstream ss;
 	ss << pimpl->getPathBase() << ".128";
-	pimpl->camera->getFile(os, ss.str());
+	return std::make_shared<File>(pimpl->camera, ss.str());
 }
 
-void FileListEntry::getImageData(std::ostream& os) const
+FilePtr FileListEntry::getImageData() const
 {
 	std::stringstream ss;
 	ss << pimpl->getPathBase() << ".RAW";
-	pimpl->camera->getFile(os, ss.str());
+	return std::make_shared<File>(pimpl->camera, ss.str());
 }
 
 }
+
+template class std::vector<Lyli::FileListEntry>;

@@ -80,19 +80,19 @@ void downloadImage(Lyli::Camera &camera, int id) {
 	
 	std::snprintf(outputFile, 50, "%04d.TXT", id);
 	ofs.open(outputFile, std::ofstream::out | std::ofstream::binary);
-	fileList[id].getImageMetadata(ofs);
+	fileList[id].getImageMetadata()->download(ofs);
 	ofs.flush();
 	ofs.close();
 	
 	std::snprintf(outputFile, 50, "%04d.128", id);
 	ofs.open(outputFile, std::ofstream::out | std::ofstream::binary);
-	fileList[id].getImageThumbnail(ofs);
+	fileList[id].getImageThumbnail()->download(ofs);
 	ofs.flush();
 	ofs.close();
 	
 	std::snprintf(outputFile, 50, "%04d.RAW", id);
 	ofs.open(outputFile, std::ofstream::out | std::ofstream::binary);
-	fileList[id].getImageData(ofs);
+	fileList[id].getImageData()->download(ofs);
 	ofs.flush();
 	ofs.close();
 }

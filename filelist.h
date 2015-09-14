@@ -24,6 +24,8 @@
 #include <string>
 #include <vector>
 
+#include "file.h"
+
 namespace Lyli {
 
 class Camera;
@@ -47,16 +49,16 @@ public:
 	 */
 	std::time_t getTime() const;
 	
-	void getImageMetadata(std::ostream &os) const;
-	void getImageThumbnail(std::ostream &os) const;
-	void getImageData(std::ostream &os) const;
+	FilePtr getImageMetadata() const;
+	FilePtr getImageThumbnail() const;
+	FilePtr getImageData() const;
 	
 private:
 	class Impl;
 	Impl *pimpl;
 };
 
-typedef std::vector<FileListEntry> FileList;
+using FileList = std::vector<FileListEntry>;
 
 } // Lyli
 

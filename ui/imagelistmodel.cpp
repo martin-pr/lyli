@@ -89,13 +89,13 @@ void ImageListModel::downloadFile(const QModelIndex &index, const QString &outpu
 
 	outputFilePath = outputFileBase + ".TXT";
 	ofs.open(outputFilePath.toLocal8Bit().data(), std::ofstream::out | std::ofstream::binary);
-	file.getImageMetadata(ofs);
+	file.getImageMetadata()->download(ofs);
 	ofs.flush();
 	ofs.close();
 
 	outputFilePath = outputFileBase + ".RAW";
 	ofs.open(outputFilePath.toLocal8Bit().data(), std::ofstream::out | std::ofstream::binary);
-	file.getImageData(ofs);
+	file.getImageData()->download(ofs);
 	ofs.flush();
 	ofs.close();
 }
