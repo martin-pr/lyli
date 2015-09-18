@@ -1,0 +1,14 @@
+--style=attach
+--indent=force-tab=4
+--indent-switches
+--min-conditional-indent=0
+--max-instatement-indent=60
+--pad-oper
+--pad-header
+--align-pointer=name
+--align-reference=name
+--add-brackets
+--mode=c
+--suffix=none
+--recursive
+--lineend=linux
