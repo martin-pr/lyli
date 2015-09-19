@@ -3,11 +3,12 @@
 --indent-switches
 --min-conditional-indent=0
 --max-instatement-indent=60
---pad-oper
 --pad-header
 --align-pointer=name
 --align-reference=name
 --add-brackets
+--convert-tabs
+--max-code-length=120
 --mode=c
 --suffix=none
 --recursive
