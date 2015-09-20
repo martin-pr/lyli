@@ -53,6 +53,7 @@ QVariant ImageListModel::data(const QModelIndex& index, int role) const
 
 int ImageListModel::rowCount(const QModelIndex& parent) const
 {
+	Q_UNUSED(parent);
 	return m_fileList.size();
 }
 
