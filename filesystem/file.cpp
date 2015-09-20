@@ -21,9 +21,10 @@
 #include <memory>
 #include <utility>
 
-#include "camera.h"
+#include "../camera.h"
 
 namespace Lyli {
+namespace Filesystem {
 
 class File::Impl {
 public:
@@ -94,5 +95,6 @@ void File::download(std::ostream& os) {
 }
 
 }
+}
 
-template class std::shared_ptr<Lyli::File>;
+template class std::shared_ptr<Lyli::Filesystem::File>;

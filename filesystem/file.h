@@ -26,6 +26,8 @@ namespace Lyli {
 
 class Camera;
 
+namespace Filesystem {
+
 /**
  * An interface for downloadable files
  */
@@ -83,6 +85,7 @@ private:
 
 using FilePtr = std::shared_ptr<File>;
 
+}
 }
 
 #endif // LYLI_FILE_H

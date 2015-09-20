@@ -4,9 +4,10 @@
 #include <iomanip>
 #include <sstream>
 
-#include "camera.h"
+#include "../camera.h"
 
 namespace Lyli {
+namespace Filesystem {
 
 class FileListEntry::Impl {
 public:
@@ -127,5 +128,6 @@ FilePtr FileListEntry::getImageData() const
 }
 
 }
+}
 
-template class std::vector<Lyli::FileListEntry>;
+template class std::vector<Lyli::Filesystem::FileListEntry>;

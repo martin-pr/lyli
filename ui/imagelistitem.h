@@ -34,7 +34,7 @@ class ImageListItem : public QObject
 
 public:
     ImageListItem();
-	ImageListItem(Lyli::Camera *camera, const Lyli::FileListEntry &fileEntry, QObject* parent = nullptr);
+	ImageListItem(Lyli::Camera *camera, const Lyli::Filesystem::FileListEntry &fileEntry, QObject* parent = nullptr);
 	ImageListItem(const ImageListItem& other);
 	~ImageListItem();
 	
@@ -45,7 +45,7 @@ public:
 	QDateTime getTime() const;
 	QImage getImage() const;
 	
-	Lyli::FileListEntry &getFileEntry();
+	Lyli::Filesystem::FileListEntry &getFileEntry();
 	
 	Q_PROPERTY(bool null READ isNull)
 	Q_PROPERTY(QDateTime time READ getTime)
@@ -53,7 +53,7 @@ public:
 
 private:
 	Lyli::Camera *m_camera;
-	Lyli::FileListEntry m_fileEntry;
+	Lyli::Filesystem::FileListEntry m_fileEntry;
 	// cached image
 	mutable std::shared_ptr<QImage> m_image;
 	

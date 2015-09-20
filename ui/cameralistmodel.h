@@ -32,7 +32,7 @@ public:
 	CameraListModel(QObject *parent=0);
 	~CameraListModel();
 	
-	Lyli::Camera* getCamera(Lyli::FileList::size_type index);
+	Lyli::Camera* getCamera(Lyli::CameraList::size_type index);
 	
 	// inherited members
 	virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;

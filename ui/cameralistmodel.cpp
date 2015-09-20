@@ -30,7 +30,7 @@ CameraListModel::~CameraListModel()
 
 }
 
-Lyli::Camera* CameraListModel::getCamera(Lyli::FileList::size_type index)
+Lyli::Camera* CameraListModel::getCamera(Lyli::CameraList::size_type index)
 {
 	if (index > 0 || index >= m_cameraList.size()) {
 		return nullptr;
@@ -41,7 +41,7 @@ Lyli::Camera* CameraListModel::getCamera(Lyli::FileList::size_type index)
 
 QVariant CameraListModel::data(const QModelIndex& index, int role) const
 {
-	if (! index.isValid() || static_cast<Lyli::FileList::size_type>(index.row()) >= m_cameraList.size()) {
+	if (! index.isValid() || static_cast<Lyli::CameraList::size_type>(index.row()) >= m_cameraList.size()) {
 		return QVariant();
 	}
 

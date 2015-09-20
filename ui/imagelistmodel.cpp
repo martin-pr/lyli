@@ -65,9 +65,9 @@ void ImageListModel::changeCamera(Lyli::Camera* camera)
 		m_fileList.clear();
 		
 		if (m_camera != nullptr) {
-			Lyli::FileList fileList = std::move(m_camera->getPictureList());
+			Lyli::Filesystem::FileList fileList = std::move(m_camera->getPictureList());
 			m_fileList.reserve(fileList.size());
-			for (Lyli::FileListEntry entry : fileList) {
+			for (auto entry : fileList) {
 				m_fileList.push_back(ImageListItem(m_camera, entry));
 			}
 		}
@@ -80,7 +80,7 @@ void ImageListModel::downloadFile(const QModelIndex &index, const QString &outpu
 	QString outputFile;
 	QString outputFilePath;
 	std::ofstream ofs;
-	Lyli::FileListEntry &file(m_fileList[index.row()].getFileEntry());
+	Lyli::Filesystem::FileListEntry &file(m_fileList[index.row()].getFileEntry());
 	
 	QDateTime datetime = m_fileList[index.row()].getTime();
 	QString outputFileBase =  outputDirectory + QDir::separator() + datetime.toString("yyyy-MM-dd_HH:mm:ss");

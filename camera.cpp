@@ -17,7 +17,7 @@
 
 #include "camera.h"
 
-#include "filelistparser.h"
+#include "filesystem/filelistparser.h"
 
 #include "libusbpp/buffer.h"
 #include "libusbpp/context.h"
@@ -130,7 +130,7 @@ public:
 		return info;
 	}
 	
-	FileList getPictureList() {
+	Filesystem::FileList getPictureList() {
 		Usbpp::ByteBuffer response;
 		
 		std::unique_lock<std::mutex> cameraLock(cameraAccessMutex);
@@ -144,7 +144,7 @@ public:
 		
 		cameraLock.unlock();
 		
-		return parseFileList(camera, response);
+		return Filesystem::parseFileList(camera, response);
 	}
 	
 	void getFile(std::ostream &out, const char *fileName)
@@ -248,7 +248,7 @@ void Camera::getVCM(std::ostream &os)
 	pimpl->getFile(os, "A:\\VCM.TXT");
 }
 
-FileList Camera::getPictureList()
+Filesystem::FileList Camera::getPictureList()
 {
 	assert(pimpl != nullptr);
 	

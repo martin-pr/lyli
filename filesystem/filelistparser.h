@@ -25,8 +25,11 @@ namespace Lyli {
 
 class Camera;
 
+namespace Filesystem {
+
 FileList parseFileList(Camera *camera, const Usbpp::ByteBuffer &buffer);
 
+}
 }
 
 #endif

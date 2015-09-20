@@ -25,7 +25,7 @@ ImageListItem::ImageListItem(): m_camera(nullptr)
 
 }
 
-ImageListItem::ImageListItem(Lyli::Camera *camera, const Lyli::FileListEntry &fileEntry, QObject* parent) :
+ImageListItem::ImageListItem(Lyli::Camera *camera, const Lyli::Filesystem::FileListEntry &fileEntry, QObject* parent) :
 	QObject(parent),
 	m_camera(camera), m_fileEntry(fileEntry), m_image(std::make_shared<QImage>())
 {
@@ -103,7 +103,7 @@ QImage ImageListItem::getImage() const
 	return *m_image;
 }
 
-Lyli::FileListEntry &ImageListItem::getFileEntry()
+Lyli::Filesystem::FileListEntry &ImageListItem::getFileEntry()
 {
 	return m_fileEntry;
 }

@@ -30,6 +30,8 @@ namespace Lyli {
 
 class Camera;
 
+namespace Filesystem {
+
 typedef std::array<uint8_t, 20> Sha1Array;
 
 class FileListEntry {
@@ -60,6 +62,7 @@ private:
 
 using FileList = std::vector<FileListEntry>;
 
+} // Filesystem
 } // Lyli
 
 #endif

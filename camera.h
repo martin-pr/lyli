@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-#include "filelist.h"
+#include "filesystem/filelist.h"
 
 namespace Usbpp {
 class Context;
@@ -63,7 +63,7 @@ public:
 	void getFirmware(std::ostream &os);
 	void getVCM(std::ostream &os);
 	
-	FileList getPictureList();
+	Filesystem::FileList getPictureList();
 	void getFile(std::ostream &out, const std::string &fileName) const;
 	
 private:

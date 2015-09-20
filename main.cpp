@@ -53,11 +53,11 @@ void getCameraInformation(Lyli::Camera &camera) {
 }
 
 void listFiles(Lyli::Camera &camera) {
-	Lyli::FileList fileList(camera.getPictureList());
+	Lyli::Filesystem::FileList fileList(camera.getPictureList());
 	
 	std::cout << std::setw(3) <<"id" << std::setw(28) << "date" << std::endl;
 	std::size_t i(0);
-	for (Lyli::FileListEntry file : fileList) {
+	for (auto file : fileList) {
 		std::cout << std::setw(3) << i++;
 		
 		// time
@@ -73,7 +73,7 @@ void listFiles(Lyli::Camera &camera) {
 }
 
 void downloadImage(Lyli::Camera &camera, int id) {
-	Lyli::FileList fileList(camera.getPictureList());
+	Lyli::Filesystem::FileList fileList(camera.getPictureList());
 	
 	char outputFile[50];
 	std::ofstream ofs;

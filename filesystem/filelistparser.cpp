@@ -23,7 +23,7 @@
 #include <cstring>
 #include <string>
 
-#include "camera.h"
+#include "../camera.h"
 
 namespace {
 	/**
@@ -42,14 +42,14 @@ namespace {
 	 *   24B - time (10B - date, 1B - T, 12B - time, 1B - Z)
 	 *   4B - padding?
 	 */
-	Lyli::FileListEntry parseLine(Lyli::Camera *camera, const uint8_t *line) {
+	Lyli::Filesystem::FileListEntry parseLine(Lyli::Camera *camera, const uint8_t *line) {
 		std::string dirBase = reinterpret_cast<const char*>(line);
 		std::string fileBase = reinterpret_cast<const char*>(line + 8);
 		int dirId = * reinterpret_cast<const uint32_t*>(line + 16);
 		int fileId = * reinterpret_cast<const uint32_t*>(line + 20);
 		
 		// sha1 (excluding the "sha1-")
-		Lyli::Sha1Array sha1;
+		Lyli::Filesystem::Sha1Array sha1;
 		const char *psha1(reinterpret_cast<const char*>(line + 48 + 5));
 		for (int i(0); i < 20; ++i) {
 			unsigned int tmp;
@@ -67,11 +67,12 @@ namespace {
 		timeStruct.tm_year -= 1900;
 		std::time_t time = std::mktime(&timeStruct) -  timezone;
 		
-		return Lyli::FileListEntry(camera, dirBase, dirId, fileBase, fileId, sha1, time);
+		return Lyli::Filesystem::FileListEntry(camera, dirBase, dirId, fileBase, fileId, sha1, time);
 	}
 }
 
 namespace Lyli {
+namespace Filesystem {
 
 FileList parseFileList(Camera *camera, const Usbpp::ByteBuffer& buffer)
 {
@@ -94,4 +95,5 @@ FileList parseFileList(Camera *camera, const Usbpp::ByteBuffer& buffer)
 	return fileList;
 }
 
+}
 }
