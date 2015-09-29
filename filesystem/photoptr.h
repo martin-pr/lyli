@@ -15,21 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LYLI_FILELIST_H_
-#define LYLI_FILELIST_H_
+#ifndef LYLI_FILESYSTEM_PHOTOPTR_H
+#define LYLI_FILESYSTEM_PHOTOPTR_H
 
-#include <vector>
-
-#include <filesystem/imageptr.h>
-#include <filesystem/photoptr.h>
+#include <memory>
 
 namespace Lyli {
 namespace Filesystem {
 
-using ImageList = std::vector<ImagePtr>;
-using PhotoList = std::vector<PhotoPtr>;
+class Photo;
+using PhotoPtr = std::shared_ptr<Photo>;
 
-} // Filesystem
-} // Lyli
+}
+}
 
-#endif
+#endif // LYLI_FILESYSTEM_PHOTOPTR_H

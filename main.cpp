@@ -25,7 +25,9 @@
 #include <unistd.h>
 
 #include "libusbpp/context.h"
-#include "camera.h"
+#include <camera.h>
+#include <filesystem/filesystemaccess.h>
+#include <filesystem/photo.h>
 
 void showHelp() {
 	std::cout << "Usage:" << std::endl;
@@ -53,7 +55,7 @@ void getCameraInformation(Lyli::Camera &camera) {
 }
 
 void listFiles(Lyli::Camera &camera) {
-	Lyli::Filesystem::FileList fileList(camera.getPictureList());
+	Lyli::Filesystem::PhotoList fileList(camera.getFilesystemAccess().getPictureList());
 	
 	std::cout << std::setw(3) <<"id" << std::setw(28) << "date" << std::endl;
 	std::size_t i(0);
@@ -61,7 +63,7 @@ void listFiles(Lyli::Camera &camera) {
 		std::cout << std::setw(3) << i++;
 		
 		// time
-		std::time_t time(file.getTime());
+		std::time_t time(file->getTime());
 		std::tm *tm = std::localtime(&time);
 		char buf[29];
 		std::strftime(buf, 28, "%c", tm);
@@ -73,26 +75,27 @@ void listFiles(Lyli::Camera &camera) {
 }
 
 void downloadImage(Lyli::Camera &camera, int id) {
-	Lyli::Filesystem::FileList fileList(camera.getPictureList());
+	Lyli::Filesystem::PhotoList fileList(camera.getFilesystemAccess().getPictureList());
+	::Lyli::Filesystem::Photo *photo = fileList[id].get();
 	
 	char outputFile[50];
 	std::ofstream ofs;
 	
 	std::snprintf(outputFile, 50, "%04d.TXT", id);
 	ofs.open(outputFile, std::ofstream::out | std::ofstream::binary);
-	fileList[id].getImageMetadata()->download(ofs);
+	photo->getImageMetadata(ofs);
 	ofs.flush();
 	ofs.close();
 	
 	std::snprintf(outputFile, 50, "%04d.128", id);
 	ofs.open(outputFile, std::ofstream::out | std::ofstream::binary);
-	fileList[id].getImageThumbnail()->download(ofs);
+	photo->getImageThumbnail(ofs);
 	ofs.flush();
 	ofs.close();
 	
 	std::snprintf(outputFile, 50, "%04d.RAW", id);
 	ofs.open(outputFile, std::ofstream::out | std::ofstream::binary);
-	fileList[id].getImageData()->download(ofs);
+	photo->getImageData(ofs);
 	ofs.flush();
 	ofs.close();
 }

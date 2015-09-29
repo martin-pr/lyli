@@ -18,6 +18,8 @@
 
 #include "imagelistitem.h"
 
+#include <filesystem/photo.h>
+
 #include <sstream>
 
 ImageListItem::ImageListItem(): m_camera(nullptr)
@@ -25,15 +27,15 @@ ImageListItem::ImageListItem(): m_camera(nullptr)
 
 }
 
-ImageListItem::ImageListItem(Lyli::Camera *camera, const Lyli::Filesystem::FileListEntry &fileEntry, QObject* parent) :
+ImageListItem::ImageListItem(Lyli::Camera *camera, const Lyli::Filesystem::PhotoPtr &photo, QObject* parent) :
 	QObject(parent),
-	m_camera(camera), m_fileEntry(fileEntry), m_image(std::make_shared<QImage>())
+	m_camera(camera), m_photo(photo), m_image(std::make_shared<QImage>())
 {
 	
 }
 
 ImageListItem::ImageListItem(const ImageListItem& other) :
-QObject(other.parent()), m_camera(other.m_camera), m_fileEntry(other.m_fileEntry), m_image(other.m_image)
+QObject(other.parent()), m_camera(other.m_camera), m_photo(other.m_photo), m_image(other.m_image)
 {
 	
 }
@@ -46,7 +48,7 @@ ImageListItem::~ImageListItem()
 ImageListItem& ImageListItem::operator=(const ImageListItem& other)
 {
 	m_camera = other.m_camera;
-	m_fileEntry = other.m_fileEntry;
+	m_photo = other.m_photo;
 	m_image = other.m_image;
 
 	return *this;
@@ -63,7 +65,7 @@ QDateTime ImageListItem::getTime() const
 		return QDateTime();
 	}
 	
-	return QDateTime::fromTime_t(m_fileEntry.getTime());
+	return QDateTime::fromTime_t(m_photo->getTime());
 }
 
 QImage ImageListItem::getImage() const
@@ -80,7 +82,7 @@ QImage ImageListItem::getImage() const
 	}
 	
 	std::stringstream ss;
-	m_fileEntry.getImageThumbnail()->download(ss);
+	m_photo->getImageThumbnail(ss);
 	
 	std::size_t pos(0);
 	char buf[2];
@@ -103,7 +105,7 @@ QImage ImageListItem::getImage() const
 	return *m_image;
 }
 
-Lyli::Filesystem::FileListEntry &ImageListItem::getFileEntry()
+Lyli::Filesystem::PhotoPtr ImageListItem::getPhoto()
 {
-	return m_fileEntry;
+	return m_photo;
 }

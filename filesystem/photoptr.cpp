@@ -14,22 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "photoptr.h"
 
-#ifndef LYLI_FILELIST_H_
-#define LYLI_FILELIST_H_
+#include "photo.h"
 
-#include <vector>
+#include <memory>
 
-#include <filesystem/imageptr.h>
-#include <filesystem/photoptr.h>
-
-namespace Lyli {
-namespace Filesystem {
-
-using ImageList = std::vector<ImagePtr>;
-using PhotoList = std::vector<PhotoPtr>;
-
-} // Filesystem
-} // Lyli
-
-#endif
+template class std::shared_ptr<Lyli::Filesystem::Photo>;

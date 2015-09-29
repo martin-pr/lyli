@@ -15,21 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LYLI_FILELIST_PARSER_H_
-#define LYLI_FILELIST_PARSER_H_
+#ifndef LYLI_FILESYSTEM_IMAGEPTR_H
+#define LYLI_FILESYSTEM_IMAGEPTR_H
 
-#include "libusbpp/buffer.h"
-#include "filelist.h"
+#include <memory>
 
 namespace Lyli {
-
-class Camera;
-
 namespace Filesystem {
 
-FileList parseFileList(Camera *camera, const Usbpp::ByteBuffer &buffer);
+class Image;
+using ImagePtr = std::shared_ptr<Image>;
 
 }
 }
 
-#endif
+#endif // LYLI_FILESYSTEM_IMAGEPTR_H

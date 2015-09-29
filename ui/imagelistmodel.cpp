@@ -18,6 +18,10 @@
 
 #include "imagelistmodel.h"
 
+#include <filesystem/filesystemaccess.h>
+#include <filesystem/photo.h>
+#include <filesystem/photoptr.h>
+
 #include <QDateTime>
 #include <QDebug>
 #include <QDir>
@@ -66,7 +70,7 @@ void ImageListModel::changeCamera(Lyli::Camera* camera)
 		m_fileList.clear();
 		
 		if (m_camera != nullptr) {
-			Lyli::Filesystem::FileList fileList = std::move(m_camera->getPictureList());
+			Lyli::Filesystem::PhotoList fileList = std::move(m_camera->getFilesystemAccess().getPictureList());
 			m_fileList.reserve(fileList.size());
 			for (auto entry : fileList) {
 				m_fileList.push_back(ImageListItem(m_camera, entry));
@@ -81,7 +85,7 @@ void ImageListModel::downloadFile(const QModelIndex &index, const QString &outpu
 	QString outputFile;
 	QString outputFilePath;
 	std::ofstream ofs;
-	Lyli::Filesystem::FileListEntry &file(m_fileList[index.row()].getFileEntry());
+	Lyli::Filesystem::PhotoPtr file(m_fileList[index.row()].getPhoto());
 	
 	QDateTime datetime = m_fileList[index.row()].getTime();
 	QString outputFileBase =  outputDirectory + QDir::separator() + datetime.toString("yyyy-MM-dd_HH:mm:ss");
@@ -90,13 +94,13 @@ void ImageListModel::downloadFile(const QModelIndex &index, const QString &outpu
 
 	outputFilePath = outputFileBase + ".TXT";
 	ofs.open(outputFilePath.toLocal8Bit().data(), std::ofstream::out | std::ofstream::binary);
-	file.getImageMetadata()->download(ofs);
+	file->getImageMetadata(ofs);
 	ofs.flush();
 	ofs.close();
 
 	outputFilePath = outputFileBase + ".RAW";
 	ofs.open(outputFilePath.toLocal8Bit().data(), std::ofstream::out | std::ofstream::binary);
-	file.getImageData()->download(ofs);
+	file->getImageData(ofs);
 	ofs.flush();
 	ofs.close();
 }

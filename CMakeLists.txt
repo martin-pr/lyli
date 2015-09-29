@@ -33,6 +33,7 @@ include_directories("${CMAKE_BINARY_DIR}/libusbpp/install/include")
 
 set(CMAKE_CXX_FLAGS "-std=c++14")
 include_directories(${LIBUSB_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 #########
 # Build #

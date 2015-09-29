@@ -1,5 +1,4 @@
 
 add_library(lylifilesystem STATIC
-	file.cpp filelist.cpp filelistparser.cpp)
+	filelist.cpp filesystemaccess.cpp image.cpp imageptr.cpp photo.cpp)
 #target_link_libraries(lylifilesystem ${OpenCV_LIBS})
-

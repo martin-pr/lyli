@@ -17,7 +17,7 @@
 
 #include "camera.h"
 
-#include "filesystem/filelistparser.h"
+#include <filesystem/filesystemaccess.h>
 
 #include "libusbpp/buffer.h"
 #include "libusbpp/context.h"
@@ -129,22 +129,22 @@ public:
 		
 		return info;
 	}
-	
-	Filesystem::FileList getPictureList() {
+
+	Usbpp::ByteBuffer getPictureList() {
 		Usbpp::ByteBuffer response;
-		
+
 		std::unique_lock<std::mutex> cameraLock(cameraAccessMutex);
-		
+
 		// request the file list
 		Usbpp::MassStorage::CommandBlockWrapper cmdReqFilelist(0, 0, 0, {0xc2, 00, 02, 00, 00, 00, 00, 00, 00, 00, 00, 00});
 		device.sendCommand(LIBUSB_ENDPOINT_OUT | 0x02, cmdReqFilelist, &response);
-		
+
 		// get the data
 		response = downloadData();
-		
+
 		cameraLock.unlock();
-		
-		return Filesystem::parseFileList(camera, response);
+
+		return response;
 	}
 	
 	void getFile(std::ostream &out, const char *fileName)
@@ -234,34 +234,22 @@ CameraInformation Camera::getCameraInformation() const
 	return pimpl->getCameraInformation();
 }
 
-void Camera::getFirmware(std::ostream &os)
-{
-	assert(pimpl != nullptr);
-	
-	pimpl->getFile(os, "A:\\FIRMWARE.TXT");
-}
-
-void Camera::getVCM(std::ostream &os)
-{
-	assert(pimpl != nullptr);
-	
-	pimpl->getFile(os, "A:\\VCM.TXT");
-}
-
-Filesystem::FileList Camera::getPictureList()
+Usbpp::ByteBuffer Camera::getPictureList()
 {
 	assert(pimpl != nullptr);
 	
 	return pimpl->getPictureList();
 }
 
-void Camera::getFile(std::ostream &out, const std::string &fileName) const
-{
+void Camera::getFile(std::ostream &out, const std::string &fileName) const {
 	return pimpl->getFile(out, fileName.c_str());
 }
 
-CameraList getCameras(Usbpp::Context &context)
-{
+Filesystem::FilesystemAccess Camera::getFilesystemAccess() {
+	return Filesystem::FilesystemAccess(this);
+}
+
+CameraList getCameras(Usbpp::Context &context) {
 	CameraList cameras;
 	
 	std::vector<Usbpp::Device> devices(context.getDevices());

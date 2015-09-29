@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LYLI_FILE_H
-#define LYLI_FILE_H
+#ifndef LYLI_FILESYSTEM_IMAGE_H
+#define LYLI_FILESYSTEM_IMAGE_H
 
 #include <iosfwd>
 #include <memory>
@@ -28,64 +28,77 @@ class Camera;
 
 namespace Filesystem {
 
-/**
- * An interface for downloadable files
- */
-class File {
+class Image {
 public:
 	/**
 	 * Default constructor.
 	 */
-	File();
+	Image();
 	/**
 	 * Construct file for path.
 	 * \param camera camera where the file is stored, it must be vaild for the whole lifetime
 	 *               of the file object. Must not be null. File does NOT take ownership.
 	 * \param path full path to file
+	 * \param basename base name of the file (ie. the file name wihout leading path and without extension)
 	 */
-	File(Camera *camera, const std::string &path);
+	Image(Camera *camera, const std::string &path, const std::string basename);
 	/**
 	 * A copy constructor
 	 */
-	File(const File& other);
+	Image(const Image& other);
 	/**
 	 * A move constructor
 	 */
-	File(File&& other) noexcept;
+	Image(Image&& other) noexcept;
 	/**
 	 * A destructor.
 	 */
-	virtual ~File();
+	virtual ~Image();
 
 	/**
 	 * Assignment operator
 	 */
-	File& operator=(const File& other);
+	Image& operator=(const Image& other);
 	/**
 	 * Move assignment operator
 	 */
-	File& operator=(File&& other) noexcept;
+	Image& operator=(Image&& other) noexcept;
 
 	/**
 	 * Get the file name.
 	 * \return file name
 	 */
-	virtual std::string getName();
+	std::string getName();
 
 	/**
-	 * Download the file
-	 * \param os output stream in which the file is written
+	 * Store the image metadata to a given stream.
+	 * \param os stream where the data are written to
 	 */
-	virtual void download(std::ostream &os);
+	void getImageMetadata(std::ostream &os) const;
+	/**
+	 * Store the image data to a given stream.
+	 * \param os stream where the data are written to
+	 */
+	void getImageData(std::ostream &os) const;
+
+protected:
+	/**
+	 * Get the associated camera.
+	 * \return the camera
+	 */
+	Camera *getCamera() const;
+	/**
+	 * Get the full path without the extension
+	 * \return path
+	 */
+	std::string &getFullPath() const;
 
 private:
 	class Impl;
 	std::unique_ptr<Impl> pimpl;
 };
 
-using FilePtr = std::shared_ptr<File>;
-
 }
 }
 
-#endif // LYLI_FILE_H
+#endif // LYLI_FILESYSTEM_IMAGE_H

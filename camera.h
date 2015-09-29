@@ -20,7 +20,6 @@
 
 #include <cstdint>
 #include <ctime>
-#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -28,6 +27,7 @@
 #include "filesystem/filelist.h"
 
 namespace Usbpp {
+class ByteBuffer;
 class Context;
 namespace MassStorage {
 class MSDevice;
@@ -35,6 +35,10 @@ class MSDevice;
 }
 
 namespace Lyli {
+
+namespace Filesystem {
+class FilesystemAccess;
+}
 
 class Camera;
 typedef std::vector<Camera> CameraList;
@@ -54,24 +58,27 @@ public:
 	
 	Camera(Camera &&other) noexcept;
 	Camera &operator=(Camera &&other) noexcept;
-	
+
 	void waitReady();
-	
+
 	CameraInformation getCameraInformation() const;
-	
+
 	void getVersion();
-	void getFirmware(std::ostream &os);
-	void getVCM(std::ostream &os);
-	
-	Filesystem::FileList getPictureList();
+
 	void getFile(std::ostream &out, const std::string &fileName) const;
+
+	Filesystem::FilesystemAccess getFilesystemAccess();
 	
 private:
 	class Impl;
 	Impl *pimpl;
 	
 	friend CameraList getCameras(Usbpp::Context &context);
+	friend class Filesystem::FilesystemAccess;;
+
 	Camera(const Usbpp::MassStorage::MSDevice &device);
+
+	Usbpp::ByteBuffer getPictureList();
 	
 	Camera(const Camera &other);
 	Camera &operator=(const Camera &other);
