@@ -27,6 +27,8 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <iomanip>
+#include <sstream>
 #include <string>
 
 namespace {
@@ -137,9 +139,15 @@ PhotoList FilesystemAccess::getPictureList() {
 	return parseFileList(pimpl->m_camera, buf_);
 }
 
-/*ImageList FilesystemAccess::getCalibrationList() {
-
-}*/
+ImageList FilesystemAccess::getCalibrationList() {
+	ImageList fileList;
+	for (int i = 0; i <= 61; ++i) {
+		std::stringstream ss;
+		ss << "MOD_" << std::setfill ('0') << std::setw (4) << i;;
+		fileList.push_back(ImagePtr(new Image(pimpl->m_camera, "C:\\T1CALIB\\", ss.str())));
+	}
+	return fileList;
+}
 
 }
 }
