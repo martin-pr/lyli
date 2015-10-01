@@ -1,49 +1,48 @@
-#[=======================================================================[.rst:
-FindJsonCpp
------------
-
-Find JsonCpp includes and library.
-
-Imported Targets
-^^^^^^^^^^^^^^^^
-
-An :ref:`imported target <Imported targets>` named
-``JsonCpp::JsonCpp`` is provided if JsonCpp has been found.
-
-Result Variables
-^^^^^^^^^^^^^^^^
-
-This module defines the following variables:
-
-``JsonCpp_FOUND``
-  True if JsonCpp was found, false otherwise.
-``JsonCpp_INCLUDE_DIRS``
-  Include directories needed to include JsonCpp headers.
-``JsonCpp_LIBRARIES``
-  Libraries needed to link to JsonCpp.
-``JsonCpp_VERSION_STRING``
-  The version of JsonCpp found.
-  May not be set for JsonCpp versions prior to 1.0.
-``JsonCpp_VERSION_MAJOR``
-  The major version of JsonCpp.
-``JsonCpp_VERSION_MINOR``
-  The minor version of JsonCpp.
-``JsonCpp_VERSION_PATCH``
-  The patch version of JsonCpp.
-
-Cache Variables
-^^^^^^^^^^^^^^^
-
-This module uses the following cache variables:
-
-``JsonCpp_LIBRARY``
-  The location of the JsonCpp library file.
-``JsonCpp_INCLUDE_DIR``
-  The location of the JsonCpp include directory containing ``json/json.h``.
-
-The cache variables should not be used by project code.
-They may be set by end users to point at JsonCpp components.
-#]=======================================================================]
+#.rst:
+# FindJsonCpp
+# -----------
+#
+# Find JsonCpp includes and library.
+#
+# Imported Targets
+# ^^^^^^^^^^^^^^^^
+#
+# An :ref:`imported target <Imported targets>` named
+# ``JsonCpp::JsonCpp`` is provided if JsonCpp has been found.
+#
+# Result Variables
+# ^^^^^^^^^^^^^^^^
+#
+# This module defines the following variables:
+#
+# ``JsonCpp_FOUND``
+#   True if JsonCpp was found, false otherwise.
+# ``JsonCpp_INCLUDE_DIRS``
+#   Include directories needed to include JsonCpp headers.
+# ``JsonCpp_LIBRARIES``
+#   Libraries needed to link to JsonCpp.
+# ``JsonCpp_VERSION_STRING``
+#   The version of JsonCpp found.
+#   May not be set for JsonCpp versions prior to 1.0.
+# ``JsonCpp_VERSION_MAJOR``
+#   The major version of JsonCpp.
+# ``JsonCpp_VERSION_MINOR``
+#   The minor version of JsonCpp.
+# ``JsonCpp_VERSION_PATCH``
+#   The patch version of JsonCpp.
+#
+# Cache Variables
+# ^^^^^^^^^^^^^^^
+#
+# This module uses the following cache variables:
+#
+# ``JsonCpp_LIBRARY``
+#   The location of the JsonCpp library file.
+# ``JsonCpp_INCLUDE_DIR``
+#   The location of the JsonCpp include directory containing ``json/json.h``.
+#
+# The cache variables should not be used by project code.
+# They may be set by end users to point at JsonCpp components.
 
 #=============================================================================
 # Copyright 2014-2015 Kitware, Inc.
