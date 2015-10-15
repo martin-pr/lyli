@@ -95,10 +95,10 @@ void LineGrid::finalize() {
 	tmpLineMap2LineList(tmpLineMap, linesHorizontal);
 	tmpLineMap.clear();
 
-	// the points in horizontal lines are sorted implicityl due to the nature
+	// the points in horizontal lines are sorted implicitly due to the nature
 	// of the sweep algorithm
 
-	// execute a sweep algorim to detect vertical lines similar to the one when adding points
+	// execute a sweep algorithm to detect vertical lines similar to the one when adding points
 	// because the points are already ordered in horizontal lines, we will make use of it
 
 	// construct lines, we will use 6 lines in the first quarter of the image
@@ -134,7 +134,7 @@ void LineGrid::finalize() {
 	                        [&](cv::Point2f *point) {this->mapAdd(tmpLineMapEven, point->y, point);});
 
 	// we must sort the generated lines, as we did not add points to the in order
-	// (we first cerated header, then processed points before header and then after)
+	// (we first created header, then processed points before header and then after)
 	for (auto &line : tmpLineMapOdd) {
 		std::sort(line.second.begin(), line.second.end(),
 		          [](const cv::Point2f *a, const cv::Point2f *b){return a->x < b->x;});
