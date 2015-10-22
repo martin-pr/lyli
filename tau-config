@@ -1,0 +1,5 @@
+#!/bin/sh
+export CC=tau_cc.sh
+export CXX=tau_cxx.sh
+export TAU_OPTIONS=-optCompInst
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -g -finstrument-functions-exclude-file-list=mmintrin" $@
