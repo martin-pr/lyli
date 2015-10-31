@@ -1,0 +1,144 @@
+
+class master/picture/frameArray[0]/frame/metadata/image {
+	int width
+	int height
+	int orientation
+	string representation
+	class rawDetails {
+		class pixelFormat {
+			int rightShift
+			class black {
+				int r
+				int gr
+				int gb
+				int b
+			}
+			class white {
+				int r
+				int gr
+				int gb
+				int b
+			}
+		}
+		class pixelPacking {
+			string endianness
+			int bitsPerPixel
+		}
+		class mosaic {
+			string tile
+			string upperLeftPixel
+		}
+	}
+	class color {
+#		float[9] ccmRgbToSrgbArray
+		float gamma
+		class whiteBalanceGain {
+			float r
+			float gr
+			float gb
+			float b
+		}
+	}
+	float modulationExposureBias
+	float limitExposureBias
+}
+
+class master/picture/frameArray[0]/frame/metadata/devices {
+	class clock {
+		string zuluTime
+	}
+	class sensor {
+		int bitsPerPixel
+		class mosaic {
+			string tile
+			string upperLeftPixel
+		}
+		int iso
+		class analogGain {
+			float r
+			float gr
+			float gb
+			float b
+		}
+		float pixelPitch
+	}
+	class lens {
+		float infinityLambda
+		float focalLength
+		int zoomStep
+		int focusStep
+		float fNumber
+		float temperature
+		int temperatureAdc
+		int zoomStepperOffset
+		int focusStepperOffset
+		class exitPupilOffset {
+			float z
+		}
+	}
+	class ndfilter {
+		float exposureBias
+	}
+	class shutter {
+		string mechanism
+		float frameExposureDuration
+		float pixelExposureDuration
+	}
+	class soc {
+		float temperature
+		int temperatureAdc
+	}
+	class accelerometer {
+		class sampleArray[0] {
+				float x
+				float y
+				float z
+				float time
+		}
+	}
+	class mla {
+		string tiling
+		float lensPitch
+		float rotation
+#		defectArray - some king of array
+		string config
+		class scaleFactor {
+			float x
+			float y
+		}
+		class sensorOffset {
+			float x
+			float y
+			float z
+		}
+	}
+}
+
+class master/picture/frameArray[0]/frame/metadata/modes {
+	string creative
+	bool manualControls
+	string exposureDurationMode
+	float exposureDurationSpec
+	string isoMode
+	float isoSpec
+	string ndFilterMode
+	bool exposureLock
+	float overscan
+}
+
+class master/picture/frameArray[0]/frame/metadata/camera {
+	string make
+	string model
+	string firmware
+}
+
+class master/picture/frameArray[0]/frame/privateMetadata {
+	class devices {
+		class sensor {
+			string sensorSerial
+		}
+	},
+	class camera {
+		string serialNumber
+	}
+}
