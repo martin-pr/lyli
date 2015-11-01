@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-level = 0
-
 TYPE_MAP = {
 	"bool": "bool",
 	"int": "int",
@@ -9,23 +7,29 @@ TYPE_MAP = {
 	"string": "std::string"
 }
 
-def gen(str):
-	global level
-	indent = level * "\t"
-	print(indent + str)
+class HdrGenVisitor:
+	def __init__(self):
+		self.level = 0
 
-def beginClass(name, path):
-	global level
-	gen("")
-	gen("class " + name.title() + " {")
-	level = level + 1
+	def gen(self, str):
+		indent = self.level * "\t"
+		print(indent + str)
 
-def endClass(name, path):
-	global level
-	level = level - 1
-	gen("};")
-	gen(name.title() + " get" + name.title() + "() const;")
-	gen("")
+	def visitClass(self, cls):
+		self.gen("")
+		self.gen("class " + cls.name.title() + " {")
 
-def genPrimitive(type, name, path):
-	gen(TYPE_MAP[type] + " get" + name.title() + "() const;")
+		self.level = self.level + 1
+		for node in cls.members:
+			node.accept(self)
+		self.level = self.level - 1
+
+		self.gen("};")
+		self.gen(cls.name.title() + " get" + cls.name.title() + "() const;")
+		self.gen("")
+
+	def visitPrimitive(self, primitive):
+		self.gen(TYPE_MAP[primitive.type] + " get" + primitive.name.title() + "() const;")
+
+	def visitArray(self, primitive):
+		self.gen(TYPE_MAP[primitive.type] + "* get" + primitive.name.title() + "() const;")

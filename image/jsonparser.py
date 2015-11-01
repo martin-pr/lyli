@@ -3,9 +3,8 @@
 import re
 import sys
 
+import jsonast
 import jsongen
-
-TOKEN_TYPE = {}
 
 def getName(address):
 	'''Get name of an object from its address.
@@ -19,42 +18,60 @@ def getName(address):
 def parseClass(file, type, tokens, address):
 	name = getName(tokens[0])
 	address = address + tokens[0]
-	jsongen.beginClass(name, address)
+
+	cls = jsonast.Class(name)
 
 	# parse lines within class until the closing brace is found
 	line = file.readline()
 	while line:
 		if line.lstrip()[0] == "}":
-			jsongen.endClass(name, address)
-			return
+			return cls
 		else:
-			parseLine(file, line, address)
+			node = parseLine(file, line, address)
+			if node:
+				cls.addMember(node)
 			line = file.readline()
-	jsongen.endClass(name, address)
+	return cls
 
 def parsePrimitive(file, type, tokens, address):
-	jsongen.genPrimitive(type, getName(tokens[0]), address + tokens[0])
+	return jsonast.Primitive(type, getName(tokens[0]), address + tokens[0])
+
+def parseArray(file, type, tokens, address):
+	match = re.match("(\w+)\[(.*)\]", type)
+	primitive = match.group(1)
+	size = match.group(2)
+	return jsonast.Array(primitive, size, getName(tokens[0]), address + tokens[0])
 
 def parseLine(file, line, address):
 	line = line.strip()
 	if line and line[0] != "#":
 		tokens = line.split()
-		TOKEN_TYPE[tokens[0]](file, tokens[0], tokens[1:], address)
 
-TOKEN_TYPE["class"] = parseClass
-TOKEN_TYPE["bool"] = parsePrimitive
-TOKEN_TYPE["int"] = parsePrimitive
-TOKEN_TYPE["float"] = parsePrimitive
-TOKEN_TYPE["string"] = parsePrimitive
+		if tokens[0] == "class":
+			return parseClass(file, tokens[0], tokens[1:], address)
+		elif tokens[0][-1] == "]":
+			return parseArray(file, tokens[0], tokens[1:], address)
+		else:
+			return parsePrimitive(file, tokens[0], tokens[1:], address)
+
+	return None
 
 if __name__ == '__main__':
 	if len(sys.argv) < 2:
 		print("missing argument")
 		exit(1)
-	file = open(sys.argv[1])
+
+	root = jsonast.Root()
 
 	# read the file line by line
+	file = open(sys.argv[1])
 	line = file.readline()
 	while line:
-		parseLine(file, line, "/")
+		node = parseLine(file, line, "/")
+		if node:
+			root.addNode(node)
 		line = file.readline()
+
+	# generate output
+	hdrgen = jsongen.HdrGenVisitor()
+	root.accept(hdrgen)

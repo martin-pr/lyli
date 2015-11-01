@@ -30,7 +30,7 @@ class master/picture/frameArray[0]/frame/metadata/image {
 		}
 	}
 	class color {
-#		float[9] ccmRgbToSrgbArray
+		float[9] ccmRgbToSrgbArray
 		float gamma
 		class whiteBalanceGain {
 			float r
