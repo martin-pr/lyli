@@ -73,5 +73,9 @@ if __name__ == '__main__':
 		line = file.readline()
 
 	# generate output
-	hdrgen = jsongen.HdrGenVisitor()
+	hdrgen = jsongen.HdrGenVisitor("Metadata")
 	root.accept(hdrgen)
+	hdrgen.write()
+	srcgen = jsongen.SrcGenVisitor("Metadata")
+	root.accept(srcgen)
+	srcgen.write()
