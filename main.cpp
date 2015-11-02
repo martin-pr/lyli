@@ -36,6 +36,7 @@ void showHelp() {
 	std::cout << "\t-l\t list files" << std::endl;
 	std::cout << "\t-d id\t download image with the specified id" << std::endl;
 	std::cout << "\t     \t The image is downloaded to the current directory" << std::endl;
+	std::cout << "\t-t dir\t download calibration images to a specified directory" << std::endl;
 	std::cout << "\t-f path\t download a file specified by a full path, potentialy dangerous" << std::endl;
 	std::cout << "\t     \t Requires knowledge of the camera file structure." << std::endl;
 }
@@ -78,26 +79,62 @@ void downloadImage(Lyli::Camera &camera, int id) {
 	Lyli::Filesystem::PhotoList fileList(camera.getFilesystemAccess().getPictureList());
 	::Lyli::Filesystem::Photo *photo = fileList[id].get();
 	
-	char outputFile[50];
+	std::stringstream ss;
 	std::ofstream ofs;
 	
-	std::snprintf(outputFile, 50, "%04d.TXT", id);
-	ofs.open(outputFile, std::ofstream::out | std::ofstream::binary);
+	ss << photo->getName() << ".TXT";
+	ofs.open(ss.str(), std::ofstream::out | std::ofstream::binary);
 	photo->getImageMetadata(ofs);
 	ofs.flush();
 	ofs.close();
+	ss.str("");
+	ss.clear();
 	
-	std::snprintf(outputFile, 50, "%04d.128", id);
-	ofs.open(outputFile, std::ofstream::out | std::ofstream::binary);
+	ss << photo->getName() << ".128";
+	ofs.open(ss.str(), std::ofstream::out | std::ofstream::binary);
 	photo->getImageThumbnail(ofs);
 	ofs.flush();
 	ofs.close();
+	ss.str("");
+	ss.clear();
 	
-	std::snprintf(outputFile, 50, "%04d.RAW", id);
-	ofs.open(outputFile, std::ofstream::out | std::ofstream::binary);
+	ss << photo->getName() << ".RAW";
+	ofs.open(ss.str(), std::ofstream::out | std::ofstream::binary);
 	photo->getImageData(ofs);
 	ofs.flush();
 	ofs.close();
+	ss.str("");
+	ss.clear();
+}
+
+void downloadCalib(Lyli::Camera &camera, const std::string &path) {
+	Lyli::Filesystem::ImageList fileList(camera.getFilesystemAccess().getCalibrationList());
+
+	std::stringstream ss;
+	std::ofstream ofs;
+	if (chdir(path.c_str()) != 0) {
+		std::perror("failed to change directory");
+		return;
+	}
+	for (const auto &image : fileList) {
+		std::cout << "downloading file: " << image->getName() << std::endl;
+
+		ss << image->getName() << ".TXT";
+		ofs.open(ss.str(), std::ofstream::out | std::ofstream::binary);
+		image->getImageMetadata(ofs);
+		ofs.flush();
+		ofs.close();
+		ss.str("");
+		ss.clear();
+
+		ss << image->getName() << ".RAW";
+		ofs.open(ss.str(), std::ofstream::out | std::ofstream::binary);
+		image->getImageData(ofs);
+		ofs.flush();
+		ofs.close();
+		ss.str("");
+		ss.clear();
+	}
 }
 
 void downloadFile(Lyli::Camera &camera, const std::string path) {
@@ -125,7 +162,7 @@ int main(int argc, char *argv[]) {
 	Lyli::Camera &camera(cameras[0]);
 	
 	int c;
-	while ((c = getopt(argc, argv, "ild:f:")) != -1) {
+	while ((c = getopt(argc, argv, "ild:t:f:")) != -1) {
 		switch (c) {
 			case 'i':
 				waitForCamera(camera);
@@ -138,6 +175,10 @@ int main(int argc, char *argv[]) {
 			case 'd':
 				waitForCamera(camera);
 				downloadImage(camera, atoi(optarg));
+				return 0;
+			case 't':
+				waitForCamera(camera);
+				downloadCalib(camera, optarg);
 				return 0;
 			case 'f':
 				waitForCamera(camera);
