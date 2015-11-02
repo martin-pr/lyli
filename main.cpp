@@ -137,7 +137,7 @@ void downloadCalib(Lyli::Camera &camera, const std::string &path) {
 	}
 }
 
-void downloadFile(Lyli::Camera &camera, const std::string path) {
+void downloadFile(Lyli::Camera &camera, const std::string &path) {
 	std::size_t sepPos = path.find_last_of("/\\");
 	std::string outputFile(sepPos != std::string::npos ? path.substr(sepPos + 1) : path);
 	std::ofstream ofs(outputFile.c_str(), std::ofstream::out | std::ofstream::binary);
