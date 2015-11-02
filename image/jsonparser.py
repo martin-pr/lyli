@@ -13,11 +13,11 @@ def getName(address):
 	numeric characters (eg. if the part is an array)
 
 	'''
-	return re.match("\w+", address.split("/")[-1]).group(0)
+	return re.match("\w+", address.split('/')[-1]).group(0)
 
 def parseClass(file, type, tokens, address):
 	name = getName(tokens[0])
-	address = address + tokens[0]
+	address = address + '/' + tokens[0]
 
 	cls = jsonast.Class(name)
 
@@ -34,13 +34,13 @@ def parseClass(file, type, tokens, address):
 	return cls
 
 def parsePrimitive(file, type, tokens, address):
-	return jsonast.Primitive(type, getName(tokens[0]), address + tokens[0])
+	return jsonast.Primitive(type, getName(tokens[0]), address + '/' + tokens[0])
 
 def parseArray(file, type, tokens, address):
 	match = re.match("(\w+)\[(.*)\]", type)
 	primitive = match.group(1)
 	size = match.group(2)
-	return jsonast.Array(primitive, size, getName(tokens[0]), address + tokens[0])
+	return jsonast.Array(primitive, size, getName(tokens[0]), address + '/' + tokens[0])
 
 def parseLine(file, line, address):
 	line = line.strip()
