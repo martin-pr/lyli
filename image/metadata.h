@@ -1,7 +1,6 @@
 
 
-#ifndef LYLI_IMAGE_Metadata_H_
-#define LYLI_IMAGE_Metadata_H_
+#pragma once
 
 #include <iostream>
 #include <memory>
@@ -459,4 +458,3 @@ private:
 }
 }
 
-#endif

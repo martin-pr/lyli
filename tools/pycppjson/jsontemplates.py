@@ -4,8 +4,7 @@ from string import Template
 
 TEMPLATE_HEADER = Template("""
 
-#ifndef LYLI_IMAGE_${CLASS}_H_
-#define LYLI_IMAGE_${CLASS}_H_
+#pragma once
 
 #include <iostream>
 #include <memory>
@@ -15,9 +14,7 @@ namespace Json {
 class Value;
 }
 
-namespace Lyli {
-namespace Image {
-
+${NAMESPACE_BEGIN}
 /**
  * A class providing native access to JSON data.
  */
@@ -52,10 +49,7 @@ private:
 	ValuePtr m_root;
 };
 
-}
-}
-
-#endif
+${NAMESPACE_END}
 """)
 
 TEMPLATE_SOURCE = Template("""
@@ -66,9 +60,7 @@ TEMPLATE_SOURCE = Template("""
 #include <json/reader.h>
 #include <json/value.h>
 
-namespace Lyli {
-namespace Image {
-
+${NAMESPACE_BEGIN}
 ${CLASS}::${CLASS}() {
 
 }
@@ -92,6 +84,5 @@ void ${CLASS}::read(std::istream &is) {
 // generated accessors
 ${GENERATED}
 
-}
-}
+${NAMESPACE_END}
 """)

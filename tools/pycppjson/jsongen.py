@@ -5,7 +5,7 @@ from string import Template
 
 import re
 
-import jsontemplates
+from pycppjson import jsontemplates
 
 TYPE_MAP = {
 	"bool": "bool",
@@ -22,8 +22,10 @@ ACCESS_MAP = {
 }
 
 class HdrGenVisitor:
-	def __init__(self, classname):
-		self.classname = classname
+	def __init__(self, classname, filebase):
+		self.namespace = classname[0:-1]
+		self.classname = classname[-1]
+		self.filebase = filebase
 		self.level = 1
 		self.code = StringIO()
 
@@ -63,15 +65,23 @@ class HdrGenVisitor:
 		self.gen(TYPE_MAP[primitive.type] + "* get" + primitive.name.title() + "() const;")
 
 	def write(self):
-		file = open(self.classname.lower() + ".h", "w")
-		code = jsontemplates.TEMPLATE_HEADER.substitute(CLASS=self.classname, GENERATED=self.code.getvalue())
+		namespace_begin = ""
+		namespace_end = ""
+		for nmspc in self.namespace:
+			namespace_begin += 'namespace ' + nmspc + ' {\n'
+			namespace_end += '}\n'
+
+		file = open(self.filebase + ".h", "w")
+		code = jsontemplates.TEMPLATE_HEADER.substitute(CLASS=self.classname, GENERATED=self.code.getvalue(), NAMESPACE_BEGIN=namespace_begin, NAMESPACE_END=namespace_end)
 		file.write(code)
 		file.close
 
 class SrcGenVisitor:
-	def __init__(self, classname):
-		self.classname = classname
-		self.path = [classname]
+	def __init__(self, classname, filebase):
+		self.namespace = classname[0:-1]
+		self.classname = classname[-1]
+		self.filebase = filebase
+		self.path = [self.classname]
 		self.code = StringIO()
 
 	def gen(self, str=None):
@@ -130,7 +140,13 @@ class SrcGenVisitor:
 		#self.gen(TYPE_MAP[primitive.type] + "* get" + primitive.name.title() + "() const;")
 
 	def write(self):
-		file = open(self.classname.lower() + ".cpp", "w")
-		code = jsontemplates.TEMPLATE_SOURCE.substitute(INCLUDE=self.classname.lower(), CLASS=self.classname, GENERATED=self.code.getvalue())
+		namespace_begin = ""
+		namespace_end = ""
+		for nmspc in self.namespace:
+			namespace_begin += 'namespace ' + nmspc + ' {\n'
+			namespace_end += '}\n'
+
+		file = open(self.filebase + ".cpp", "w")
+		code = jsontemplates.TEMPLATE_SOURCE.substitute(INCLUDE=self.classname.lower(), CLASS=self.classname, GENERATED=self.code.getvalue(), NAMESPACE_BEGIN=namespace_begin, NAMESPACE_END=namespace_end)
 		file.write(code)
 		file.close

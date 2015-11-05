@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
+import os
 import re
 import sys
 
-import jsonast
-import jsongen
+from pycppjson import jsonast
+from pycppjson import jsongen
 
 def getName(address):
 	'''Get name of an object from its address.
@@ -57,14 +58,19 @@ def parseLine(file, line, address):
 	return None
 
 if __name__ == '__main__':
-	if len(sys.argv) < 2:
-		print("missing argument")
+	if len(sys.argv) < 3:
+		print('missing argument')
+		print("Usage:")
+		print('\t jsonparser.py "Fully::Qualified::Class" file')
 		exit(1)
 
-	root = jsonast.Root()
+	# get command line arguments
+	quialifiedname = sys.argv[1].split("::")
+	filename = sys.argv[2]
 
-	# read the file line by line
-	file = open(sys.argv[1])
+	# create json root and read the file line by line
+	root = jsonast.Root()
+	file = open(sys.argv[2])
 	line = file.readline()
 	while line:
 		node = parseLine(file, line, "/")
@@ -73,9 +79,10 @@ if __name__ == '__main__':
 		line = file.readline()
 
 	# generate output
-	hdrgen = jsongen.HdrGenVisitor("Metadata")
+	filebase = os.path.splitext(os.path.basename(filename))[0]
+	hdrgen = jsongen.HdrGenVisitor(quialifiedname, filebase)
 	root.accept(hdrgen)
 	hdrgen.write()
-	srcgen = jsongen.SrcGenVisitor("Metadata")
+	srcgen = jsongen.SrcGenVisitor(quialifiedname, filebase)
 	root.accept(srcgen)
 	srcgen.write()
