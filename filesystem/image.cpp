@@ -63,18 +63,16 @@ Image::~Image() {
 }
 
 Image& Image::operator=(const Image& other) {
-	if(this == &other) {
-		return *this;
+	if(this != &other) {
+		pimpl = std::make_unique<Impl>(*other.pimpl);
 	}
-	pimpl = std::make_unique<Impl>(*other.pimpl);
 	return *this;
 }
 
 Image& Image::operator=(Image&& other) noexcept {
-	if(this == &other) {
-		return *this;
+	if(this != &other) {
+		pimpl = std::move(other.pimpl);
 	}
-	pimpl = std::move(other.pimpl);
 	return *this;
 }
 

@@ -84,29 +84,29 @@ LytroImage::LytroImage(const LytroImage& other)
 	m_image = new QImage(*other.m_image);
 }
 
-LytroImage::LytroImage(LytroImage&& other)
+LytroImage::LytroImage(LytroImage&& other) : m_image(other.m_image)
 {
-	m_image = other.m_image;
 	other.m_image = nullptr;
 }
 
 LytroImage& LytroImage::operator=(const LytroImage& other)
 {
-	if (this == &other) {
-		return *this;
+	if (this != &other) {
+		LytroImage tmp(other);
+		std::swap(m_image, tmp.m_image);
 	}
-	LytroImage tmp(other);
-	std::swap(m_image, tmp.m_image);
 	return *this;
 }
 
 LytroImage& LytroImage::operator=(LytroImage&& other)
 {
-	if (this == &other) {
-		return *this;
+	if (this != &other) {
+		if (m_image) {
+			delete m_image;
+		}
+		m_image = other.m_image;
+		other.m_image = nullptr;
 	}
-	m_image = other.m_image;
-	other.m_image = nullptr;
 	return *this;
 }
 

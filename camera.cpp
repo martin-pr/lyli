@@ -202,22 +202,19 @@ Camera::~Camera()
 	}
 }
 
-Camera::Camera(Camera&& other) noexcept
+Camera::Camera(Camera&& other) noexcept : pimpl(std::move(other.pimpl))
 {
-	pimpl = other.pimpl;
 	pimpl->camera = this;
-	other.pimpl = nullptr;
 }
 
 Camera& Camera::operator=(Camera&& other) noexcept
 {
-	if (this == &other) {
-		return *this;
+	if (this != &other) {
+		std::swap(pimpl, other.pimpl);
+		pimpl->camera = this;
+		other.pimpl->camera = &other;
 	}
-	
-	std::swap(pimpl, other.pimpl);
-	pimpl->camera = this;
-	other.pimpl->camera = &other;
+
 	return *this;
 }
 
