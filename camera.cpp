@@ -191,7 +191,7 @@ Camera::Camera() : pimpl(nullptr)
 
 Camera::Camera(const Usbpp::MassStorage::MSDevice &device) : pimpl(new Impl(this, device))
 {
-	
+
 }
 
 Camera::~Camera()
@@ -253,17 +253,13 @@ CameraList getCameras(Usbpp::Context &context) {
 	
 	for (Usbpp::Device dev : devices) {
 		try {
-			dev.open(true);
 			libusb_device_descriptor descr(dev.getDescriptor());
 			if (descr.idVendor == 0x24cf && descr.idProduct == 0x00a1) {
-				cameras.push_back(Camera(dev));
-			}
-			else {
-				dev.close();
+				Camera camera(dev);
+				cameras.push_back(std::move(camera));
 			}
 		}
 		catch (const Usbpp::Exception &e) {
-			dev.close();
 			// just silently ignore the exception and try the next device
 			continue;
 		}
