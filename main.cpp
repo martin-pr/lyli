@@ -18,16 +18,23 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <dirent.h>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <unistd.h>
 
-#include "libusbpp/context.h"
+#include <opencv2/opencv.hpp>
+
+#include <libusbpp/context.h>
+
 #include <camera.h>
+#include <calibration/calibrator.h>
 #include <filesystem/filesystemaccess.h>
 #include <filesystem/photo.h>
+#include <image/rawimage.h>
 
 void showHelp() {
 	std::cout << "Usage:" << std::endl;
@@ -37,6 +44,7 @@ void showHelp() {
 	std::cout << "\t-d id\t download image with the specified id" << std::endl;
 	std::cout << "\t     \t The image is downloaded to the current directory" << std::endl;
 	std::cout << "\t-t dir\t download calibration images to a specified directory" << std::endl;
+	std::cout << "\t-c dir\t calibrate using files from a specified directory" << std::endl;
 	std::cout << "\t-f path\t download a file specified by a full path, potentialy dangerous" << std::endl;
 	std::cout << "\t     \t Requires knowledge of the camera file structure." << std::endl;
 }
@@ -137,6 +145,55 @@ void downloadCalib(Lyli::Camera &camera, const std::string &path) {
 	}
 }
 
+void calibrate(const std::string &path) {
+	std::vector<std::string> files;
+
+	// read all files
+	DIR *dir = opendir(path.c_str());
+	if (dir == nullptr) {
+		std::perror("failed to change directory");
+		return;
+	}
+	dirent *ent;
+	const std::string ext(".RAW");
+	while ((ent = readdir(dir)) != nullptr) {
+		std::string file(ent->d_name);
+		if (file.size() < ext.size()
+		    || ! std::equal(ext.rbegin(), ext.rend(), file.rbegin())) {
+			// skip the file
+			continue;
+		}
+		std::string filebase(file.substr(0, file.size() - 4));
+		files.push_back(filebase);
+	}
+	closedir(dir);
+
+	// sort the files (it's more user-friendly)
+	std::sort(files.begin(), files.end());
+
+	// calibrate
+	std::stringstream ss;
+	for (const auto &filebase : files) {
+		std::cout << "calibrating image: " << filebase << std::endl;
+
+		ss << filebase << ".RAW";
+		std::fstream fin(ss.str(), std::fstream::in | std::fstream::binary);
+		ss.str("");
+		ss.clear();
+
+
+		Lyli::Calibration::Calibrator calibrator;
+		Lyli::Image::RawImage rawimg(fin, 3280, 3280);
+		calibrator.addImage(rawimg.getData());
+		calibrator.calibrate();
+
+		ss << filebase << ".PNG";
+		cv::imwrite(ss.str(), calibrator.getcalibrationImage());
+		ss.str("");
+		ss.clear();
+	}
+}
+
 void downloadFile(Lyli::Camera &camera, const std::string &path) {
 	std::size_t sepPos = path.find_last_of("/\\");
 	std::string outputFile(sepPos != std::string::npos ? path.substr(sepPos + 1) : path);
@@ -162,7 +219,7 @@ int main(int argc, char *argv[]) {
 	Lyli::Camera &camera(cameras[0]);
 	
 	int c;
-	while ((c = getopt(argc, argv, "ild:t:f:")) != -1) {
+	while ((c = getopt(argc, argv, "ild:t:c:f:")) != -1) {
 		switch (c) {
 			case 'i':
 				waitForCamera(camera);
@@ -179,6 +236,9 @@ int main(int argc, char *argv[]) {
 			case 't':
 				waitForCamera(camera);
 				downloadCalib(camera, optarg);
+				return 0;
+			case 'c':
+				calibrate(optarg);
 				return 0;
 			case 'f':
 				waitForCamera(camera);
