@@ -20,6 +20,7 @@
 
 #include <cstdint>
 #include <ctime>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -71,7 +72,7 @@ public:
 	
 private:
 	class Impl;
-	Impl *pimpl;
+	std::unique_ptr<Impl> pimpl;
 	
 	friend CameraList getCameras(Usbpp::Context &context);
 	friend class Filesystem::FilesystemAccess;;

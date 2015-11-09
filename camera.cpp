@@ -184,22 +184,19 @@ public:
 	mutable std::mutex cameraAccessMutex;
 };
 
-Camera::Camera() : pimpl(nullptr)
+Camera::Camera()
 {
 
 }
 
-Camera::Camera(const Usbpp::MassStorage::MSDevice &device) : pimpl(new Impl(this, device))
+Camera::Camera(const Usbpp::MassStorage::MSDevice &device) : pimpl(std::make_unique<Impl>(this, device))
 {
 
 }
 
 Camera::~Camera()
 {
-	if (pimpl != nullptr) {
-		delete pimpl;
-		pimpl = nullptr;
-	}
+
 }
 
 Camera::Camera(Camera&& other) noexcept : pimpl(std::move(other.pimpl))
@@ -210,9 +207,8 @@ Camera::Camera(Camera&& other) noexcept : pimpl(std::move(other.pimpl))
 Camera& Camera::operator=(Camera&& other) noexcept
 {
 	if (this != &other) {
-		std::swap(pimpl, other.pimpl);
+		pimpl = std::move(other.pimpl);
 		pimpl->camera = this;
-		other.pimpl->camera = &other;
 	}
 
 	return *this;
