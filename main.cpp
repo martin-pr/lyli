@@ -148,8 +148,13 @@ void downloadCalib(Lyli::Camera &camera, const std::string &path) {
 void calibrate(const std::string &path) {
 	std::vector<std::string> files;
 
+	if (chdir(path.c_str()) != 0) {
+		std::perror("failed to change directory");
+		return;
+	}
+
 	// read all files
-	DIR *dir = opendir(path.c_str());
+	DIR *dir = opendir(".");
 	if (dir == nullptr) {
 		std::perror("failed to change directory");
 		return;
@@ -174,13 +179,13 @@ void calibrate(const std::string &path) {
 	// calibrate
 	std::stringstream ss;
 	for (const auto &filebase : files) {
-		std::cout << "calibrating image: " << filebase << std::endl;
-
 		ss << filebase << ".RAW";
+		std::cout << "reading image: " << ss.str() << std::endl;
 		std::fstream fin(ss.str(), std::fstream::in | std::fstream::binary);
 		ss.str("");
 		ss.clear();
 
+		std::cout << "calibrating image..." << std::endl;
 
 		Lyli::Calibration::Calibrator calibrator;
 		Lyli::Image::RawImage rawimg(fin, 3280, 3280);
@@ -188,6 +193,7 @@ void calibrate(const std::string &path) {
 		calibrator.calibrate();
 
 		ss << filebase << ".PNG";
+		std::cout << "writing calibration grid: " << ss.str() << std::endl;
 		cv::imwrite(ss.str(), calibrator.getcalibrationImage());
 		ss.str("");
 		ss.clear();
