@@ -156,12 +156,17 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 float getInterpolatedColor(const cv::Mat &image, cv::Point2f position) {
 	assert(image.channels() == 1);
 
+	// return 0 if the position is out of bounds
+	if (position.x < 0 || position.x > image.cols || position.y < 0 || position.y > image.rows) {
+		return 0.0f;
+	}
+
 	const unsigned int xx = std::floor(position.x);
 	const unsigned int yy = std::floor(position.y);
-	int x0 = cv::borderInterpolate(xx,   image.cols, cv::BORDER_REFLECT_101);
-	int x1 = cv::borderInterpolate(xx+1, image.cols, cv::BORDER_REFLECT_101);
-	int y0 = cv::borderInterpolate(yy,   image.rows, cv::BORDER_REFLECT_101);
-	int y1 = cv::borderInterpolate(yy+1, image.rows, cv::BORDER_REFLECT_101);
+	int x0 = xx;
+	int x1 = xx + 1;
+	int y0 = yy;
+	int y1 = yy + 1;
 
 	const float f00 = image.at<uchar>(y0, x0);
 	const float f01 = image.at<uchar>(y0, x1);
