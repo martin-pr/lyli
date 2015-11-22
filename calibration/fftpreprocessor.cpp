@@ -51,7 +51,9 @@ void FFTPreprocessor::preprocess(const cv::Mat& gray, cv::Mat& outMask) {
 	cv::Mat center;
 	cv::split(complexI, planes);
 	for (int i = 0; i < 2; ++i) {
+		cv::Mat tmp;
 		for (int blur = 0; blur < 5; ++blur) {
+			planes[i].copyTo(tmp);
 			for (int y = BLUR_RADIUS; y >= -BLUR_RADIUS; --y) {
 				int realy_a = cv::borderInterpolate(y - 1, planes[i].rows, cv::BORDER_WRAP);
 				int realy_b = cv::borderInterpolate(y, planes[i].rows, cv::BORDER_WRAP);
@@ -62,13 +64,14 @@ void FFTPreprocessor::preprocess(const cv::Mat& gray, cv::Mat& outMask) {
 					int realx_b = cv::borderInterpolate(x, planes[i].cols, cv::BORDER_WRAP);
 					int realx_c = cv::borderInterpolate(x + 1, planes[i].cols, cv::BORDER_WRAP);
 
-					planes[i].at<float>(realy_b, realx_b) = (
+					tmp.at<float>(realy_b, realx_b) = (
 						planes[i].at<float>(realy_a, realx_b)
 						+ planes[i].at<float>(realy_b, realx_a) + planes[i].at<float>(realy_b, realx_b) + planes[i].at<float>(realy_b, realx_c)
 						+ planes[i].at<float>(realy_c, realx_b)
 						) / 6.0;
 				}
 			}
+			tmp.copyTo(planes[i]);
 		}
 	}
 	cv::merge(planes, 2, complexI);
