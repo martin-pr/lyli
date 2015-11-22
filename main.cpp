@@ -49,22 +49,26 @@ void showHelp() {
 	std::cout << "\t     \t Requires knowledge of the camera file structure." << std::endl;
 }
 
-void waitForCamera(Lyli::Camera &camera) {
+/**
+ * Prepare the selected camera and return a pointer to the camera to use.
+ */
+Lyli::Camera* prepareCamera(Lyli::CameraList &cameraList, std::size_t idx) {
 	std::cout << "waiting until the camera is ready" << std::endl;
-	camera.waitReady();
+	cameraList[idx].waitReady();
 	std::cout << "camera ready" << std::endl;
+	return &cameraList[idx];
 }
 
-void getCameraInformation(Lyli::Camera &camera) {
-	Lyli::CameraInformation info(camera.getCameraInformation());
+void getCameraInformation(Lyli::Camera *camera) {
+	Lyli::CameraInformation info(camera->getCameraInformation());
 	
 	std::cout << "Vendor: " << info.vendor << std::endl;
 	std::cout << "Product: " << info.product << std::endl;
 	std::cout << "Revision: " << info.revision << std::endl;
 }
 
-void listFiles(Lyli::Camera &camera) {
-	Lyli::Filesystem::PhotoList fileList(camera.getFilesystemAccess().getPictureList());
+void listFiles(Lyli::Camera *camera) {
+	Lyli::Filesystem::PhotoList fileList(camera->getFilesystemAccess().getPictureList());
 	
 	std::cout << std::setw(3) <<"id" << std::setw(28) << "date" << std::endl;
 	std::size_t i(0);
@@ -83,8 +87,8 @@ void listFiles(Lyli::Camera &camera) {
 	}
 }
 
-void downloadImage(Lyli::Camera &camera, int id) {
-	Lyli::Filesystem::PhotoList fileList(camera.getFilesystemAccess().getPictureList());
+void downloadImage(Lyli::Camera *camera, int id) {
+	Lyli::Filesystem::PhotoList fileList(camera->getFilesystemAccess().getPictureList());
 	::Lyli::Filesystem::Photo *photo = fileList[id].get();
 	
 	std::stringstream ss;
@@ -115,8 +119,8 @@ void downloadImage(Lyli::Camera &camera, int id) {
 	ss.clear();
 }
 
-void downloadCalib(Lyli::Camera &camera, const std::string &path) {
-	Lyli::Filesystem::ImageList fileList(camera.getFilesystemAccess().getCalibrationList());
+void downloadCalib(Lyli::Camera *camera, const std::string &path) {
+	Lyli::Filesystem::ImageList fileList(camera->getFilesystemAccess().getCalibrationList());
 
 	std::stringstream ss;
 	std::ofstream ofs;
@@ -200,12 +204,12 @@ void calibrate(const std::string &path) {
 	}
 }
 
-void downloadFile(Lyli::Camera &camera, const std::string &path) {
+void downloadFile(Lyli::Camera *camera, const std::string &path) {
 	std::size_t sepPos = path.find_last_of("/\\");
 	std::string outputFile(sepPos != std::string::npos ? path.substr(sepPos + 1) : path);
 	std::ofstream ofs(outputFile.c_str(), std::ofstream::out | std::ofstream::binary);
 
-	camera.getFile(ofs, path);
+	camera->getFile(ofs, path);
 }
 
 int main(int argc, char *argv[]) {
@@ -216,38 +220,46 @@ int main(int argc, char *argv[]) {
 	
 	Usbpp::Context context;
 	Lyli::CameraList cameras(Lyli::getCameras(context));
-	
-	if (cameras.size() == 0) {
-		std::cerr << "No cameras found" << std::endl;
-		return 1;
-	}
-	
-	Lyli::Camera &camera(cameras[0]);
-	
+	Lyli::Camera *camera(0);
+
+	// first prepare camera if we are calling a function requiring camera to be operating
 	int c;
 	while ((c = getopt(argc, argv, "ild:t:c:f:")) != -1) {
 		switch (c) {
 			case 'i':
-				waitForCamera(camera);
+			case 'l':
+			case 'd':
+			case 't':
+			case 'f':
+				if (cameras.size() == 0) {
+					std::cerr << "No cameras found" << std::endl;
+					return 1;
+				}
+				camera = prepareCamera(cameras, 0);
+				break;
+		}
+	}
+	optind = 1;
+	
+	// process the options
+	while ((c = getopt(argc, argv, "ild:t:c:f:")) != -1) {
+		switch (c) {
+			case 'i':
 				getCameraInformation(camera);
 				break;
 			case 'l':
-				waitForCamera(camera);
 				listFiles(camera);
 				return 0;
 			case 'd':
-				waitForCamera(camera);
 				downloadImage(camera, atoi(optarg));
 				return 0;
 			case 't':
-				waitForCamera(camera);
 				downloadCalib(camera, optarg);
 				return 0;
 			case 'c':
 				calibrate(optarg);
 				return 0;
 			case 'f':
-				waitForCamera(camera);
 				downloadFile(camera, optarg);
 				return 0;
 			default:
