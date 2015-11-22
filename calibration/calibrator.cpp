@@ -16,7 +16,7 @@
  */
 
 #include "calibrator.h"
-#include "preprocessor.h"
+#include "fftpreprocessor.h"
 #include "lensdetector.h"
 //#include "lensfilter.h"
 #include "linegrid.h"
@@ -156,7 +156,7 @@ void Calibrator::calibrate() {
 	greyMat.convertTo(greyMat, CV_8U, 1.0/256.0);
 
 	// preprocess the image - create a mask for the microlens array
-	Preprocessor preprocessor;
+	FFTPreprocessor preprocessor;
 	preprocessor.preprocess(greyMat, dst);
 
 	LensDetector lensDetector;
@@ -240,7 +240,7 @@ void Calibrator::calibrate() {
 
 	// DEBUG: convert to the format expected for viewing
 	dst = dst.t();
-	dst.convertTo(tmp, CV_16U, 256);
+	dst.convertTo(tmp, CV_16U, 255);
 	cv::cvtColor(tmp, pimpl->calibrationImage, CV_GRAY2RGB);
 }
 
