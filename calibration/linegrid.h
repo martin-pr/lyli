@@ -67,17 +67,24 @@ public:
 	/**
 	 * Add a point to the grid.
 	 *
-	 * The points whose y-dimension is smaller than CONSTRUCT_LIM will
-	 * construct a new line if no suitable line was found. Otherwise the
-	 * point is just added to a suitable closest line.
-	 *
-	 * The remaining points (y > CONSTRUCT_LIM) are either added to a suitable
-	 * line or they are not added at all.
+	 * The points need to be added in increasing y-order.
 	 */
 	void addPoint(const cv::Point2f &point);
 
 	/**
 	 * Finalize the construction of line grid.
+	 *
+	 * The points whose y-dimension is in the CONSTRUCT_LIM range in the middle
+	 * of the image are used to construct a new horizontal line if no suitable
+	 * line was found. Otherwise the point is just added to a suitable closest line.
+	 *
+	 * The remaining points are either added to a suitable line or they are not
+	 * added at all.
+	 *
+	 * Vertical lines are constructed in a similar fashion.
+	 *
+	 * The points that doesn't correspond to both horizontal and vertical line
+	 * are removed
 	 */
 	void finalize();
 
@@ -100,11 +107,21 @@ public:
 private:
 	using PointStore = std::unordered_map<cv::Point2f*, std::unique_ptr<cv::Point2f>>;
 	using TmpLineMap = std::map<float, PtrLine>;
+	using PointAccumulator = std::vector<cv::Point2f*>;
 
-	// temporary line map
-	TmpLineMap tmpLineMap;
+	/**
+	 * The accumulator is used to preserve the order of points as they are added
+	 * to allow later construction in finalize()
+	 */
+	PointAccumulator accumulator;
 
-	/// The point storage
+	/**
+	 * Point storage.
+	 * The storage holds instances of points in unique_ptr. Additionaly, it stores
+	 * the mappinng between RAW pointers to the held instance to allow quick lookup
+	 * of instance. Unordered set would seem more suitable for this, but note that
+	 * we can't effectively search unique_ptr in set.
+	 */
 	PointStore storage;
 	/// Map of horizontal lines
 	PtrLineList linesHorizontal;
@@ -142,6 +159,16 @@ private:
 	 * \param list output list
 	 */
 	void tmpLineMap2LineList(const TmpLineMap &map, PtrLineList &list);
+	/**
+	 * Helper function to insert points to horizontal lines.
+	 *
+	 * \param start start of the line range to process (inclusive)
+	 * \param end end of the line range (exclusive).
+	 *        end may be smaller than start, in which case the loop is executed in reverse.
+	 * \param inserter function that processes a point and adds it a corresponding line
+	 */
+	void horizontalLineInserter(int start, int end,
+	                             std::function<void(cv::Point2f *)> inserter);
 	/**
 	 * Helper function to construct vertical lines
 	 *

@@ -81,6 +81,13 @@ LineGrid &LineGrid::operator=(const LineGrid &other) {
 void LineGrid::addPoint(const cv::Point2f& point) {
 	// add point to the point storage
 	cv::Point2f *stored = storageAdd(point);
+	// preserve the order
+	accumulator.push_back(stored);
+}
+
+/*void LineGrid::addPoint(const cv::Point2f& point) {
+	// add point to the point storage
+	cv::Point2f *stored = storageAdd(point);
 	// add point to the horizontal line map
 	if (point.y <= CONSTRUCT_LIM) {
 		mapAddConstruct(tmpLineMap, point.x, stored);
@@ -88,9 +95,55 @@ void LineGrid::addPoint(const cv::Point2f& point) {
 	else {
 		mapAdd(tmpLineMap, point.x, stored);
 	}
-}
+}*/
 
 void LineGrid::finalize() {
+	// temporary line map for horizontal lines
+	TmpLineMap tmpLineMap;
+
+	/******************************
+	 * construct horizontal lines *
+	 ******************************/
+	// use the points starting in the first third of the points (which should be ~ 1/3 of the image height)
+	// to CONSTRUCT_LIM to construct horizontal lines
+	std::size_t constructStart = accumulator.size() / 3;
+	float construcStartPos = accumulator[constructStart]->y;
+	std::intmax_t i = constructStart;
+	for (; accumulator[i]->y < construcStartPos + CONSTRUCT_LIM; ++i) {
+		cv::Point2f *point = accumulator[i];
+		mapAddConstruct(tmpLineMap, point->x, point);
+	}
+	// process the following points - just add them to the appropriate lines
+	for (; i < static_cast<std::intmax_t>(accumulator.size()); ++i) {
+		cv::Point2f *point = accumulator[i];
+		mapAdd(tmpLineMap, point->x, point);
+	}
+	// add preceeding points - this has to be done in reverse
+	// first, we have to change the keys in the lineMap to the keys of the first point in each line
+	// the reason is that we want to use the closest key to the point, but currently the key is for the last point
+	TmpLineMap tmp;
+	for (const auto &entry : tmpLineMap) {
+		float key = entry.second.front()->x;
+		tmp.insert(std::make_pair(key, std::move(entry.second)));
+	}
+	std::swap(tmpLineMap, tmp);
+	tmp.clear();
+	// add points
+	for (i = constructStart; i >= 0; --i) {
+		cv::Point2f *point = accumulator[i];
+		mapAdd(tmpLineMap, point->x, point);
+	}
+	// we must sort the generated lines, as we did not add points to the in order
+	// (we first created header, then processed points before header and then after)
+	for (auto &line : tmpLineMap) {
+		std::sort(line.second.begin(), line.second.end(),
+		          [](const cv::Point2f *a, const cv::Point2f *b){return a->y < b->y;});
+	}
+
+	/****************************
+	 * construct vertical lines *
+	 ***************************/
+
 	// create a final line map that is used for public interfaces
 	tmpLineMap2LineList(tmpLineMap, linesHorizontal);
 	tmpLineMap.clear();
@@ -101,16 +154,16 @@ void LineGrid::finalize() {
 	// execute a sweep algorithm to detect vertical lines similar to the one when adding points
 	// because the points are already ordered in horizontal lines, we will make use of it
 
-	// construct lines, we will use 6 lines in the first quarter of the image
+	// construct lines, we will use 6 lines in the first third of the image
 	// as these should be the most high-quality lines
 	TmpLineMap tmpLineMapOdd;
 	TmpLineMap tmpLineMapEven;
-	std::size_t constructStart = linesHorizontal.size() / 4;
+	constructStart = linesHorizontal.size() / 3;
 	verticalLineConstructor(constructStart, constructStart+6,
 	                        [&](cv::Point2f *point) {this->mapAddConstruct(tmpLineMapOdd, point->y, point);},
 	                        [&](cv::Point2f *point) {this->mapAddConstruct(tmpLineMapEven, point->y, point);});
 	// add the following points to the lines
-	verticalLineConstructor(constructStart, linesHorizontal.size(),
+	verticalLineConstructor(constructStart + 6, linesHorizontal.size(),
 	                        [&](cv::Point2f *point) {this->mapAdd(tmpLineMapOdd, point->y, point);},
 	                        [&](cv::Point2f *point) {this->mapAdd(tmpLineMapEven, point->y, point);});
 	// process the first few lines
