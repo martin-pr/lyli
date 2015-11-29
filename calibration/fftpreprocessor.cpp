@@ -74,6 +74,11 @@ void FFTPreprocessor::preprocess(const cv::Mat& gray, cv::Mat& outMask) {
 	// apply threshold
 	std::uint8_t threshold = cv::mean(outMask)[0] + 20;
 	cv::threshold(outMask, outMask, threshold, 255, cv::THRESH_BINARY);
+
+	// remove short spurs
+	cv::Point anchor(1, 1);
+	cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), anchor);
+	cv::morphologyEx(outMask, outMask, cv::MORPH_OPEN, kernel, anchor, 1, cv::BORDER_CONSTANT);
 }
 
 }
