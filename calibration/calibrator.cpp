@@ -64,10 +64,81 @@ LensFilterInterface::~LensFilterInterface() {
 
 }
 
+class CalibrationData::Impl {
+public:
+	Impl(const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, const cv::Mat& translation, const cv::Mat& rotation) {
+		cameraMatrix.copyTo(m_cameraMatrix);
+		distCoeffs.copyTo(m_distCoeffs);
+		translation.copyTo(m_translation);
+		rotation.copyTo(m_rotation);
+	}
+
+	cv::Mat m_cameraMatrix;
+	cv::Mat m_distCoeffs;
+	cv::Mat m_translation;
+	cv::Mat m_rotation;
+};
+
+CalibrationData::CalibrationData() {
+
+}
+
+CalibrationData::CalibrationData(const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, const cv::Mat& translation, const cv::Mat& rotation) :
+	pimpl(new Impl(cameraMatrix, distCoeffs, translation, rotation)) {
+
+}
+
+CalibrationData::~CalibrationData() {
+
+}
+
+CalibrationData::CalibrationData(const CalibrationData &other) :
+	pimpl(new Impl(other.pimpl->m_cameraMatrix, other.pimpl->m_distCoeffs, other.pimpl->m_translation, other.pimpl->m_rotation)) {
+
+}
+
+CalibrationData& CalibrationData::operator=(const CalibrationData &other) {
+	if(this != &other) {
+		CalibrationData tmp(other.pimpl->m_cameraMatrix, other.pimpl->m_distCoeffs, other.pimpl->m_translation, other.pimpl->m_rotation);
+		std::swap(pimpl, tmp.pimpl);
+	}
+
+	return *this;
+}
+
+CalibrationData::CalibrationData(CalibrationData &&other) noexcept : pimpl(std::move(other.pimpl)) {
+
+}
+
+CalibrationData& CalibrationData::operator=(CalibrationData &&other) noexcept {
+	if (this != &other) {
+		pimpl = std::move(other.pimpl);
+	}
+
+	return *this;
+}
+
+cv::Mat& CalibrationData::getCameraMatrix() const {
+	return pimpl->m_cameraMatrix;
+}
+
+cv::Mat& CalibrationData::getDistCoeffs() const {
+	return pimpl->m_distCoeffs;
+}
+
+cv::Mat& CalibrationData::getTranslation() const {
+	return pimpl->m_translation;
+}
+
+cv::Mat& CalibrationData::getRotation() const {
+	return pimpl->m_rotation;
+}
+
 class Calibrator::Impl {
 public:
 	cv::Mat image;
 	cv::Mat calibrationImage;
+	CalibrationData m_calibrationData;
 
 	/**
 	 * Create target line grid.
@@ -197,18 +268,16 @@ void Calibrator::calibrate() {
 	cv::Mat editRot = rotation(cv::Range(0, 2), cv::Range(0, 2));
 	rotation3D(cv::Range(0, 2), cv::Range(0, 2)).copyTo(editRot); // we we need 2D, so we set z = 0 => top left submatrix suffice
 
-	std::cout << "rotation 3D" << rotation3D << std::endl;
-	std::cout << "rotation 2D" << rotation << std::endl;
-
 	cv::Mat translation = cv::Mat::eye(3, 3, CV_64F);
 	cv::Mat editTransl = translation.col(2).rowRange(0, 2);
 	tvecs[0].rowRange(0, 2).copyTo(editTransl);
 
-	std::cout << "translation" << translation << std::endl;
+	std::cout << "camera matrix" << std::endl << cameraMatrix << std::endl;
+	std::cout << "distortion coefficients" << std::endl << distCoeffs << std::endl; // radial and tangential distortion
+	std::cout << "rotation" << std::endl << rotation << std::endl;
+	std::cout << "translation" << std::endl << translation << std::endl;
 
-	cv::Mat transform = translation.inv() * rotation * translation;
-
-	std::cout << "transform" << transform << std::endl;
+	pimpl->m_calibrationData = CalibrationData(cameraMatrix, distCoeffs, translation, rotation);
 
 	// DEBUG: draw lines
 	dst = cv::Scalar(256, 256, 256);
@@ -235,6 +304,7 @@ void Calibrator::calibrate() {
 	}
 
 	// DEBUG: undistort the grid
+	cv::Mat transform = translation.inv() * rotation * translation;
 	cv::undistort(dst, tmp, cameraMatrix, distCoeffs);
 	cv::warpAffine(tmp, dst, transform.rowRange(0,2), dst.size());
 
@@ -246,6 +316,10 @@ void Calibrator::calibrate() {
 
 cv::Mat &Calibrator::getcalibrationImage() const {
 	return pimpl->calibrationImage;
+}
+
+CalibrationData& Calibrator::getCalibrationData() const {
+	return pimpl->m_calibrationData;
 }
 
 }

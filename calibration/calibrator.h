@@ -125,6 +125,27 @@ public:
 	LensFilterInterface& operator=(const LensFilterInterface&) = delete;
 };
 
+class CalibrationData {
+public:
+	CalibrationData();
+	CalibrationData(const cv::Mat &cameraMatrix, const cv::Mat &distCoeffs, const cv::Mat &translation, const cv::Mat &rotation);
+	~CalibrationData();
+
+	CalibrationData(const CalibrationData &other);
+	CalibrationData& operator=(const CalibrationData &other);
+	CalibrationData(CalibrationData &&other) noexcept;
+	CalibrationData& operator=(CalibrationData &&other) noexcept;
+
+	cv::Mat& getCameraMatrix() const;
+	cv::Mat& getDistCoeffs() const;
+	cv::Mat& getTranslation() const;
+	cv::Mat& getRotation() const;
+
+private:
+	class Impl;
+	std::unique_ptr<Impl> pimpl;
+};
+
 /**
  * A class providing means to calibrate camera from a set of images.
  */
@@ -137,6 +158,7 @@ public:
 	void calibrate();
 
 	cv::Mat &getcalibrationImage() const;
+	CalibrationData& getCalibrationData() const;
 
 private:
 	class Impl;
