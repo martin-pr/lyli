@@ -72,9 +72,42 @@ void calibrate(const std::string &path) {
 
 	std::vector<Lyli::Calibration::CalibrationData> calibData;
 
-	// calibrate
+
 	std::stringstream ss;
 	std::ofstream ofs("XXX.csv", std::ofstream::out | std::ofstream::binary);
+
+	// print header
+	ofs << "FILE,"
+		<< "Infinitylambda,"
+		<< "Focallength,"
+		<< "Zoomstep,"
+		<< "Focusstep,"
+		<< "Fnumber,"
+		<< "Zoomstepperoffset,"
+		<< "Focusstepperoffset,"
+		<< "Exitpupiloffset,"
+		// translation
+		<< "tx,"
+		<< "ty,"
+		// rotation
+		<< "r00,"
+		<< "r10,"
+		<< "r01,"
+		<< "r11,"
+		// camera matrix
+		<< "fx,"
+		<< "fy,"
+		<< "cx,"
+		<< "cy,"
+		// distortion coefficients
+		<< "k1,"
+		<< "k2,"
+		<< "p1,"
+		<< "p2,"
+		<< "k3,"
+		<< std::endl;
+
+	// calibrate and store stats
 	for (const auto &filebase : files) {
 		ss << filebase << ".RAW";
 		std::cout << "reading image: " << ss.str() << std::endl;
