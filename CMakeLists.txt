@@ -44,7 +44,7 @@ add_subdirectory(filesystem)
 add_subdirectory(image)
 
 add_library(lyliiface STATIC camera.cpp)
-target_link_libraries(lyliiface lylicalib lylifilesystem lyliimage usbpp ${OpenCV_LIBS} ${LIBUSB_LIBRARIES})
+target_link_libraries(lyliiface lylicalib lylifilesystem lyliimage usbpp ${OpenCV_LIBS} ${LIBUSB_LIBRARIES} ${JsonCpp_LIBRARIES})
 add_dependencies(lyliiface libusbpp_project)
 
 add_executable(lyli main.cpp)
@@ -53,3 +53,6 @@ target_link_libraries(lyli usbpp lyliiface)
 if (Qt5Core_FOUND AND Qt5Widgets_FOUND)
 	add_subdirectory(ui)
 endif()
+
+# aditional tools
+add_subdirectory(tools)
