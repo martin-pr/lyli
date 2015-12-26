@@ -22,7 +22,9 @@
 #include <memory>
 #include <vector>
 
-#include <opencv2/core/core.hpp>
+#include <calibration/calibrationdata.h>
+#include <image/metadata.h>
+#include <image/rawimage.h>
 
 namespace cv {
 	class Mat;
@@ -40,7 +42,7 @@ struct Mask {
 	static constexpr std::uint8_t OBJECT = 255;
 };
 
-class LineGrid;
+class PointGrid;
 
 /**
  * Interface for the image preprocessing and the mask creation
@@ -90,7 +92,7 @@ public:
 	 * @param mask mask with lenses set as Mask::OBJECT
 	 * @return lens centroids grouped in lines
 	 */
-	virtual LineGrid detect(const cv::Mat &gray, cv::Mat &mask) = 0;
+	virtual PointGrid detect(const cv::Mat &gray, cv::Mat &mask) = 0;
 
 	// avoid copying
 	LensDetectorInterface(const LensDetectorInterface&) = delete;
@@ -118,32 +120,11 @@ public:
 	 * @param lines lines to filter
 	 * @return filtered lines
 	 */
-	virtual LineGrid filter(const LineGrid &lines) = 0;
+	virtual PointGrid filter(const PointGrid &lines) = 0;
 
 	// avoid copying
 	LensFilterInterface(const LensFilterInterface&) = delete;
 	LensFilterInterface& operator=(const LensFilterInterface&) = delete;
-};
-
-class CalibrationData {
-public:
-	CalibrationData();
-	CalibrationData(const cv::Mat &cameraMatrix, const cv::Mat &distCoeffs, const cv::Mat &translation, const cv::Mat &rotation);
-	~CalibrationData();
-
-	CalibrationData(const CalibrationData &other);
-	CalibrationData& operator=(const CalibrationData &other);
-	CalibrationData(CalibrationData &&other) noexcept;
-	CalibrationData& operator=(CalibrationData &&other) noexcept;
-
-	cv::Mat& getCameraMatrix() const;
-	cv::Mat& getDistCoeffs() const;
-	cv::Mat& getTranslation() const;
-	cv::Mat& getRotation() const;
-
-private:
-	class Impl;
-	std::unique_ptr<Impl> pimpl;
 };
 
 /**
@@ -154,11 +135,33 @@ public:
 	Calibrator();
 	~Calibrator();
 
-	void addImage(const cv::Mat &image);
-	void calibrate();
+	/**
+	 * Add an image to the calibrator and process it.
+	 *
+	 * This function may take long time to finish.
+	 *
+	 * @param image image to process
+	 * @param metadata image metadata
+	 */
+	void processImage(const Lyli::Image::RawImage &image, const Lyli::Image::Metadata &metadata);
 
-	cv::Mat &getcalibrationImage() const;
-	CalibrationData& getCalibrationData() const;
+	/**
+	 * Finish the calibration.
+	 *
+	 * Computes the calibration data from all previously supplied images.
+	 * This function may take long time to finish.
+	 *
+	 * @return the calibration data
+	 */
+	CalibrationData calibrate();
+
+	/**
+	 * Reset the calibrator state.
+	 *
+	 * The stored state of any processed images is thrown away after calling this function, allowing
+	 * the calibrator to be reused for new set of images.
+	 */
+	void reset();
 
 private:
 	class Impl;

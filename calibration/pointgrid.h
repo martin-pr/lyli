@@ -14,9 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef LYLI_CALIBRATION_LINEGRID_H_
-#define LYLI_CALIBRATION_LINEGRID_H_
+#ifndef LYLI_CALIBRATION_POINTGRID_H_
+#define LYLI_CALIBRATION_POINTGRID_H_
 
 #include "line.h"
 
@@ -30,9 +29,8 @@
 namespace Lyli {
 namespace Calibration {
 
-
 /**
- * A grid of lines constructed from the detected lens centroids.
+ * A grid of points representing the detected lens centroids joined to lines.
  *
  * The line grid has three step construction. First an empty grid is
  * constructed. The grid is then iteratively populated using points
@@ -40,7 +38,7 @@ namespace Calibration {
  * by calling the finalize() function
  *
  */
-class LineGrid {
+class PointGrid {
 public:
 	/// The limiting coordinate until which new lines may be constructed
 	constexpr static int CONSTRUCT_LIM = 20;
@@ -50,19 +48,19 @@ public:
 	/**
 	 * Default constructor.
 	 */
-	LineGrid();
+	PointGrid();
 	/**
 	 * Copy constructor.
 	 */
-	LineGrid(const LineGrid &other);
+	PointGrid(const PointGrid &other);
 	/**
 	 * A destructor
 	 */
-	~LineGrid();
+	~PointGrid();
 	/**
 	 * Assignment operator.
 	 */
-	LineGrid &operator=(const LineGrid &other);
+	PointGrid &operator=(const PointGrid &other);
 
 	/**
 	 * Add a point to the grid.

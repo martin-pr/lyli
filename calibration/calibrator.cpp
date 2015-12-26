@@ -19,7 +19,7 @@
 #include "fftpreprocessor.h"
 #include "lensdetector.h"
 //#include "lensfilter.h"
-#include "linegrid.h"
+#include "pointgrid.h"
 
 #include <algorithm>
 #include <cassert>
@@ -64,81 +64,17 @@ LensFilterInterface::~LensFilterInterface() {
 
 }
 
-class CalibrationData::Impl {
-public:
-	Impl(const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, const cv::Mat& translation, const cv::Mat& rotation) {
-		cameraMatrix.copyTo(m_cameraMatrix);
-		distCoeffs.copyTo(m_distCoeffs);
-		translation.copyTo(m_translation);
-		rotation.copyTo(m_rotation);
-	}
-
-	cv::Mat m_cameraMatrix;
-	cv::Mat m_distCoeffs;
-	cv::Mat m_translation;
-	cv::Mat m_rotation;
-};
-
-CalibrationData::CalibrationData() {
-
-}
-
-CalibrationData::CalibrationData(const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, const cv::Mat& translation, const cv::Mat& rotation) :
-	pimpl(new Impl(cameraMatrix, distCoeffs, translation, rotation)) {
-
-}
-
-CalibrationData::~CalibrationData() {
-
-}
-
-CalibrationData::CalibrationData(const CalibrationData &other) :
-	pimpl(new Impl(other.pimpl->m_cameraMatrix, other.pimpl->m_distCoeffs, other.pimpl->m_translation, other.pimpl->m_rotation)) {
-
-}
-
-CalibrationData& CalibrationData::operator=(const CalibrationData &other) {
-	if(this != &other) {
-		CalibrationData tmp(other.pimpl->m_cameraMatrix, other.pimpl->m_distCoeffs, other.pimpl->m_translation, other.pimpl->m_rotation);
-		std::swap(pimpl, tmp.pimpl);
-	}
-
-	return *this;
-}
-
-CalibrationData::CalibrationData(CalibrationData &&other) noexcept : pimpl(std::move(other.pimpl)) {
-
-}
-
-CalibrationData& CalibrationData::operator=(CalibrationData &&other) noexcept {
-	if (this != &other) {
-		pimpl = std::move(other.pimpl);
-	}
-
-	return *this;
-}
-
-cv::Mat& CalibrationData::getCameraMatrix() const {
-	return pimpl->m_cameraMatrix;
-}
-
-cv::Mat& CalibrationData::getDistCoeffs() const {
-	return pimpl->m_distCoeffs;
-}
-
-cv::Mat& CalibrationData::getTranslation() const {
-	return pimpl->m_translation;
-}
-
-cv::Mat& CalibrationData::getRotation() const {
-	return pimpl->m_rotation;
-}
-
 class Calibrator::Impl {
 public:
-	cv::Mat image;
-	cv::Mat calibrationImage;
-	CalibrationData m_calibrationData;
+	class ZoomStepCompare {
+	public:
+		bool operator()(const Lyli::Image::Metadata::Devices::Lens& a, const Lyli::Image::Metadata::Devices::Lens& b) const {
+			return a.getZoomstep() < b.getZoomstep();
+		}
+	};
+
+	using LineGridMap = std::map<Lyli::Image::Metadata::Devices::Lens, PointGrid, ZoomStepCompare>;
+	LineGridMap linegridmap;
 
 	/**
 	 * Create target line grid.
@@ -146,13 +82,13 @@ public:
 	 * The target line grid is an "optimal" line grid. The calibration
 	 * tries to find mapping from the image line grid to the target line grid.
 	 */
-	LineGrid createTarget(const LineGrid &grid);
+	PointGrid createTarget(const PointGrid &grid);
 };
 
-LineGrid Calibrator::Impl::createTarget(const LineGrid &grid) {
+PointGrid Calibrator::Impl::createTarget(const PointGrid &grid) {
 	// createTarget makes use of the fact that the points are shared
 	// between both vertical and horintal lines
-	LineGrid result(grid);
+	PointGrid result(grid);
 
 	// set the x value in each horizontal line to the average x
 	for (auto &line : result.getHorizontalLines()) {
@@ -215,12 +151,30 @@ Calibrator::~Calibrator() {
 
 }
 
-void Calibrator::addImage(const cv::Mat& image) {
-	pimpl->image = image;
+void Calibrator::processImage(const Lyli::Image::RawImage &image, const Lyli::Image::Metadata &metadata) {
+	cv::Mat dst, greyMat;
+
+	// convert to gray
+	cv::cvtColor(image.getData(), greyMat, CV_RGB2GRAY);
+	greyMat.convertTo(greyMat, CV_8U, 1.0/256.0);
+
+	// preprocess the image - create a mask for the microlens array
+	FFTPreprocessor preprocessor;
+	preprocessor.preprocess(greyMat, dst);
+
+	// construct line grid
+	LensDetector lensDetector;
+	PointGrid pointGrid = lensDetector.detect(greyMat, dst);
+
+	// store the line grid with the metadata
+	pimpl->linegridmap.emplace(metadata.getDevices().getLens(), pointGrid);
 }
 
-void Calibrator::calibrate() {
-	cv::Mat dst, greyMat, tmp;
+CalibrationData Calibrator::calibrate() {
+	// first create a destination line grid that is computed as an average of all line grids
+
+	return CalibrationData();
+	/*cv::Mat dst, greyMat, tmp;
 
 	// convert to gray
 	cv::cvtColor(pimpl->image, greyMat, CV_RGB2GRAY);
@@ -231,8 +185,8 @@ void Calibrator::calibrate() {
 	preprocessor.preprocess(greyMat, dst);
 
 	LensDetector lensDetector;
-	LineGrid lineGrid = lensDetector.detect(greyMat, dst);
-	LineGrid targetGrid = pimpl->createTarget(lineGrid);
+	LineGrid pointGrid = lensDetector.detect(greyMat, dst);
+	LineGrid targetGrid = pimpl->createTarget(pointGrid);
 
 	//LensFilter lensFilter;
 	//lineMap = lensFilter.filter(lineMap);
@@ -240,7 +194,7 @@ void Calibrator::calibrate() {
 	// use the opencv lens calibration
 	// create object points (source, in 3D)
 	std::vector<std::vector<cv::Point3f> > objectPoints(1);
-	for (const auto &line : lineGrid.getHorizontalLines()) {
+	for (const auto &line : pointGrid.getHorizontalLines()) {
 		for (const auto &point : line) {
 			objectPoints[0].push_back(cv::Point3f(point->x, point->y, 0.0));
 		}
@@ -281,7 +235,7 @@ void Calibrator::calibrate() {
 
 	// DEBUG: draw lines
 	dst = cv::Scalar(256, 256, 256);
-	const PtrLineList &linesHorizontal = lineGrid.getHorizontalLines();
+	const PtrLineList &linesHorizontal = pointGrid.getHorizontalLines();
 	bool alternator = false;
 	for (const auto &line : linesHorizontal) {
 		cv::Scalar color = alternator ? cv::Scalar(0, 0, 0) : cv::Scalar(128, 128, 128);
@@ -290,13 +244,13 @@ void Calibrator::calibrate() {
 		}
 		alternator = !alternator;
 	}
-	const PtrLineList &linesVerticalEven = lineGrid.getVerticalLinesEven();
+	const PtrLineList &linesVerticalEven = pointGrid.getVerticalLinesEven();
 	for (const auto &line : linesVerticalEven) {
 		for (std::size_t i = 3; i < line.size(); i+=2) {
 			cv::line(dst, *(line.at(i-2)), *(line.at(i)), cv::Scalar(128, 128, 128));
 		}
 	}
-	const PtrLineList &linesVerticalOdd = lineGrid.getVerticalLinesOdd();
+	const PtrLineList &linesVerticalOdd = pointGrid.getVerticalLinesOdd();
 	for (const auto &line : linesVerticalOdd) {
 		for (std::size_t i = 2; i < line.size(); i+=2) {
 			cv::line(dst, *(line.at(i-2)), *(line.at(i)), cv::Scalar(0, 0, 0));
@@ -311,15 +265,7 @@ void Calibrator::calibrate() {
 	// DEBUG: convert to the format expected for viewing
 	dst = dst.t();
 	dst.convertTo(tmp, CV_16U, 255);
-	cv::cvtColor(tmp, pimpl->calibrationImage, CV_GRAY2RGB);
-}
-
-cv::Mat &Calibrator::getcalibrationImage() const {
-	return pimpl->calibrationImage;
-}
-
-CalibrationData& Calibrator::getCalibrationData() const {
-	return pimpl->m_calibrationData;
+	cv::cvtColor(tmp, pimpl->calibrationImage, CV_GRAY2RGB);*/
 }
 
 }

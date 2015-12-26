@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "linegrid.h"
+#include "pointgrid.h"
 
 #include <algorithm>
 #include <cmath>
@@ -28,11 +28,11 @@
 namespace Lyli {
 namespace Calibration {
 
-LineGrid::LineGrid() {
+PointGrid::PointGrid() {
 
 }
 
-LineGrid::LineGrid(const LineGrid &other) {
+PointGrid::PointGrid(const PointGrid &other) {
 	using PointCopyMap = std::unordered_map<cv::Point2f*, cv::Point2f*>;
 
 	// maps old points to new points
@@ -65,12 +65,12 @@ LineGrid::LineGrid(const LineGrid &other) {
 	}
 }
 
-LineGrid::~LineGrid() {
+PointGrid::~PointGrid() {
 
 }
 
-LineGrid &LineGrid::operator=(const LineGrid &other) {
-	LineGrid tmp(other);
+PointGrid &PointGrid::operator=(const PointGrid &other) {
+	PointGrid tmp(other);
 	std::swap(storage, tmp.storage);
 	std::swap(linesHorizontal, tmp.linesHorizontal);
 	std::swap(linesVerticalOdd, tmp.linesVerticalOdd);
@@ -78,7 +78,7 @@ LineGrid &LineGrid::operator=(const LineGrid &other) {
 	return *this;
 }
 
-void LineGrid::addPoint(const cv::Point2f& point) {
+void PointGrid::addPoint(const cv::Point2f& point) {
 	// add point to the point storage
 	cv::Point2f *stored = storageAdd(point);
 	// preserve the order
@@ -97,7 +97,7 @@ void LineGrid::addPoint(const cv::Point2f& point) {
 	}
 }*/
 
-void LineGrid::finalize() {
+void PointGrid::finalize() {
 	// temporary line map for horizontal lines
 	TmpLineMap tmpLineMap;
 
@@ -242,37 +242,37 @@ void LineGrid::finalize() {
 	}
 }
 
-PtrLineList& LineGrid::getHorizontalLines() {
+PtrLineList& PointGrid::getHorizontalLines() {
 	return linesHorizontal;
 }
 
-const PtrLineList& LineGrid::getHorizontalLines() const {
+const PtrLineList& PointGrid::getHorizontalLines() const {
 	return linesHorizontal;
 }
 
-PtrLineList& LineGrid::getVerticalLinesOdd() {
+PtrLineList& PointGrid::getVerticalLinesOdd() {
 	return linesVerticalOdd;
 }
 
-const PtrLineList& LineGrid::getVerticalLinesOdd() const {
+const PtrLineList& PointGrid::getVerticalLinesOdd() const {
 	return linesVerticalOdd;
 }
 
-PtrLineList& LineGrid::getVerticalLinesEven() {
+PtrLineList& PointGrid::getVerticalLinesEven() {
 	return linesVerticalEven;
 }
 
-const PtrLineList& LineGrid::getVerticalLinesEven() const {
+const PtrLineList& PointGrid::getVerticalLinesEven() const {
 	return linesVerticalEven;
 }
 
-cv::Point2f * LineGrid::storageAdd(const cv::Point2f& point) {
+cv::Point2f * PointGrid::storageAdd(const cv::Point2f& point) {
 	cv::Point2f *newPoint = new cv::Point2f(point);
 	storage.insert(std::make_pair(newPoint, std::unique_ptr<cv::Point2f>(newPoint)));
 	return newPoint;
 }
 
-void LineGrid::mapAddConstruct(TmpLineMap &lineMap, float position, cv::Point2f *point) {
+void PointGrid::mapAddConstruct(TmpLineMap &lineMap, float position, cv::Point2f *point) {
 	// initial fill - always create a new line
 	if (lineMap.empty()) {
 		auto res = lineMap.emplace(position, PtrLine());
@@ -306,7 +306,7 @@ void LineGrid::mapAddConstruct(TmpLineMap &lineMap, float position, cv::Point2f 
 	return lineIt->second.push_back(point);
 }
 
-void LineGrid::mapAdd(TmpLineMap &lineMap, float position, cv::Point2f *point) {
+void PointGrid::mapAdd(TmpLineMap &lineMap, float position, cv::Point2f *point) {
 	// find
 	auto ub = lineMap.lower_bound(position);
 	auto lb = ub != lineMap.begin() ? std::prev(ub) : lineMap.end();
@@ -327,13 +327,13 @@ void LineGrid::mapAdd(TmpLineMap &lineMap, float position, cv::Point2f *point) {
 	}
 }
 
-void LineGrid::tmpLineMap2LineList(const TmpLineMap &map, PtrLineList &list) {
+void PointGrid::tmpLineMap2LineList(const TmpLineMap &map, PtrLineList &list) {
 	for (auto entry : map) {
 		list.push_back(entry.second);
 	}
 }
 
-void LineGrid::verticalLineConstructor(int start, int end,
+void PointGrid::verticalLineConstructor(int start, int end,
                                        std::function<void(cv::Point2f *)> inserterOdd,
                                        std::function<void(cv::Point2f *)> inserterEven) {
 	int step = (end > start) ? 1 : -1;

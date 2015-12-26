@@ -94,7 +94,7 @@ m_data(height, width, CV_16UC3)
 	demosaic();
 }
 
-cv::Mat &RawImage::getData()
+const cv::Mat &RawImage::getData() const
 {
 	return m_data;
 }

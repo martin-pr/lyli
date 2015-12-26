@@ -193,12 +193,12 @@ void calibrate(const std::string &path) {
 
 		Lyli::Calibration::Calibrator calibrator;
 		Lyli::Image::RawImage rawimg(fin, 3280, 3280);
-		calibrator.addImage(rawimg.getData());
-		calibrator.calibrate();
+		/*calibrator.addImage(rawimg.getData());
+		calibrator.calibrate();*/
 
-		ss << filebase << ".PNG";
+		ss << filebase << "-color.png";
 		std::cout << "writing calibration grid: " << ss.str() << std::endl;
-		cv::imwrite(ss.str(), calibrator.getcalibrationImage());
+		cv::imwrite(ss.str(), rawimg.getData());
 		ss.str("");
 		ss.clear();
 	}

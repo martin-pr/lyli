@@ -33,7 +33,7 @@ using Line = std::vector<cv::Point2d>;
  * A line of pointers to lens centroids.
  *
  * PtrLine is used when there are multiple lines that refer to the same lens,
- * such as in LineGrid.
+ * such as in PointGrid.
  */
 using PtrLine = std::vector<cv::Point2f*>;
 /**

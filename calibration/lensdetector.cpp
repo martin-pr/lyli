@@ -17,7 +17,7 @@
 
 #include "lensdetector.h"
 
-#include "linegrid.h"
+#include "pointgrid.h"
 
 #include <algorithm>
 #include <cmath>
@@ -236,14 +236,14 @@ cv::Point2f refineCentroid(const cv::Mat &image, cv::Point2f start) {
 namespace Lyli {
 namespace Calibration {
 
-LineGrid LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
+PointGrid LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
 	// transpose the greyMat image, as its easier to scan row by row rather than by column
 	// while row scanning on original is not problem for finding centroids, line detection
 	// needs to sweep orthogonaly to lines
 	cv::Mat greyMatTranspose(gray.t());
 	cv::Mat maskTranspose(mask.t());
 
-	LineGrid lineGrid;
+	PointGrid pointGrid;
 	// find centroids and create map of lines
 	for (int row = 0; row < maskTranspose.rows; ++row) {
 		std::uint8_t* pixel = maskTranspose.ptr<std::uint8_t>(row);
@@ -253,7 +253,7 @@ LineGrid LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
 				cv::Point2f centroid = findCentroid(greyMatTranspose, maskTranspose, cv::Point2i(col, row));
 				centroid = refineCentroid(greyMatTranspose, centroid);
 				// construct line map
-				lineGrid.addPoint(centroid);
+				pointGrid.addPoint(centroid);
 
 				// DEBUG: store centroid in image
 				maskTranspose.at<uchar>(centroid) = 192;
@@ -261,8 +261,8 @@ LineGrid LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
 		}
 	}
 
-	lineGrid.finalize();
-	return lineGrid;
+	pointGrid.finalize();
+	return pointGrid;
 }
 
 }

@@ -25,7 +25,7 @@ namespace Calibration {
 
 class LensFilter : public LensFilterInterface {
 public:
-	virtual LineGrid filter(const LineGrid &lines) override;
+	virtual PointGrid filter(const PointGrid &lines) override;
 };
 
 }

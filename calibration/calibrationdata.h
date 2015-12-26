@@ -14,40 +14,40 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef LYLI_CALIBRATION_CALIBRATIONDATA_H_
+#define LYLI_CALIBRATION_CALIBRATIONDATA_H_
 
-#ifndef LYLI_IMAGE_RAWIMAGE_H_
-#define LYLI_IMAGE_RAWIMAGE_H_
+#include <memory>
 
-#include <opencv2/core/core.hpp>
-
-#include <cstddef>
-#include <cstdint>
-#include <iostream>
+namespace cv {
+	class Mat;
+}
 
 namespace Lyli {
-namespace Image {
+namespace Calibration {
 
-/** A class providing a simple interface for accessing the Lytro RAW images.
- * 
+/**
+ * Holds all calibration data.
  */
-class RawImage {
+class CalibrationData {
 public:
-	/** Construct the image.
-	 * 
-	 * \param is input stream to the opened .RAW file
-	 */
-	RawImage(std::istream &is, std::size_t width, std::size_t height);
-	
-	/** Get processed image data
-	 * 
-	 * \return pointer to a buffer containing width*height RGB uint16_t pixels
-	 */
-	const cv::Mat &getData() const;
-	
-private:
-	cv::Mat m_data;
+	CalibrationData();
+	CalibrationData(const cv::Mat &cameraMatrix, const cv::Mat &distCoeffs, const cv::Mat &translation, const cv::Mat &rotation);
+	~CalibrationData();
 
-	void demosaic();
+	CalibrationData(const CalibrationData &other);
+	CalibrationData& operator=(const CalibrationData &other);
+	CalibrationData(CalibrationData &&other) noexcept;
+	CalibrationData& operator=(CalibrationData &&other) noexcept;
+
+	cv::Mat& getCameraMatrix() const;
+	cv::Mat& getDistCoeffs() const;
+	cv::Mat& getTranslation() const;
+	cv::Mat& getRotation() const;
+
+private:
+	class Impl;
+	std::unique_ptr<Impl> pimpl;
 };
 
 }
