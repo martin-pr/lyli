@@ -85,7 +85,7 @@ public:
 	PointGrid createTarget(const PointGrid &grid);
 };
 
-PointGrid Calibrator::Impl::createTarget(const PointGrid &grid) {
+/*PointGrid Calibrator::Impl::createTarget(const PointGrid &grid) {
 	// createTarget makes use of the fact that the points are shared
 	// between both vertical and horintal lines
 	PointGrid result(grid);
@@ -141,7 +141,7 @@ PointGrid Calibrator::Impl::createTarget(const PointGrid &grid) {
 	}
 
 	return result;
-}
+}*/
 
 Calibrator::Calibrator() : pimpl(new Impl) {
 

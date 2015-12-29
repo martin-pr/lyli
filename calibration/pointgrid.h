@@ -17,8 +17,6 @@
 #ifndef LYLI_CALIBRATION_POINTGRID_H_
 #define LYLI_CALIBRATION_POINTGRID_H_
 
-#include "line.h"
-
 #include <functional>
 #include <map>
 #include <memory>
@@ -44,6 +42,42 @@ public:
 	constexpr static int CONSTRUCT_LIM = 20;
 	/// max difference in pixels for constructing new lines
 	constexpr static float MAX_DIFF = 3.0;
+
+	class Point;
+	/// Line consisting of pointers to the the points, that are stored separately
+	using Line = std::vector<Point*>;
+	/// List of lines
+	using LineList = std::vector<Line>;
+
+	/**
+	 * Point in PointGrid.
+	 *
+	 * The point has links to the lines containing the point (ie. lines whose intersection
+	 * is the point).
+	 *
+	 * TODO: make the point movable as soon as OpenCV gets movable Point2f
+	 */
+	class Point {
+	public:
+		friend class PointGrid;
+
+		~Point();
+		Point(const Point &point);
+		Point& operator=(const Point &point);
+
+		const cv::Point2f& getPosition() const;
+		const Line* getHorizontalLine() const;
+		const Line* getVerticalLine() const;
+
+	protected:
+		/// The point is constructible only by PointGrid
+		Point(const cv::Point2f &pos);
+
+	private:
+		cv::Point2f position;
+		Line* horizontalLine;
+		Line* verticalLine;
+	};
 
 	/**
 	 * Default constructor.
@@ -89,23 +123,20 @@ public:
 	/**
 	 * Get the horizontal lines
 	 */
-	PtrLineList& getHorizontalLines();
-	const PtrLineList& getHorizontalLines() const;
+	const LineList& getHorizontalLines() const;
 	/**
 	 * Get vertical lines for odd horizontal lines.
 	 */
-	PtrLineList& getVerticalLinesOdd();
-	const PtrLineList& getVerticalLinesOdd() const;
+	const LineList& getVerticalLinesOdd() const;
 	/**
 	 * Get vertical lines for even horizontal lines.
 	 */
-	PtrLineList& getVerticalLinesEven();
-	const PtrLineList& getVerticalLinesEven() const;
+	const LineList& getVerticalLinesEven() const;
 
 private:
-	using PointStore = std::unordered_map<cv::Point2f*, std::unique_ptr<cv::Point2f>>;
-	using TmpLineMap = std::map<float, PtrLine>;
-	using PointAccumulator = std::vector<cv::Point2f*>;
+	using PointStore = std::unordered_map<Point*, std::unique_ptr<Point>>;
+	using TmpLineMap = std::map<float, Line>;
+	using PointAccumulator = std::vector<Point*>;
 
 	/**
 	 * The accumulator is used to preserve the order of points as they are added
@@ -122,18 +153,18 @@ private:
 	 */
 	PointStore storage;
 	/// Map of horizontal lines
-	PtrLineList linesHorizontal;
+	LineList linesHorizontal;
 	/// Map of odd vertical lines
-	PtrLineList linesVerticalOdd;
+	LineList linesVerticalOdd;
 	/// Map of even vertical lines
-	PtrLineList linesVerticalEven;
+	LineList linesVerticalEven;
 
 	/**
 	 * Add point to the storage.
 	 *
 	 * \return pointer to a point in storage
 	 */
-	cv::Point2f* storageAdd(const cv::Point2f &point);
+	Point* storageAdd(const cv::Point2f &point);
 	/**
 	 * Add pointer to the selected line map and construct a new line
 	 * if necessary.
@@ -142,7 +173,7 @@ private:
 	 * \param position position that serves as a key
 	 * \param point to add
 	 */
-	void mapAddConstruct(TmpLineMap &lineMap, float position, cv::Point2f *point);
+	void mapAddConstruct(TmpLineMap &lineMap, float position, Point *point);
 	/**
 	 * Add pointer to the selected line map if there is a suitable line
 	 *
@@ -150,13 +181,13 @@ private:
 	 * \param position position that serves as a key
 	 * \param point to add
 	 */
-	void mapAdd(TmpLineMap &lineMap, float position, cv::Point2f *point);
+	void mapAdd(TmpLineMap &lineMap, float position, Point *point);
 	/**
 	 * Create a list from temporary line map.
 	 * \param map source map
 	 * \param list output list
 	 */
-	void tmpLineMap2LineList(const TmpLineMap &map, PtrLineList &list);
+	void tmpLineMap2LineList(const TmpLineMap &map, LineList &list);
 	/**
 	 * Helper function to insert points to horizontal lines.
 	 *
@@ -166,7 +197,7 @@ private:
 	 * \param inserter function that processes a point and adds it a corresponding line
 	 */
 	void horizontalLineInserter(int start, int end,
-	                             std::function<void(cv::Point2f *)> inserter);
+	                             std::function<void(Point *)> inserter);
 	/**
 	 * Helper function to construct vertical lines
 	 *
@@ -177,8 +208,8 @@ private:
 	 * \param inserterEven as above, used for even lines
 	 */
 	void verticalLineConstructor(int start, int end,
-	                             std::function<void(cv::Point2f *)> inserterOdd,
-	                             std::function<void(cv::Point2f *)> inserterEven);
+	                             std::function<void(Point *)> inserterOdd,
+	                             std::function<void(Point *)> inserterEven);
 };
 
 }
