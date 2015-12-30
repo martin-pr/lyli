@@ -92,5 +92,14 @@ const LineGrid::LineList& LineGrid::getVerticalLines() const {
 	return verticalLines;
 }
 
+
+const SubGrid& LineGrid::getSubgridA() const {
+	return subgridA;
+}
+
+const SubGrid& LineGrid::getSubgridB() const {
+	return subgridB;
+}
+
 }
 }

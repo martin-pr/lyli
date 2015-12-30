@@ -68,6 +68,15 @@ public:
 	 */
 	const LineList& getVerticalLines() const;
 
+	/**
+	 * Get the first subgrid
+	 */
+	const SubGrid& getSubgridA() const;
+	/**
+	 * Get the second subgrid
+	 */
+	const SubGrid& getSubgridB() const;
+
 private:
 	LineList horizonalLines;
 	LineList verticalLines;
