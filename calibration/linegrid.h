@@ -20,6 +20,8 @@
 #include <utility>
 #include <vector>
 
+#include <calibration/subgrid.h>
+
 namespace Lyli {
 namespace Calibration {
 
@@ -62,18 +64,15 @@ public:
 	 */
 	const LineList& getHorizontalLines() const;
 	/**
-	 * Get vertical lines for odd horizontal lines.
+	 * Get the vertical lines.
 	 */
-	const LineList& getVerticalLinesOdd() const;
-	/**
-	 * Get vertical lines for even horizontal lines.
-	 */
-	const LineList& getVerticalLinesEven() const;
+	const LineList& getVerticalLines() const;
 
 private:
 	LineList horizonalLines;
-	LineList verticalOddLines;
-	LineList verticalEvenLines;
+	LineList verticalLines;
+	SubGrid subgridA;
+	SubGrid subgridB;
 };
 
 }

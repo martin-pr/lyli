@@ -24,6 +24,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <calibration/subgrid.h>
+
 namespace Lyli {
 namespace Calibration {
 
@@ -66,8 +68,8 @@ public:
 		Point& operator=(const Point &point);
 
 		const cv::Point2f& getPosition() const;
-		const Line* getHorizontalLine() const;
-		const Line* getVerticalLine() const;
+		std::size_t getHorizontalLineIndex() const;
+		std::size_t getVerticalLineIndex() const;
 
 	protected:
 		/// The point is constructible only by PointGrid
@@ -75,8 +77,8 @@ public:
 
 	private:
 		cv::Point2f position;
-		Line* horizontalLine;
-		Line* verticalLine;
+		std::size_t horizontalLine;
+		std::size_t verticalLine;
 	};
 
 	/**
@@ -125,13 +127,18 @@ public:
 	 */
 	const LineList& getHorizontalLines() const;
 	/**
-	 * Get vertical lines for odd horizontal lines.
+	 * Get vertical lines.
 	 */
-	const LineList& getVerticalLinesOdd() const;
+	const LineList& getVerticalLines() const;
+
 	/**
-	 * Get vertical lines for even horizontal lines.
+	 * Get the first subgrid
 	 */
-	const LineList& getVerticalLinesEven() const;
+	const SubGrid& getSubgridA() const;
+	/**
+	 * Get the second subgrid
+	 */
+	const SubGrid& getSubgridB() const;
 
 private:
 	using PointStore = std::unordered_map<Point*, std::unique_ptr<Point>>;
@@ -154,10 +161,11 @@ private:
 	PointStore storage;
 	/// Map of horizontal lines
 	LineList linesHorizontal;
-	/// Map of odd vertical lines
-	LineList linesVerticalOdd;
-	/// Map of even vertical lines
-	LineList linesVerticalEven;
+	/// Map of vertical lines
+	LineList linesVertical;
+
+	SubGrid subgridA;
+	SubGrid subgridB;
 
 	/**
 	 * Add point to the storage.
@@ -182,12 +190,6 @@ private:
 	 * \param point to add
 	 */
 	void mapAdd(TmpLineMap &lineMap, float position, Point *point);
-	/**
-	 * Create a list from temporary line map.
-	 * \param map source map
-	 * \param list output list
-	 */
-	void tmpLineMap2LineList(const TmpLineMap &map, LineList &list);
 	/**
 	 * Helper function to insert points to horizontal lines.
 	 *

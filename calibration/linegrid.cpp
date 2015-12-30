@@ -27,8 +27,7 @@ LineGrid::LineGrid(const PointGrid &pointGrid) {
 
 	// reserve space for more efficient operation
 	lineGrid.horizonalLines.reserve(pointGrid.getHorizontalLines().size());
-	lineGrid.verticalOddLines.reserve(pointGrid.getVerticalLinesOdd().size());
-	lineGrid.verticalEvenLines.reserve(pointGrid.getVerticalLinesEven().size());
+	lineGrid.verticalLines.reserve(pointGrid.getVerticalLines().size());
 
 	// set the x value of each horizontal line in LineGrid to the average x of the points in PointGrid
 	for (std::size_t i = 0; i < pointGrid.getHorizontalLines().size(); ++i) {
@@ -44,8 +43,8 @@ LineGrid::LineGrid(const PointGrid &pointGrid) {
 		lineGrid.horizonalLines.push_back(sum / count);
 	}
 	// set the y value in each vertical line for odd rows to the average
-	for (std::size_t i = 0; i < pointGrid.getVerticalLinesOdd().size(); ++i) {
-		const auto &line(pointGrid.getVerticalLinesOdd()[i]);
+	for (std::size_t i = 0; i < pointGrid.getVerticalLines().size(); ++i) {
+		const auto &line(pointGrid.getVerticalLines()[i]);
 		// first compute average
 		double sum = 0.0;
 		double count = 0.0;
@@ -56,23 +55,12 @@ LineGrid::LineGrid(const PointGrid &pointGrid) {
 			count += 1.0;
 		}
 		// add a new line as the average of all points in PointGrid line
-		lineGrid.verticalOddLines.push_back(sum / count);
+		lineGrid.verticalLines.push_back(sum / count);
 	}
-	// set the y value in each vertical line for even rows to the average
-	for (std::size_t i = 0; i < pointGrid.getVerticalLinesEven().size(); ++i) {
-		const auto &line(pointGrid.getVerticalLinesEven()[i]);
-		// first compute average
-		double sum = 0.0;
-		double count = 0.0;
-		std::size_t start = line.size() / 3;
-		start = (start & 1) != 0 ? start : start - 1;
-		for (std::size_t i = start; i < 2 * line.size() / 3; i += 2) {
-			sum += line[i]->getPosition().y;
-			count += 1.0;
-		}
-		// add a new line as the average of all points in PointGrid line
-		lineGrid.verticalEvenLines.push_back(sum / count);
-	}
+
+	// copy the subgrids (because the indices are unchanges, the subgrids are the same)
+	subgridA = pointGrid.getSubgridA();
+	subgridB = pointGrid.getSubgridB();
 }
 
 LineGrid::LineGrid() {
@@ -83,8 +71,7 @@ LineGrid::~LineGrid() {
 
 }
 
-LineGrid::LineGrid(const LineGrid &other) :
-	horizonalLines(other.horizonalLines), verticalOddLines(other.verticalOddLines), verticalEvenLines(other.verticalEvenLines) {
+LineGrid::LineGrid(const LineGrid &other) : horizonalLines(other.horizonalLines), verticalLines(other.verticalLines) {
 
 }
 
@@ -92,8 +79,7 @@ LineGrid &LineGrid::operator=(const LineGrid &other) {
 	if(this != &other) {
 		LineGrid tmp(other);
 		std::swap(horizonalLines, tmp.horizonalLines);
-		std::swap(verticalOddLines, tmp.verticalOddLines);
-		std::swap(verticalEvenLines, tmp.verticalEvenLines);
+		std::swap(verticalLines, tmp.verticalLines);
 	}
 	return *this;
 }
@@ -102,12 +88,8 @@ const LineGrid::LineList& LineGrid::getHorizontalLines() const {
 	return horizonalLines;
 }
 
-const LineGrid::LineList& LineGrid::getVerticalLinesOdd() const {
-	return verticalOddLines;
-}
-
-const LineGrid::LineList& LineGrid::getVerticalLinesEven() const {
-	return verticalEvenLines;
+const LineGrid::LineList& LineGrid::getVerticalLines() const {
+	return verticalLines;
 }
 
 }

@@ -32,7 +32,7 @@ namespace Calibration {
  * Point *
  *********/
 
-PointGrid::Point::Point(const cv::Point2f &pos) : position(pos), horizontalLine(nullptr), verticalLine(nullptr) {
+PointGrid::Point::Point(const cv::Point2f &pos) : position(pos), horizontalLine(0), verticalLine(0) {
 
 }
 
@@ -56,11 +56,11 @@ const cv::Point2f& PointGrid::Point::getPosition() const {
 	return position;
 }
 
-const PointGrid::Line* PointGrid::Point::getHorizontalLine() const {
+std::size_t PointGrid::Point::getHorizontalLineIndex() const {
 	return horizontalLine;
 }
 
-const PointGrid::Line* PointGrid::Point::getVerticalLine() const {
+std::size_t PointGrid::Point::getVerticalLineIndex() const {
 	return verticalLine;
 }
 
@@ -79,36 +79,27 @@ PointGrid::PointGrid(const PointGrid &other) {
 	PointCopyMap pointMap;
 	for (const auto &entry : other.storage) {
 		auto *point = new Point(* entry.second.get());
-		storage.insert(std::make_pair(point, std::unique_ptr<Point>(point)));
+		storage.insert(std::make_pair(point, std::unique_ptr<Point>(point))); // create copy of the point
 		pointMap.insert(std::make_pair(entry.first, point));
 	}
 	for (const auto &line : other.linesHorizontal) {
 		linesHorizontal.emplace_back();
 		auto &newLine(linesHorizontal.back());
 		for (const auto &point : line) {
-			Point* newPoint(pointMap[point]);
-			newPoint->horizontalLine = &newLine;
-			newLine.push_back(newPoint);
+			newLine.push_back(pointMap[point]);
 		}
 	}
-	for (const auto &line : other.linesVerticalOdd) {
-		linesVerticalOdd.emplace_back();
+	for (const auto &line : other.linesVertical) {
+		linesVertical.emplace_back();
 		auto &newLine(linesHorizontal.back());
 		for (const auto &point : line) {
-			Point* newPoint(pointMap[point]);
-			newPoint->verticalLine = &newLine;
-			newLine.push_back(newPoint);
+			newLine.push_back(pointMap[point]);
 		}
 	}
-	for (const auto &line : other.linesVerticalEven) {
-		linesHorizontal.emplace_back();
-		auto &newLine(linesHorizontal.back());
-		for (const auto &point : line) {
-			Point* newPoint(pointMap[point]);
-			newPoint->verticalLine = &newLine;
-			newLine.push_back(newPoint);
-		}
-	}
+
+	// copy the subgrids
+	subgridA = other.subgridA;
+	subgridB = other.subgridB;
 }
 
 PointGrid::~PointGrid() {
@@ -119,8 +110,7 @@ PointGrid &PointGrid::operator=(const PointGrid &other) {
 	PointGrid tmp(other);
 	std::swap(storage, tmp.storage);
 	std::swap(linesHorizontal, tmp.linesHorizontal);
-	std::swap(linesVerticalOdd, tmp.linesVerticalOdd);
-	std::swap(linesVerticalEven, tmp.linesVerticalEven);
+	std::swap(linesVertical, tmp.linesVertical);
 	return *this;
 }
 
@@ -174,17 +164,16 @@ void PointGrid::finalize() {
 		          [](const Point *a, const Point *b){return a->getPosition().y < b->getPosition().y;});
 	}
 
+	// create a final line map that is used for public interfaces
+	linesHorizontal.reserve(tmpLineMap.size());
+	for (auto entry : tmpLineMap) {
+		linesHorizontal.push_back(entry.second);
+	}
+	tmpLineMap.clear();
+
 	/****************************
 	 * construct vertical lines *
 	 ***************************/
-
-	// create a final line map that is used for public interfaces
-	tmpLineMap2LineList(tmpLineMap, linesHorizontal);
-	tmpLineMap.clear();
-
-	// the points in horizontal lines are sorted implicitly due to the nature
-	// of the sweep algorithm
-
 	// execute a sweep algorithm to detect vertical lines similar to the one when adding points
 	// because the points are already ordered in horizontal lines, we will make use of it
 
@@ -231,9 +220,28 @@ void PointGrid::finalize() {
 		          [](const Point *a, const Point *b){return a->getPosition().x < b->getPosition().x;});
 	}
 
-	// create final line maps that is used for public interfaces
-	tmpLineMap2LineList(tmpLineMapOdd, linesVerticalOdd);
-	tmpLineMap2LineList(tmpLineMapEven, linesVerticalEven);
+	// create final line maps that are used for public interfaces and update subgrids
+	for(auto itOdd = tmpLineMapOdd.begin(), itEven = tmpLineMapEven.begin(); itOdd != tmpLineMapOdd.end() || itEven != tmpLineMapEven.end();) {
+		// store the points in increasing y-order to the line list
+		// also store the indices for each subgrid
+		if (itOdd->first < itEven->first) {
+			linesVertical.push_back(itOdd->second);
+			subgridA.addVerticalIndex(linesVertical.size() - 1);
+		}
+		else {
+			linesVertical.push_back(itEven->second);
+			subgridB.addVerticalIndex(linesVertical.size() - 1);
+		}
+	}
+	// finish up the subgrids by filling in the horizontal lines
+	for (std::size_t i = 0; i < linesHorizontal.size(); ++i) {
+		if (i & 1) {
+			subgridA.addHorizontalIndex(i);
+		}
+		else {
+			subgridB.addHorizontalIndex(i);
+		}
+	}
 
 	// set of all points in horizontal lines
 	std::unordered_set<Point*> testPoints;
@@ -254,12 +262,7 @@ void PointGrid::finalize() {
 	}
 	// remove points that are not in any vertical line (these has to be removed from the horizontal line, too)
 	testPoints.clear();
-	for (auto &line : linesVerticalOdd) {
-		for (auto &point : line) {
-			testPoints.insert(point);
-		}
-	}
-	for (auto &line : linesVerticalEven) {
+	for (auto &line : linesVertical) {
 		for (auto &point : line) {
 			testPoints.insert(point);
 		}
@@ -278,19 +281,16 @@ void PointGrid::finalize() {
 	}
 
 	// setup links from points to the corresponding lines
-	for (auto &line : linesVerticalOdd) {
+	i = 0;
+	for (auto &line : linesVertical) {
 		for (auto &point : line) {
-			point->verticalLine = &line;
+			point->verticalLine = i++;
 		}
 	}
-	for (auto &line : linesVerticalEven) {
-		for (auto &point : line) {
-			point->verticalLine = &line;
-		}
-	}
+	i = 0;
 	for (auto &line : linesHorizontal) {
 		for (auto &point : line) {
-			point->horizontalLine = &line;
+			point->horizontalLine = i++;
 		}
 	}
 }
@@ -299,12 +299,16 @@ const PointGrid::LineList& PointGrid::getHorizontalLines() const {
 	return linesHorizontal;
 }
 
-const PointGrid::LineList& PointGrid::getVerticalLinesOdd() const {
-	return linesVerticalOdd;
+const PointGrid::LineList& PointGrid::getVerticalLines() const {
+	return linesVertical;
 }
 
-const PointGrid::LineList& PointGrid::getVerticalLinesEven() const {
-	return linesVerticalEven;
+const SubGrid& PointGrid::getSubgridA() const {
+	return subgridA;
+}
+
+const SubGrid& PointGrid::getSubgridB() const {
+	return subgridB;
 }
 
 PointGrid::Point* PointGrid::storageAdd(const cv::Point2f& point) {
@@ -365,12 +369,6 @@ void PointGrid::mapAdd(TmpLineMap &lineMap, float position, Point *point) {
 		lineIt = lineMap.emplace_hint(nextLineIt, position, std::move(line));
 		// add point to the closest line
 		return lineIt->second.push_back(point);
-	}
-}
-
-void PointGrid::tmpLineMap2LineList(const TmpLineMap &map, LineList &list) {
-	for (auto entry : map) {
-		list.push_back(entry.second);
 	}
 }
 
