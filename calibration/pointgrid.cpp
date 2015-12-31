@@ -224,13 +224,25 @@ void PointGrid::finalize() {
 	for(auto itOdd = tmpLineMapOdd.begin(), itEven = tmpLineMapEven.begin(); itOdd != tmpLineMapOdd.end() || itEven != tmpLineMapEven.end();) {
 		// store the points in increasing y-order to the line list
 		// also store the indices for each subgrid
-		if (itOdd->first < itEven->first) {
+		if (itOdd == tmpLineMapOdd.end()) {
+			linesVertical.push_back(itEven->second);
+			linesVertical.back().subgrid = SubGrid::SUBGRID_B;
+			++itEven;
+		}
+		else if (itEven == tmpLineMapEven.end()) {
 			linesVertical.push_back(itOdd->second);
 			linesVertical.back().subgrid = SubGrid::SUBGRID_A;
+			++itOdd;
+		}
+		else if (itOdd->first < itEven->first) {
+			linesVertical.push_back(itOdd->second);
+			linesVertical.back().subgrid = SubGrid::SUBGRID_A;
+			++itOdd;
 		}
 		else {
 			linesVertical.push_back(itEven->second);
 			linesVertical.back().subgrid = SubGrid::SUBGRID_B;
+			++itEven;
 		}
 	}
 
