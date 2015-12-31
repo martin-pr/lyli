@@ -22,6 +22,14 @@
 namespace Lyli {
 namespace Calibration {
 
+LineGrid::Line::Line() : subgrid(SubGrid::SUBGRID_A), position(0.0f) {
+
+}
+
+LineGrid::Line::Line(SubGrid sub, float pos) : subgrid(sub), position(pos) {
+
+}
+
 LineGrid::LineGrid(const PointGrid &pointGrid) {
 	LineGrid lineGrid;
 
@@ -35,12 +43,12 @@ LineGrid::LineGrid(const PointGrid &pointGrid) {
 		// first compute average
 		double sum = 0.0;
 		double count = 0.0;
-		for (std::size_t i = line.size() / 3; i < 2 * line.size() / 3; ++i) {
-			sum += line[i]->getPosition().x;
+		for (std::size_t i = line.line.size() / 3; i < 2 * line.line.size() / 3; ++i) {
+			sum += line.line[i]->getPosition().x;
 			count += 1.0;
 		}
 		// add a new line as the average of all points in PointGrid line
-		lineGrid.horizonalLines.push_back(sum / count);
+		lineGrid.horizonalLines.push_back(Line(line.subgrid, sum / count));
 	}
 	// set the y value in each vertical line for odd rows to the average
 	for (std::size_t i = 0; i < pointGrid.getVerticalLines().size(); ++i) {
@@ -48,19 +56,15 @@ LineGrid::LineGrid(const PointGrid &pointGrid) {
 		// first compute average
 		double sum = 0.0;
 		double count = 0.0;
-		std::size_t start = line.size() / 3;
+		std::size_t start = line.line.size() / 3;
 		start = (start & 1) == 0 ? start : start - 1;
-		for (std::size_t i = start; i < 2 * line.size() / 3; i += 2) {
-			sum += line[i]->getPosition().y;
+		for (std::size_t i = start; i < 2 * line.line.size() / 3; i += 2) {
+			sum += line.line[i]->getPosition().y;
 			count += 1.0;
 		}
 		// add a new line as the average of all points in PointGrid line
-		lineGrid.verticalLines.push_back(sum / count);
+		lineGrid.verticalLines.push_back(Line(line.subgrid, sum / count));
 	}
-
-	// copy the subgrids (because the indices are unchanges, the subgrids are the same)
-	subgridA = pointGrid.getSubgridA();
-	subgridB = pointGrid.getSubgridB();
 }
 
 LineGrid::LineGrid() {
@@ -90,15 +94,6 @@ const LineGrid::LineList& LineGrid::getHorizontalLines() const {
 
 const LineGrid::LineList& LineGrid::getVerticalLines() const {
 	return verticalLines;
-}
-
-
-const SubGrid& LineGrid::getSubgridA() const {
-	return subgridA;
-}
-
-const SubGrid& LineGrid::getSubgridB() const {
-	return subgridB;
 }
 
 }

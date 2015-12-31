@@ -46,8 +46,11 @@ public:
 	constexpr static float MAX_DIFF = 3.0;
 
 	class Point;
-	/// Line consisting of pointers to the the points, that are stored separately
-	using Line = std::vector<Point*>;
+	/// Line consisting of pointers to the the points (points are stored separately)
+	struct Line {
+		SubGrid subgrid;
+		std::vector<Point*> line;
+	};
 	/// List of lines
 	using LineList = std::vector<Line>;
 
@@ -131,15 +134,6 @@ public:
 	 */
 	const LineList& getVerticalLines() const;
 
-	/**
-	 * Get the first subgrid
-	 */
-	const SubGrid& getSubgridA() const;
-	/**
-	 * Get the second subgrid
-	 */
-	const SubGrid& getSubgridB() const;
-
 private:
 	using PointStore = std::unordered_map<Point*, std::unique_ptr<Point>>;
 	using TmpLineMap = std::map<float, Line>;
@@ -163,9 +157,6 @@ private:
 	LineList linesHorizontal;
 	/// Map of vertical lines
 	LineList linesVertical;
-
-	SubGrid subgridA;
-	SubGrid subgridB;
 
 	/**
 	 * Add point to the storage.

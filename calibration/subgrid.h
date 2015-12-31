@@ -24,28 +24,11 @@ namespace Lyli {
 namespace Calibration {
 
 /**
- * Subgrid that specifies indices if thae main grid.
+ * Subgrid enum used to define correspondency between vertical and horizontal lines in grid.
  */
-class SubGrid {
-public:
-	using LineIndices = std::vector<std::size_t>;
-
-	SubGrid() = default;
-	~SubGrid() = default;
-	SubGrid(const SubGrid &other) = default;
-	SubGrid(SubGrid &&other) = default;
-	SubGrid& operator=(const SubGrid &other) = default;
-	SubGrid& operator=(SubGrid &&other) = default;
-
-	const LineIndices& getHorizontalIndices() const;
-	const LineIndices& getVerticalIndices() const;
-
-	void addHorizontalIndex(std::size_t index);
-	void addVerticalIndex(std::size_t index);
-
-private:
-	LineIndices horizontal;
-	LineIndices vertical;
+enum class SubGrid {
+	SUBGRID_A,
+	SUBGRID_B,
 };
 
 }

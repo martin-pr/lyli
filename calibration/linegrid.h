@@ -34,8 +34,15 @@ class PointGrid;
  */
 class LineGrid {
 public:
+	struct Line {
+		Line();
+		Line(SubGrid subgrid, float position);
+
+		SubGrid subgrid;
+		float position;
+	};
 	/// List of line positions
-	using LineList = std::vector<float>;
+	using LineList = std::vector<Line>;
 
 	/**
 	 * Construct LineGrid from PointGrid.
@@ -68,20 +75,9 @@ public:
 	 */
 	const LineList& getVerticalLines() const;
 
-	/**
-	 * Get the first subgrid
-	 */
-	const SubGrid& getSubgridA() const;
-	/**
-	 * Get the second subgrid
-	 */
-	const SubGrid& getSubgridB() const;
-
 private:
 	LineList horizonalLines;
 	LineList verticalLines;
-	SubGrid subgridA;
-	SubGrid subgridB;
 };
 
 }

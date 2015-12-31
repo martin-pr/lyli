@@ -85,21 +85,19 @@ PointGrid::PointGrid(const PointGrid &other) {
 	for (const auto &line : other.linesHorizontal) {
 		linesHorizontal.emplace_back();
 		auto &newLine(linesHorizontal.back());
-		for (const auto &point : line) {
-			newLine.push_back(pointMap[point]);
+		newLine.subgrid = line.subgrid;
+		for (const auto &point : line.line) {
+			newLine.line.push_back(pointMap[point]);
 		}
 	}
 	for (const auto &line : other.linesVertical) {
 		linesVertical.emplace_back();
 		auto &newLine(linesHorizontal.back());
-		for (const auto &point : line) {
-			newLine.push_back(pointMap[point]);
+		newLine.subgrid = line.subgrid;
+		for (const auto &point : line.line) {
+			newLine.line.push_back(pointMap[point]);
 		}
 	}
-
-	// copy the subgrids
-	subgridA = other.subgridA;
-	subgridB = other.subgridB;
 }
 
 PointGrid::~PointGrid() {
@@ -147,7 +145,7 @@ void PointGrid::finalize() {
 	// the reason is that we want to use the closest key to the point, but currently the key is for the last point
 	TmpLineMap tmp;
 	for (const auto &entry : tmpLineMap) {
-		float key = entry.second.front()->getPosition().x;
+		float key = entry.second.line.front()->getPosition().x;
 		tmp.insert(std::make_pair(key, std::move(entry.second)));
 	}
 	std::swap(tmpLineMap, tmp);
@@ -160,13 +158,15 @@ void PointGrid::finalize() {
 	// we must sort the generated lines, as we did not add points to the in order
 	// (we first created header, then processed points before header and then after)
 	for (auto &line : tmpLineMap) {
-		std::sort(line.second.begin(), line.second.end(),
+		std::sort(line.second.line.begin(), line.second.line.end(),
 		          [](const Point *a, const Point *b){return a->getPosition().y < b->getPosition().y;});
 	}
 
 	// create a final line map that is used for public interfaces
 	linesHorizontal.reserve(tmpLineMap.size());
+	bool isOdd = true;
 	for (auto entry : tmpLineMap) {
+		entry.second.subgrid = isOdd ? SubGrid::SUBGRID_A : SubGrid::SUBGRID_B;
 		linesHorizontal.push_back(entry.second);
 	}
 	tmpLineMap.clear();
@@ -193,13 +193,13 @@ void PointGrid::finalize() {
 	// first, we have to change the keys in the lineMap to the keys of the first point in each line
 	// the reason is that we want to use the closest key to the point, but currently the key is for the last point
 	for (const auto &entry : tmpLineMapOdd) {
-		float key = entry.second.front()->getPosition().y;
+		float key = entry.second.line.front()->getPosition().y;
 		tmpLineMap.insert(std::make_pair(key, std::move(entry.second)));
 	}
 	std::swap(tmpLineMapOdd, tmpLineMap);
 	tmpLineMap.clear();
 	for (const auto &entry : tmpLineMapEven) {
-		float key = entry.second.front()->getPosition().y;
+		float key = entry.second.line.front()->getPosition().y;
 		tmpLineMap.insert(std::make_pair(key, std::move(entry.second)));
 	}
 	std::swap(tmpLineMapEven, tmpLineMap);
@@ -212,11 +212,11 @@ void PointGrid::finalize() {
 	// we must sort the generated lines, as we did not add points to the in order
 	// (we first created header, then processed points before header and then after)
 	for (auto &line : tmpLineMapOdd) {
-		std::sort(line.second.begin(), line.second.end(),
+		std::sort(line.second.line.begin(), line.second.line.end(),
 		          [](const Point *a, const Point *b){return a->getPosition().x < b->getPosition().x;});
 	}
 	for (auto &line : tmpLineMapEven) {
-		std::sort(line.second.begin(), line.second.end(),
+		std::sort(line.second.line.begin(), line.second.line.end(),
 		          [](const Point *a, const Point *b){return a->getPosition().x < b->getPosition().x;});
 	}
 
@@ -226,27 +226,18 @@ void PointGrid::finalize() {
 		// also store the indices for each subgrid
 		if (itOdd->first < itEven->first) {
 			linesVertical.push_back(itOdd->second);
-			subgridA.addVerticalIndex(linesVertical.size() - 1);
+			linesVertical.back().subgrid = SubGrid::SUBGRID_A;
 		}
 		else {
 			linesVertical.push_back(itEven->second);
-			subgridB.addVerticalIndex(linesVertical.size() - 1);
-		}
-	}
-	// finish up the subgrids by filling in the horizontal lines
-	for (std::size_t i = 0; i < linesHorizontal.size(); ++i) {
-		if (i & 1) {
-			subgridA.addHorizontalIndex(i);
-		}
-		else {
-			subgridB.addHorizontalIndex(i);
+			linesVertical.back().subgrid = SubGrid::SUBGRID_B;
 		}
 	}
 
 	// set of all points in horizontal lines
 	std::unordered_set<Point*> testPoints;
 	for (auto &line : linesHorizontal) {
-		for (auto &point : line) {
+		for (auto &point : line.line) {
 			testPoints.insert(point);
 		}
 	}
@@ -263,18 +254,18 @@ void PointGrid::finalize() {
 	// remove points that are not in any vertical line (these has to be removed from the horizontal line, too)
 	testPoints.clear();
 	for (auto &line : linesVertical) {
-		for (auto &point : line) {
+		for (auto &point : line.line) {
 			testPoints.insert(point);
 		}
 	}
 	for (auto &line : linesHorizontal) {
-		for (auto it = line.begin(); it != line.end();) {
+		for (auto it = line.line.begin(); it != line.line.end();) {
 			auto point = *it;
 			if (testPoints.find(point) != testPoints.end()) {
 				++it;
 			}
 			else {
-				it = line.erase(it);
+				it = line.line.erase(it);
 				storage.erase(point);
 			}
 		}
@@ -283,13 +274,13 @@ void PointGrid::finalize() {
 	// setup links from points to the corresponding lines
 	i = 0;
 	for (auto &line : linesVertical) {
-		for (auto &point : line) {
+		for (auto &point : line.line) {
 			point->verticalLine = i++;
 		}
 	}
 	i = 0;
 	for (auto &line : linesHorizontal) {
-		for (auto &point : line) {
+		for (auto &point : line.line) {
 			point->horizontalLine = i++;
 		}
 	}
@@ -303,14 +294,6 @@ const PointGrid::LineList& PointGrid::getVerticalLines() const {
 	return linesVertical;
 }
 
-const SubGrid& PointGrid::getSubgridA() const {
-	return subgridA;
-}
-
-const SubGrid& PointGrid::getSubgridB() const {
-	return subgridB;
-}
-
 PointGrid::Point* PointGrid::storageAdd(const cv::Point2f& point) {
 	Point *newPoint(new Point(point));
 	storage.insert(std::make_pair(newPoint, std::unique_ptr<Point>(newPoint)));
@@ -322,7 +305,7 @@ void PointGrid::mapAddConstruct(TmpLineMap &lineMap, float position, Point *poin
 	if (lineMap.empty()) {
 		auto res = lineMap.emplace(position, Line());
 		// add point to the new line
-		res.first->second.push_back(point);
+		res.first->second.line.push_back(point);
 		return;
 	}
 
@@ -348,7 +331,7 @@ void PointGrid::mapAddConstruct(TmpLineMap &lineMap, float position, Point *poin
 	}
 
 	// add point to the closest line
-	return lineIt->second.push_back(point);
+	return lineIt->second.line.push_back(point);
 }
 
 void PointGrid::mapAdd(TmpLineMap &lineMap, float position, Point *point) {
@@ -368,7 +351,7 @@ void PointGrid::mapAdd(TmpLineMap &lineMap, float position, Point *point) {
 		auto nextLineIt = lineMap.erase(lineIt);
 		lineIt = lineMap.emplace_hint(nextLineIt, position, std::move(line));
 		// add point to the closest line
-		return lineIt->second.push_back(point);
+		return lineIt->second.line.push_back(point);
 	}
 }
 
@@ -379,12 +362,12 @@ void PointGrid::verticalLineConstructor(int start, int end,
 	for (int i = start; i != end; i+= step) {
 		const Line &tmpline = linesHorizontal[i];
 		if (i & 1) { // even
-			for (const auto &point : tmpline) {
+			for (const auto &point : tmpline.line) {
 				inserterEven(point);
 			}
 		}
 		else { // odd
-			for (const auto &point : tmpline) {
+			for (const auto &point : tmpline.line) {
 				inserterOdd(point);
 			}
 		}
