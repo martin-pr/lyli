@@ -92,7 +92,7 @@ PointGrid::PointGrid(const PointGrid &other) {
 	}
 	for (const auto &line : other.linesVertical) {
 		linesVertical.emplace_back();
-		auto &newLine(linesHorizontal.back());
+		auto &newLine(linesVertical.back());
 		newLine.subgrid = line.subgrid;
 		for (const auto &point : line.line) {
 			newLine.line.push_back(pointMap[point]);
