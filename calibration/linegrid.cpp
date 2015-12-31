@@ -31,11 +31,9 @@ LineGrid::Line::Line(SubGrid sub, float pos) : subgrid(sub), position(pos) {
 }
 
 LineGrid::LineGrid(const PointGrid &pointGrid) {
-	LineGrid lineGrid;
-
 	// reserve space for more efficient operation
-	lineGrid.horizonalLines.reserve(pointGrid.getHorizontalLines().size());
-	lineGrid.verticalLines.reserve(pointGrid.getVerticalLines().size());
+	horizonalLines.reserve(pointGrid.getHorizontalLines().size());
+	verticalLines.reserve(pointGrid.getVerticalLines().size());
 
 	// set the x value of each horizontal line in LineGrid to the average x of the points in PointGrid
 	for (std::size_t i = 0; i < pointGrid.getHorizontalLines().size(); ++i) {
@@ -48,7 +46,7 @@ LineGrid::LineGrid(const PointGrid &pointGrid) {
 			count += 1.0;
 		}
 		// add a new line as the average of all points in PointGrid line
-		lineGrid.horizonalLines.push_back(Line(line.subgrid, sum / count));
+		horizonalLines.push_back(Line(line.subgrid, sum / count));
 	}
 	// set the y value in each vertical line for odd rows to the average
 	for (std::size_t i = 0; i < pointGrid.getVerticalLines().size(); ++i) {
@@ -63,7 +61,7 @@ LineGrid::LineGrid(const PointGrid &pointGrid) {
 			count += 1.0;
 		}
 		// add a new line as the average of all points in PointGrid line
-		lineGrid.verticalLines.push_back(Line(line.subgrid, sum / count));
+		verticalLines.push_back(Line(line.subgrid, sum / count));
 	}
 }
 
