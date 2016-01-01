@@ -164,9 +164,8 @@ void PointGrid::finalize() {
 
 	// create a final line map that is used for public interfaces
 	linesHorizontal.reserve(tmpLineMap.size());
-	bool isOdd = true;
 	for (auto entry : tmpLineMap) {
-		entry.second.subgrid = isOdd ? SubGrid::SUBGRID_A : SubGrid::SUBGRID_B;
+		entry.second.subgrid = ((linesHorizontal.size() & 1) == 0) ? SubGrid::SUBGRID_A : SubGrid::SUBGRID_B;
 		linesHorizontal.push_back(entry.second);
 	}
 	tmpLineMap.clear();
