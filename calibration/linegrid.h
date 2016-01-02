@@ -25,6 +25,7 @@
 namespace Lyli {
 namespace Calibration {
 
+class GridMapper;
 class PointGrid;
 
 /**
@@ -43,6 +44,8 @@ public:
 	};
 	/// List of line positions
 	using LineList = std::vector<Line>;
+
+	friend std::pair<LineGrid, std::vector<GridMapper>> averageGrids(const std::vector<LineGrid> &grids);
 
 	/**
 	 * Construct LineGrid from PointGrid.

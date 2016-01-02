@@ -31,6 +31,10 @@ public:
 	using MappingLUT = std::vector<std::size_t>;
 
 	GridMapper() = default;
+	/**
+	 * Construct grid mapper with maps of a given size
+	 */
+	GridMapper(std::size_t horizontalSize, std::size_t verticalSize);
 	virtual ~GridMapper() = default;
 
 	GridMapper(const GridMapper &other) = default;
@@ -44,29 +48,29 @@ public:
 	 * @return index in target
 	 */
 	std::size_t mapHorizontal(std::size_t from);
-
 	/**
-	 * Map source grid vertical index for odd lines to index in destination grid
+	 * Map source grid vertical index to index in destination grid
 	 * @param from index in source grid
 	 * @return index in target
 	 */
-	std::size_t mapVerticalOdd(std::size_t from);
+	std::size_t mapVertical(std::size_t from);
 
 	/**
-	 * Map source grid vertical index for even lines to index in destination grid
+	 * Set horizontal mapping
 	 * @param from index in source grid
-	 * @return index in target
+	 * @param to index in target grid
 	 */
-	std::size_t mapVerticalEven(std::size_t from);
-
-	void setHorizontalMapping(const MappingLUT &mapping);
-	void setVerticalOddMapping(const MappingLUT &mapping);
-	void setVerticalEvenMapping(const MappingLUT &mapping);
+	void mapHorizontal(std::size_t from, std::size_t to);
+	/**
+	 * Set vertical mapping
+	 * @param from index in source grid
+	 * @param to index in target grid
+	 */
+	void mapVertical(std::size_t from, std::size_t to);
 
 private:
 	MappingLUT horizontalMapping;
-	MappingLUT verticalOddMapping;
-	MappingLUT verticalEvenMapping;
+	MappingLUT verticalMapping;
 };
 
 }

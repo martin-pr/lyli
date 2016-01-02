@@ -14,38 +14,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "gridmapper.h"
+#ifndef LYLI_CALIBRATION_GRIDMATH_H_
+#define LYLI_CALIBRATION_GRIDMATH_H_
 
-#include <cassert>
+#include <vector>
+
+#include <calibration/gridmapper.h>
+#include <calibration/linegrid.h>
 
 namespace Lyli {
 namespace Calibration {
 
-GridMapper::GridMapper(std::size_t horizontalSize, std::size_t verticalSize) :
-	horizontalMapping(horizontalSize),
-	verticalMapping(verticalSize) {
-
-}
-
-std::size_t GridMapper::mapHorizontal(std::size_t from) {
-	assert(from < horizontalMapping.size());
-	return horizontalMapping[from];
-}
-
-std::size_t GridMapper::mapVertical(std::size_t from) {
-	assert(from < verticalMapping.size());
-	return verticalMapping[from];
-}
-
-void GridMapper::mapHorizontal(std::size_t from, std::size_t to) {
-	assert(from < horizontalMapping.size());
-	horizontalMapping[from] = to;
-}
-
-void GridMapper::mapVertical(std::size_t from, std::size_t to) {
-	assert(from < verticalMapping.size());
-	verticalMapping[from] = to;
-}
+/**
+ * Construct an average grids
+ *
+ * @param grids vector of grids to average
+ * @return the average grid and a list of mappers that maps line indices of each grid to the average grid.
+ *         The indices in the vector of grid mappers correspond to the indices in the grids vector.
+ */
+std::pair<LineGrid, std::vector<GridMapper>> averageGrids(const std::vector<LineGrid> &grids);
 
 }
 }
+
+#endif
