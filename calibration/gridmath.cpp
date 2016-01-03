@@ -63,6 +63,7 @@ void insertLine(LineMap &map, const Lyli::Calibration::LineGrid::Line &line, con
 	if(std::abs(lineIt->first - line.position) < limit) {
 		// replace the line entry with an average
 		LineEntry entry(std::move(lineIt->second));
+		entry.referees.push_back(referee);
 		entry.line.position = (entry.counter * entry.line.position + line.position) / (entry.counter + 1);
 		++entry.counter;
 		auto nextEntryIt = map.erase(lineIt);
@@ -94,14 +95,17 @@ std::pair<LineGrid, std::vector<GridMapper>> averageGrids(const std::vector<Line
 	}
 
 	// now add lines from the remaining grids
-	std::size_t gridIndex = 0;
+	std::size_t gridIndex = 1;
 	for (auto it(grids.begin() + 1); it != grids.end(); ++it) {
+		lineIndex = 0;
 		for (const auto &line : it->getHorizontalLines()) {
-			insertLine(horizontal, line, std::make_pair(gridIndex++, lineIndex++), LIMIT_HORIZONTAL);
+			insertLine(horizontal, line, std::make_pair(gridIndex, lineIndex++), LIMIT_HORIZONTAL);
 		}
+		lineIndex = 0;
 		for (const auto &line : it->getVerticalLines()) {
-			insertLine(vertical, line, std::make_pair(gridIndex++, lineIndex++), LIMIT_VERTICAL);
+			insertLine(vertical, line, std::make_pair(gridIndex, lineIndex++), LIMIT_VERTICAL);
 		}
+		++gridIndex;
 	}
 
 	// prepare grid mappers

@@ -286,14 +286,16 @@ void PointGrid::finalize() {
 	i = 0;
 	for (auto &line : linesVertical) {
 		for (auto &point : line.line) {
-			point->verticalLine = i++;
+			point->verticalLine = i;
 		}
+		++i;
 	}
 	i = 0;
 	for (auto &line : linesHorizontal) {
 		for (auto &point : line.line) {
-			point->horizontalLine = i++;
+			point->horizontalLine = i;
 		}
+		++i;
 	}
 }
 
