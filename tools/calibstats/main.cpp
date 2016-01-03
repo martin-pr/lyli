@@ -39,6 +39,7 @@ void showHelp() {
 }
 
 void calibrate(const std::string &path) {
+	std::stringstream ss;
 	std::vector<std::string> files;
 
 	if (chdir(path.c_str()) != 0) {
@@ -70,22 +71,49 @@ void calibrate(const std::string &path) {
 	// sort the files (it's more user-friendly)
 	std::sort(files.begin(), files.end());
 
-	std::vector<Lyli::Calibration::CalibrationData> calibData;
+	// add images to the calibrator
+	Lyli::Calibration::Calibrator calibrator;
+	for (const auto &filebase : files) {
+		std::cout << "reading image: " << filebase << std::endl;
 
+		// read image
+		ss << filebase << ".RAW";
+		std::fstream fin(ss.str(), std::fstream::in | std::fstream::binary);
+		ss.str("");
+		ss.clear();
 
-	std::stringstream ss;
+		// read metadata
+		ss << filebase << ".TXT";
+		std::fstream finmeta(ss.str(), std::fstream::in | std::fstream::binary);
+		ss.str("");
+		ss.clear();
+		Lyli::Image::Metadata metadata(finmeta);
+
+		// add the image to calibrator
+		std::cout << "calibrating image..." << std::endl;
+		Lyli::Image::RawImage rawimg(fin, 3280, 3280);
+		calibrator.processImage(rawimg, metadata);
+	}
+
+	// CALIBRATE!
+	auto calibrationResult = calibrator.calibrate();
+
+	// sort the results
+	std::sort(calibrationResult.begin(), calibrationResult.end(),
+			  [](const auto &a, const auto &b) {
+				  if(a.first.getZoomStep() < b.first.getZoomStep())
+					  return true;
+				  else if (a.first.getZoomStep() == b.first.getZoomStep())
+					  return a.first.getFocusStep() < b.first.getFocusStep();
+				  return false;
+			});
+
+	// prepare the output of the results
 	std::ofstream ofs("XXX.csv", std::ofstream::out | std::ofstream::binary);
 
 	// print header
-	ofs << "FILE,"
-		<< "Infinitylambda,"
-		<< "Focallength,"
-		<< "Zoomstep,"
+	ofs << "Zoomstep,"
 		<< "Focusstep,"
-		<< "Fnumber,"
-		<< "Zoomstepperoffset,"
-		<< "Focusstepperoffset,"
-		<< "Exitpupiloffset,"
 		// translation
 		<< "tx,"
 		<< "ty,"
@@ -106,63 +134,32 @@ void calibrate(const std::string &path) {
 		<< "p2,"
 		<< "k3,"
 		<< std::endl;
-
-	// calibrate and store stats
-	for (const auto &filebase : files) {
-		ss << filebase << ".RAW";
-		std::cout << "reading image: " << ss.str() << std::endl;
-		std::fstream fin(ss.str(), std::fstream::in | std::fstream::binary);
-		ss.str("");
-		ss.clear();
-
-		std::cout << "calibrating image..." << std::endl;
-
-		Lyli::Calibration::Calibrator calibrator;
-		Lyli::Image::RawImage rawimg(fin, 3280, 3280);
-		calibrator.addImage(rawimg.getData());
-		calibrator.calibrate();
-		calibData.push_back(calibrator.getCalibrationData());
-
-		// read metadata
-		ss << filebase << ".TXT";
-		std::cout << "reading image: " << ss.str() << std::endl;
-		std::fstream finmeta(ss.str(), std::fstream::in | std::fstream::binary);
-		ss.str("");
-		ss.clear();
-		Lyli::Image::Metadata metadata(finmeta);
-		Lyli::Image::Metadata::Devices::Lens lensdata(metadata.getDevices().getLens());
-		Lyli::Calibration::CalibrationData calibdata(calibrator.getCalibrationData());
-
-		ofs << filebase << ","
-			<< lensdata.getInfinitylambda() << ","
-			<< lensdata.getFocallength() << ","
-			<< lensdata.getZoomstep() << ","
-			<< lensdata.getFocusstep() << ","
-			<< lensdata.getFnumber() << ","
-			<< lensdata.getZoomstepperoffset() << ","
-			<< lensdata.getFocusstepperoffset() << ","
-			<< lensdata.getExitpupiloffset().getZ() << ","
+	// dtore the results
+	for (const auto& res : calibrationResult) {
+		ofs << res.first.getZoomStep() << ","
+			<< res.first.getFocusStep() << ","
 			// translation
-			<< calibdata.getTranslation().at<double>(0,2) << "," // tx
-			<< calibdata.getTranslation().at<double>(1,2) << "," // ty
+			<< res.second.getTranslation().at<double>(0,2) << "," // tx
+			<< res.second.getTranslation().at<double>(1,2) << "," // ty
 			// rotation
-			<< calibdata.getRotation().at<double>(0,0) << "," // r00
-			<< calibdata.getRotation().at<double>(0,1) << "," // r10
-			<< calibdata.getRotation().at<double>(1,0) << "," // r01
-			<< calibdata.getRotation().at<double>(1,1) << "," // r11
+			<< res.second.getRotation().at<double>(0,0) << "," // r00
+			<< res.second.getRotation().at<double>(0,1) << "," // r10
+			<< res.second.getRotation().at<double>(1,0) << "," // r01
+			<< res.second.getRotation().at<double>(1,1) << "," // r11
 			// camera matrix
-			<< calibdata.getCameraMatrix().at<double>(0,0) << "," // fx
-			<< calibdata.getCameraMatrix().at<double>(1,1) << "," // fy
-			<< calibdata.getCameraMatrix().at<double>(0,2) << "," // cx
-			<< calibdata.getCameraMatrix().at<double>(1,2) << "," // cy
+			<< res.second.getCameraMatrix().at<double>(0,0) << "," // fx
+			<< res.second.getCameraMatrix().at<double>(1,1) << "," // fy
+			<< res.second.getCameraMatrix().at<double>(0,2) << "," // cx
+			<< res.second.getCameraMatrix().at<double>(1,2) << "," // cy
 			// distortion coefficients
-			<< calibdata.getDistCoeffs().at<double>(0) << "," // k1
-			<< calibdata.getDistCoeffs().at<double>(1) << "," // k2
-			<< calibdata.getDistCoeffs().at<double>(2) << "," // p1
-			<< calibdata.getDistCoeffs().at<double>(3) << "," // p2
-			<< calibdata.getDistCoeffs().at<double>(4) << "," // k3
+			<< res.second.getDistCoeffs().at<double>(0) << "," // k1
+			<< res.second.getDistCoeffs().at<double>(1) << "," // k2
+			<< res.second.getDistCoeffs().at<double>(2) << "," // p1
+			<< res.second.getDistCoeffs().at<double>(3) << "," // p2
+			<< res.second.getDistCoeffs().at<double>(4) << "," // k3
 			<< std::endl;
 	}
+
 	ofs.close();
 }
 
