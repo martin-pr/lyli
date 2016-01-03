@@ -47,13 +47,13 @@ public:
 	 * @param from index in source grid
 	 * @return index in target
 	 */
-	std::size_t mapHorizontal(std::size_t from);
+	std::size_t mapHorizontal(std::size_t from) const;
 	/**
 	 * Map source grid vertical index to index in destination grid
 	 * @param from index in source grid
 	 * @return index in target
 	 */
-	std::size_t mapVertical(std::size_t from);
+	std::size_t mapVertical(std::size_t from) const;
 
 	/**
 	 * Set horizontal mapping

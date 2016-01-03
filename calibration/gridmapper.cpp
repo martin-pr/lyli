@@ -27,12 +27,12 @@ GridMapper::GridMapper(std::size_t horizontalSize, std::size_t verticalSize) :
 
 }
 
-std::size_t GridMapper::mapHorizontal(std::size_t from) {
+std::size_t GridMapper::mapHorizontal(std::size_t from) const {
 	assert(from < horizontalMapping.size());
 	return horizontalMapping[from];
 }
 
-std::size_t GridMapper::mapVertical(std::size_t from) {
+std::size_t GridMapper::mapVertical(std::size_t from) const {
 	assert(from < verticalMapping.size());
 	return verticalMapping[from];
 }
