@@ -229,7 +229,7 @@ void Calibrator::processImage(const Lyli::Image::RawImage &image, const Lyli::Im
 	pimpl->clusterMap[metadata.getDevices().getLens()].push_back(pimpl->pointGridList.size() - 1);
 }
 
-Calibrator::CalibrationResult Calibrator::calibrate() {
+std::vector<Calibrator::CalibrationResult> Calibrator::calibrate() {
 	// create line grids for all point grids
 	std::vector<LineGrid> linegrids;
 	int i = 0;
@@ -248,7 +248,7 @@ Calibrator::CalibrationResult Calibrator::calibrate() {
 	drawLineGrid("target.png", target.first);
 	// END DEBUG
 
-	CalibrationResult res;
+	std::vector<CalibrationResult> res;
 	for (const auto &cluster : pimpl->clusterMap) {
 		// use only cluster that have more than one image for calibration to avoid stability issues
 		if(cluster.second.size() > 1) {

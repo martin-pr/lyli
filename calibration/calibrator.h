@@ -143,7 +143,7 @@ public:
 		int focusStep;
 	};
 
-	using CalibrationResult = std::vector<std::pair<LensConfiguration, CalibrationData>>;
+	using CalibrationResult = std::pair<LensConfiguration, CalibrationData>;
 
 	Calibrator();
 	~Calibrator();
@@ -166,7 +166,7 @@ public:
 	 *
 	 * @return the calibration data
 	 */
-	CalibrationResult calibrate();
+	std::vector<CalibrationResult> calibrate();
 
 	/**
 	 * Reset the calibrator state.
