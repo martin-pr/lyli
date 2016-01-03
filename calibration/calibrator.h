@@ -20,6 +20,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <tuple>
 #include <vector>
 
 #include <calibration/calibrationdata.h>
@@ -132,6 +133,18 @@ public:
  */
 class Calibrator {
 public:
+	class LensConfiguration {
+	public:
+		LensConfiguration(int zoom, int focus);
+		int getZoomStep() const;
+		int getFocusStep() const;
+	private:
+		int zoomStep;
+		int focusStep;
+	};
+
+	using CalibrationResult = std::vector<std::pair<LensConfiguration, CalibrationData>>;
+
 	Calibrator();
 	~Calibrator();
 
@@ -153,7 +166,7 @@ public:
 	 *
 	 * @return the calibration data
 	 */
-	CalibrationData calibrate();
+	CalibrationResult calibrate();
 
 	/**
 	 * Reset the calibrator state.
