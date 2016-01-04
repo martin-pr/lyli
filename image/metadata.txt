@@ -64,6 +64,7 @@ class master/picture/frameArray[0]/frame/metadata/devices {
 	}
 	class lens {
 		float infinityLambda
+# focal length in metres
 		float focalLength
 		int zoomStep
 		int focusStep
@@ -100,7 +101,7 @@ class master/picture/frameArray[0]/frame/metadata/devices {
 		string tiling
 		float lensPitch
 		float rotation
-#		defectArray - some king of array
+#		defectArray - some kind of array
 		string config
 		class scaleFactor {
 			float x
