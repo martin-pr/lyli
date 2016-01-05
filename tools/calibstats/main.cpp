@@ -28,6 +28,8 @@
 #include <unistd.h>
 #include <utility>
 
+#include <tbb/parallel_for_each.h>
+
 #include <calibration/calibrator.h>
 #include <image/metadata.h>
 #include <image/rawimage.h>
@@ -39,7 +41,6 @@ void showHelp() {
 }
 
 void calibrate(const std::string &path) {
-	std::stringstream ss;
 	std::vector<std::string> files;
 
 	if (chdir(path.c_str()) != 0) {
@@ -73,8 +74,9 @@ void calibrate(const std::string &path) {
 
 	// add images to the calibrator
 	Lyli::Calibration::Calibrator calibrator;
-	for (const auto &filebase : files) {
+	tbb::parallel_for_each(files, [&calibrator](const auto &filebase){
 		std::cout << "reading image: " << filebase << std::endl;
+		std::stringstream ss;
 
 		// read image
 		ss << filebase << ".RAW";
@@ -93,7 +95,7 @@ void calibrate(const std::string &path) {
 		std::cout << "calibrating image..." << std::endl;
 		Lyli::Image::RawImage rawimg(fin, 3280, 3280);
 		calibrator.processImage(rawimg, metadata);
-	}
+	});
 
 	// CALIBRATE!
 	auto calibrationResult = calibrator.calibrate();

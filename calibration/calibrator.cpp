@@ -41,6 +41,9 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include <tbb/parallel_for_each.h>
+#include <tbb/spin_mutex.h>
+
 // BEGIN DEBUG
 #include <sstream>
 #include <opencv/highgui.h>
@@ -216,6 +219,8 @@ class Calibrator::Impl {
 public:
 	PointGridList pointGridList;
 	ClusterMap clusterMap;
+	/// Mutex to protect access to pointGridList and clusterMap
+	tbb::spin_mutex dataAccessMutex;
 
 	/**
 	 * Create target line grid.
@@ -249,11 +254,16 @@ void Calibrator::processImage(const Lyli::Image::RawImage &image, const Lyli::Im
 	LensDetector lensDetector;
 	PointGrid pointGrid = lensDetector.detect(greyMat, dst);
 
+	// thread safe data access
+	tbb::spin_mutex::scoped_lock lock(pimpl->dataAccessMutex);
+
 	// store the point grid
 	pimpl->pointGridList.push_back(pointGrid);
 
 	// separate grids into clusters based on the lens parameters
 	pimpl->clusterMap[metadata.getDevices().getLens()].push_back(pimpl->pointGridList.size() - 1);
+
+	lock.release();
 }
 
 std::vector<Calibrator::CalibrationResult> Calibrator::calibrate() {
@@ -275,17 +285,23 @@ std::vector<Calibrator::CalibrationResult> Calibrator::calibrate() {
 	drawLineGrid("target.png", target.first);
 	// END DEBUG*/
 
-	std::vector<CalibrationResult> res;
-	for (const auto &cluster : pimpl->clusterMap) {
-		// use only cluster that have more than one image for calibration to avoid stability issues
+	std::vector<CalibrationResult> result;
+	result.reserve(pimpl->clusterMap.size());
+
+	tbb::spin_mutex resultMutex;
+	tbb::parallel_for_each(pimpl->clusterMap, [&](const auto &cluster) {
+		// use only clusters that have more than one image for calibration to avoid stability issues
 		if(cluster.second.size() > 1) {
 			cv::Mat cameraMatrix = estimateCameraMatrix(cluster.first);
 			LensConfiguration lensConfig = LensConfiguration(cluster.first.getZoomstep(), cluster.first.getFocusstep());
 			CalibrationData calibData = calibrateCluster(pimpl->pointGridList, cluster.second, target.first, target.second, cameraMatrix);
-			res.push_back(std::make_pair(lensConfig, calibData));
+
+			tbb::spin_mutex::scoped_lock resultLock(resultMutex);
+			result.push_back(std::make_pair(lensConfig, calibData));
+			resultLock.release();
 		}
-	}
-	return res;
+	});
+	return result;
 }
 
 }
