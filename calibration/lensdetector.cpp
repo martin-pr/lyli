@@ -157,7 +157,7 @@ float getInterpolatedColor(const cv::Mat &image, cv::Point2f position) {
 	assert(image.channels() == 1);
 
 	// return 0 if the position is out of bounds
-	if (position.x < 0 || position.x > image.cols || position.y < 0 || position.y > image.rows) {
+	if (position.x < 0 || position.x > image.cols - 1 || position.y < 0 || position.y > image.rows - 1) {
 		return 0.0f;
 	}
 
