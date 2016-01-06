@@ -64,7 +64,8 @@ void insertLine(LineMap &map, const Lyli::Calibration::LineGrid::Line &line, con
 		// replace the line entry with an average
 		LineEntry entry(std::move(lineIt->second));
 		entry.referees.push_back(referee);
-		entry.line.position = (entry.counter * entry.line.position + line.position) / (entry.counter + 1);
+		double denom = 1.0 / (entry.counter + 1.0);
+		entry.line.position = entry.counter*denom*entry.line.position + line.position*denom;
 		++entry.counter;
 		auto nextEntryIt = map.erase(lineIt);
 		lineIt = map.emplace_hint(nextEntryIt, entry.line.position, std::move(entry));
