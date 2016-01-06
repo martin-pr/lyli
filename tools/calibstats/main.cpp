@@ -79,7 +79,7 @@ void calibrate(const std::string &path) {
 	Lyli::Calibration::Calibrator calibrator;
 	Lyli::Calibration::LensDetector lensDetector(std::make_unique<Lyli::Calibration::FFTPreprocessor>());
 	tbb::parallel_for_each(files, [&calibrator,&lensDetector](const auto &filebase){
-		std::cout << "reading image: " << filebase << std::endl;
+		std::cout << filebase << " reading image..." << std::endl;
 		std::stringstream ss;
 
 		// read image
@@ -96,11 +96,11 @@ void calibrate(const std::string &path) {
 		ss.clear();
 		Lyli::Image::Metadata metadata(finmeta);
 		// detect the lenses
-		std::cout << "processing image..." << std::endl;
+		std::cout << filebase << " processing image..." << std::endl;
 
 		Lyli::Calibration::PointGrid pointGrid = lensDetector.detect(rawimg.getData());
 		if (pointGrid.isEmpty()) {
-			std::cout << "skipping flat image: " << filebase << std::endl;
+			std::cout << filebase << " image is too flat, skipping" << std::endl;
 		}
 
 		// add grid with the lenses to the calibrator
@@ -110,6 +110,7 @@ void calibrate(const std::string &path) {
 	// CALIBRATE!
 	std::cout << "calibrating images..." << std::endl;
 	auto calibrationResult = calibrator.calibrate();
+	std::cout << "DONE" << std::endl;
 
 	// sort the results
 	std::sort(calibrationResult.begin(), calibrationResult.end(),
