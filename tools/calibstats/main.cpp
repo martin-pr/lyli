@@ -87,6 +87,7 @@ void calibrate(const std::string &path) {
 		std::fstream fin(ss.str(), std::fstream::in | std::fstream::binary);
 		ss.str("");
 		ss.clear();
+		Lyli::Image::RawImage rawimg(fin, 3280, 3280);
 
 		// read metadata
 		ss << filebase << ".TXT";
@@ -94,10 +95,9 @@ void calibrate(const std::string &path) {
 		ss.str("");
 		ss.clear();
 		Lyli::Image::Metadata metadata(finmeta);
-
 		// detect the lenses
 		std::cout << "processing image..." << std::endl;
-		Lyli::Image::RawImage rawimg(fin, 3280, 3280);
+
 		Lyli::Calibration::PointGrid pointGrid = lensDetector.detect(rawimg.getData());
 
 		// add grid with the lenses to the calibrator
