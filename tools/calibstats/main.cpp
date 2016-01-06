@@ -101,6 +101,7 @@ void calibrate(const std::string &path) {
 		Lyli::Calibration::PointGrid pointGrid = lensDetector.detect(rawimg.getData());
 		if (pointGrid.isEmpty()) {
 			std::cout << filebase << " image is too flat, skipping" << std::endl;
+			return;
 		}
 
 		// add grid with the lenses to the calibrator
