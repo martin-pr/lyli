@@ -18,20 +18,15 @@
 #ifndef LYLI_CALIBRATION_PREPROCESSOR_H_
 #define LYLI_CALIBRATION_PREPROCESSOR_H_
 
-#include "calibrator.h"
+#include <calibration/lensdetector.h>
 
 namespace Lyli {
 namespace Calibration {
 
 class Preprocessor : public PreprocessorInterface {
 public:
-	/**
-	 * Preprocess the image to create a mask for the Calibrator.
-	 *
-	 * @param gray grayscale image to process
-	 * @param outMask output mask for the calibrator using the values from the Mask enum.
-	 */
-	virtual void preprocess(const cv::Mat &gray, cv::Mat &outMask) override;
+	// PreprocessorInterface
+	cv::Mat preprocess(const cv::Mat &gray) override;
 };
 
 }

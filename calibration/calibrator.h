@@ -18,115 +18,27 @@
 #ifndef LYLI_CALIBRATION_CALIBRATOR_H_
 #define LYLI_CALIBRATION_CALIBRATOR_H_
 
-#include <cstdint>
 #include <memory>
-#include <tuple>
+#include <utility>
 #include <vector>
 
 #include <calibration/calibrationdata.h>
-#include <image/metadata.h>
-#include <image/rawimage.h>
 
 namespace cv {
 	class Mat;
 }
 
 namespace Lyli {
-namespace Calibration {
+namespace Image {
+	class Metadata;
+}
+}
 
-/**
- * Defines constants for the contents of the mask.
- */
-struct Mask {
-	static constexpr std::uint8_t EMPTY = 0;
-	static constexpr std::uint8_t PROCESSED = 128;
-	static constexpr std::uint8_t OBJECT = 255;
-};
+namespace Lyli {
+namespace Calibration {
 
 class PointGrid;
 
-/**
- * Interface for the image preprocessing and the mask creation
- */
-class PreprocessorInterface {
-public:
-	/**
-	 * A default constructor.
-	 */
-	PreprocessorInterface();
-	/**
-	 * A destructor.
-	 */
-	virtual ~PreprocessorInterface();
-
-	/**
-	 * Preprocess the image to create a mask for the Calibrator.
-	 *
-	 * @param gray grayscale image to process
-	 * @param outMask output mask for the calibrator using the constants from the Mask struct.
-	 */
-	virtual void preprocess(const cv::Mat &gray, cv::Mat &outMask) = 0;
-
-	// avoid copying
-	PreprocessorInterface(const PreprocessorInterface&) = delete;
-	PreprocessorInterface& operator=(const PreprocessorInterface&) = delete;
-};
-
-/**
- * Interface for the lens detection
- */
-class LensDetectorInterface {
-public:
-	/**
-	 * A default constructor.
-	 */
-	LensDetectorInterface();
-	/**
-	 * A destructor
-	 */
-	virtual ~LensDetectorInterface();
-
-	/**
-	 * Detect lens centroids and put them in the line map.
-	 *
-	 * @param gray grayscale image to process
-	 * @param mask mask with lenses set as Mask::OBJECT
-	 * @return lens centroids grouped in lines
-	 */
-	virtual PointGrid detect(const cv::Mat &gray, cv::Mat &mask) = 0;
-
-	// avoid copying
-	LensDetectorInterface(const LensDetectorInterface&) = delete;
-	LensDetectorInterface& operator=(const LensDetectorInterface&) = delete;
-};
-
-/**
- * Interface for filtering invalid lens centroids.
- */
-class LensFilterInterface {
-public:
-	/**
-	 * A default constructor.
-	 */
-	LensFilterInterface();
-	/**
-	 * A destructor
-	 */
-	virtual ~LensFilterInterface();
-
-	/**
-	 * Process the lines, remove the lines that do not spawn the entire image
-	 * and ensure there are no invalid lens centroids and that no centroids are missing.
-	 *
-	 * @param lines lines to filter
-	 * @return filtered lines
-	 */
-	virtual PointGrid filter(const PointGrid &lines) = 0;
-
-	// avoid copying
-	LensFilterInterface(const LensFilterInterface&) = delete;
-	LensFilterInterface& operator=(const LensFilterInterface&) = delete;
-};
 
 /**
  * A class providing means to calibrate camera from a set of images.
@@ -149,14 +61,12 @@ public:
 	~Calibrator();
 
 	/**
-	 * Add an image to the calibrator and process it.
+	 * Add a grid to the calibrator and process it.
 	 *
-	 * This function may take long time to finish.
-	 *
-	 * @param image image to process
-	 * @param metadata image metadata
+	 * @param pointgrid grid with lens centroids
+	 * @param metadata of the image corresponding to the pointgrid
 	 */
-	void processImage(const Lyli::Image::RawImage &image, const Lyli::Image::Metadata &metadata);
+	void addGrid(const PointGrid &pointgrid, const Lyli::Image::Metadata &metadata);
 
 	/**
 	 * Finish the calibration.

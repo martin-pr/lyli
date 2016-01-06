@@ -31,6 +31,9 @@
 #include <tbb/parallel_for_each.h>
 
 #include <calibration/calibrator.h>
+#include <calibration/fftpreprocessor.h>
+#include <calibration/lensdetector.h>
+#include <calibration/pointgrid.h>
 #include <image/metadata.h>
 #include <image/rawimage.h>
 
@@ -74,7 +77,8 @@ void calibrate(const std::string &path) {
 
 	// add images to the calibrator
 	Lyli::Calibration::Calibrator calibrator;
-	tbb::parallel_for_each(files, [&calibrator](const auto &filebase){
+	Lyli::Calibration::LensDetector lensDetector(std::make_unique<Lyli::Calibration::FFTPreprocessor>());
+	tbb::parallel_for_each(files, [&calibrator,&lensDetector](const auto &filebase){
 		std::cout << "reading image: " << filebase << std::endl;
 		std::stringstream ss;
 
@@ -91,13 +95,17 @@ void calibrate(const std::string &path) {
 		ss.clear();
 		Lyli::Image::Metadata metadata(finmeta);
 
-		// add the image to calibrator
-		std::cout << "calibrating image..." << std::endl;
+		// detect the lenses
+		std::cout << "processing image..." << std::endl;
 		Lyli::Image::RawImage rawimg(fin, 3280, 3280);
-		calibrator.processImage(rawimg, metadata);
+		Lyli::Calibration::PointGrid pointGrid = lensDetector.detect(rawimg.getData());
+
+		// add grid with the lenses to the calibrator
+		calibrator.addGrid(pointGrid, metadata);
 	});
 
 	// CALIBRATE!
+	std::cout << "calibrating images..." << std::endl;
 	auto calibrationResult = calibrator.calibrate();
 
 	// sort the results

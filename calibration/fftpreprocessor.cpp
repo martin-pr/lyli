@@ -36,7 +36,9 @@ constexpr int HIGHPASS_CUTOFF_2 = 100;
 namespace Lyli {
 namespace Calibration {
 
-void FFTPreprocessor::preprocess(const cv::Mat& gray, cv::Mat& outMask) {
+cv::Mat FFTPreprocessor::preprocess(const cv::Mat &gray) {
+	cv::Mat outMask;
+
 	// create an matrix that that has two channels - one for real part and one imaginary part of DFT
 	// note that I don't use the optimal size for DFT, as I was not able to make the lagorithm
 	// work well when that was used
@@ -79,6 +81,8 @@ void FFTPreprocessor::preprocess(const cv::Mat& gray, cv::Mat& outMask) {
 	cv::Point anchor(1, 1);
 	cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), anchor);
 	cv::morphologyEx(outMask, outMask, cv::MORPH_OPEN, kernel, anchor, 1, cv::BORDER_CONSTANT);
+
+	return outMask;
 }
 
 }

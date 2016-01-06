@@ -15,26 +15,49 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LYLI_CALIBRATION_FFT_PREPROCESSOR_H_
-#define LYLI_CALIBRATION_FFT_PREPROCESSOR_H_
+#ifndef LYLI_CALIBRATION_LENSDETECTORIFACE_H_
+#define LYLI_CALIBRATION_LENSDETECTORIFACE_H_
 
-#include <calibration/lensdetector.h>
+#include <cstdint>
+#include <memory>
+
+namespace cv {
+class Mat;
+}
 
 namespace Lyli {
 namespace Calibration {
 
+class PointGrid;
+
 /**
- * Preprocessor using discrete Fourier transform.
+ * Interface for the lens detection
  */
-class FFTPreprocessor : public PreprocessorInterface {
+class LensDetectorInterface {
 public:
-	// PreprocessorInterface
-	cv::Mat preprocess(const cv::Mat &gray) override;
+	/**
+	 * A default constructor.
+	 */
+	LensDetectorInterface() = default;
+	/**
+	 * A destructor
+	 */
+	virtual ~LensDetectorInterface() = default;
+
+	/**
+	 * Detect lens centroids and put them in the line map.
+	 *
+	 * @param image image to process
+	 * @return pointgrid with lens centroids
+	 */
+	virtual PointGrid detect(const cv::Mat& image) = 0;
+
+	// avoid copying
+	LensDetectorInterface(const LensDetectorInterface&) = delete;
+	LensDetectorInterface& operator=(const LensDetectorInterface&) = delete;
 };
 
 }
 }
 
 #endif
-
-

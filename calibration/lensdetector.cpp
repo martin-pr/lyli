@@ -236,7 +236,19 @@ cv::Point2f refineCentroid(const cv::Mat &image, cv::Point2f start) {
 namespace Lyli {
 namespace Calibration {
 
-PointGrid LensDetector::detect(const cv::Mat& gray, cv::Mat& mask) {
+LensDetector::LensDetector(std::unique_ptr<PreprocessorInterface> preprocessor_) : preprocessor(std::move(preprocessor_)) {
+
+}
+
+PointGrid LensDetector::detect(const cv::Mat& image) {
+	// convert to gray
+	cv::Mat gray;
+	cv::cvtColor(image, gray, CV_RGB2GRAY);
+	gray.convertTo(gray, CV_8U, 1.0/256.0);
+
+	// compute the mask using the preprocessor
+	cv::Mat mask = preprocessor->preprocess(gray);
+
 	// transpose the greyMat image, as its easier to scan row by row rather than by column
 	// while row scanning on original is not problem for finding centroids, line detection
 	// needs to sweep orthogonaly to lines

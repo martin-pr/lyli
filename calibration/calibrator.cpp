@@ -44,6 +44,8 @@
 #include <tbb/parallel_for_each.h>
 #include <tbb/spin_mutex.h>
 
+#include <image/metadata.h>
+
 // BEGIN DEBUG
 #include <sstream>
 #include <opencv/highgui.h>
@@ -179,30 +181,6 @@ Lyli::Calibration::CalibrationData calibrateCluster(const PointGridList &gridLis
 namespace Lyli {
 namespace Calibration {
 
-PreprocessorInterface::PreprocessorInterface() {
-
-}
-
-PreprocessorInterface::~PreprocessorInterface() {
-
-}
-
-LensDetectorInterface::LensDetectorInterface() {
-
-}
-
-LensDetectorInterface::~LensDetectorInterface() {
-
-}
-
-LensFilterInterface::LensFilterInterface() {
-
-}
-
-LensFilterInterface::~LensFilterInterface() {
-
-}
-
 Calibrator::LensConfiguration::LensConfiguration(int zoom, int focus) : zoomStep(zoom), focusStep(focus) {
 
 }
@@ -239,21 +217,7 @@ Calibrator::~Calibrator() {
 
 }
 
-void Calibrator::processImage(const Lyli::Image::RawImage &image, const Lyli::Image::Metadata &metadata) {
-	cv::Mat dst, greyMat;
-
-	// convert to gray
-	cv::cvtColor(image.getData(), greyMat, CV_RGB2GRAY);
-	greyMat.convertTo(greyMat, CV_8U, 1.0/256.0);
-
-	// preprocess the image - create a mask for the microlens array
-	FFTPreprocessor preprocessor;
-	preprocessor.preprocess(greyMat, dst);
-
-	// construct line grid
-	LensDetector lensDetector;
-	PointGrid pointGrid = lensDetector.detect(greyMat, dst);
-
+void Calibrator::addGrid(const PointGrid &pointGrid, const Lyli::Image::Metadata &metadata) {
 	// thread safe data access
 	tbb::spin_mutex::scoped_lock lock(pimpl->dataAccessMutex);
 

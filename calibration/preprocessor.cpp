@@ -34,7 +34,8 @@ std::uint8_t computeEdgeThreshold(const cv::Mat& edges) {
 	return cv::mean(edges)[0];
 }
 
-void Preprocessor::preprocess(const cv::Mat& gray, cv::Mat& outMask) {
+cv::Mat Preprocessor::preprocess(const cv::Mat& gray) {
+	cv::Mat outMask;
 	cv::Mat tmp;
 
 	// find edges and apply threshold
@@ -56,6 +57,8 @@ void Preprocessor::preprocess(const cv::Mat& gray, cv::Mat& outMask) {
 	cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), anchor);
 	cv::erode(outMask, tmp, element, anchor, 2);
 	cv::dilate(tmp, outMask, element, anchor, 1);
+
+	return outMask;
 }
 
 }
