@@ -246,6 +246,13 @@ PointGrid LensDetector::detect(const cv::Mat& image) {
 	cv::cvtColor(image, gray, CV_RGB2GRAY);
 	gray.convertTo(gray, CV_8U, 1.0/256.0);
 
+	// check whether the image is usefull at all
+	std::uint8_t mean = cv::mean(gray(cv::Rect(1620, 1620, 40, 40)))[0];
+	if(mean < 16 || mean > 240) {
+		// skip flat image
+		return PointGrid();
+	}
+
 	// compute the mask using the preprocessor
 	cv::Mat mask = preprocessor->preprocess(gray);
 

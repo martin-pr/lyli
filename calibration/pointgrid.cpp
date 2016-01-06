@@ -299,6 +299,10 @@ void PointGrid::finalize() {
 	}
 }
 
+bool PointGrid::isEmpty() const {
+	return linesHorizontal.empty() && linesVertical.empty();
+}
+
 const PointGrid::LineList& PointGrid::getHorizontalLines() const {
 	return linesHorizontal;
 }

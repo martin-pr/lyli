@@ -99,6 +99,9 @@ void calibrate(const std::string &path) {
 		std::cout << "processing image..." << std::endl;
 
 		Lyli::Calibration::PointGrid pointGrid = lensDetector.detect(rawimg.getData());
+		if (pointGrid.isEmpty()) {
+			std::cout << "skipping flat image: " << filebase << std::endl;
+		}
 
 		// add grid with the lenses to the calibrator
 		calibrator.addGrid(pointGrid, metadata);

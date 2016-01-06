@@ -126,6 +126,11 @@ public:
 	void finalize();
 
 	/**
+	 * Test whether the grid contains any lines.
+	 */
+	bool isEmpty() const;
+
+	/**
 	 * Get the horizontal lines
 	 */
 	const LineList& getHorizontalLines() const;
