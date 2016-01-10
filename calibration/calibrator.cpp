@@ -143,12 +143,12 @@ Lyli::Calibration::CalibrationData calibrateCluster(const PointGridList &gridLis
 				objectPoints.back().push_back(cv::Point3f(point->getPosition().x, point->getPosition().y, 0.0));
 				// the image points are found by looking up the lines on whose intersection the point lies
 				// and then finding the corresponding lines in the target image and computing their instersection
-				int srcIndexY = point->getHorizontalLineIndex();
-				int srcIndexX = point->getVerticalLineIndex();
-				auto idxy = mappers[index].mapHorizontal(srcIndexY);
-				auto idxx = mappers[index].mapVertical(srcIndexX);
-				auto y = target.getHorizontalLines()[idxy].position;
-				auto x = target.getVerticalLines()[idxx].position;
+				int srcIndexX = point->getHorizontalLineIndex();
+				int srcIndexY = point->getVerticalLineIndex();
+				auto idxx = mappers[index].mapHorizontal(srcIndexX);
+				auto idxy = mappers[index].mapVertical(srcIndexY);
+				auto x = target.getHorizontalLines()[idxx].position;
+				auto y = target.getVerticalLines()[idxy].position;
 				imagePoints.back().push_back(cv::Point2f(x, y));
 			}
 		}
