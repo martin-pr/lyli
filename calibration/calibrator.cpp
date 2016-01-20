@@ -41,6 +41,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include <tbb/combinable.h>
 #include <tbb/parallel_for_each.h>
 #include <tbb/spin_mutex.h>
 
@@ -118,62 +119,34 @@ cv::Mat estimateCameraMatrix(const Lyli::Image::Metadata::Devices::Lens &lens) {
 	return cameraMatrix;
 }
 
-/**
- * Calibrate a single cluster
- * @param gridList list of all available point grids
- * @param cluster list with indices to the gridList selecting the images to process
- * @param target desired target grid
- * @param mappers mappers that maps line indices from the gridList to lines in target
- */
-Lyli::Calibration::CalibrationData calibrateCluster(const PointGridList &gridList, const Cluster &cluster,
-                                                    const Lyli::Calibration::LineGrid &target, const std::vector<Lyli::Calibration::GridMapper> &mappers,
-                                                    const cv::Mat &cameraMatrixEstimate) {
+double calibrateRotation(const PointGridList &gridList) {
+	tbb::combinable<double> sum(0);
+	tbb::parallel_for_each(
+		gridList,
+		[&](const auto &grid) {
+			// compute rotation of each line
+			double angleSum = 0.0;
+			for (const auto &line : grid.getHorizontalLines()) {
+				// construct a vector of line points
+				std::vector<cv::Point2f> linePoints;
+				linePoints.reserve(line.line.size());
+				for (const auto &point : line.line) {
+					linePoints.push_back(point->getPosition());
+				}
 
-	// use the opencv lens calibration
-	// the object points (source, in 3D)
-	std::vector<std::vector<cv::Point3f>> objectPoints;
-	// the image points (destination, in 2D)
-	std::vector<std::vector<cv::Point2f>> imagePoints;
-	for (const auto &index : cluster) {
-		objectPoints.push_back(std::vector<cv::Point3f>());
-		imagePoints.push_back(std::vector<cv::Point2f>());
-		for (const auto &line : gridList[index].getHorizontalLines()) {
-			for (const auto &point : line.line) {
-				// the object points are taken directly from grid list
-				objectPoints.back().push_back(cv::Point3f(point->getPosition().x, point->getPosition().y, 0.0));
-				// the image points are found by looking up the lines on whose intersection the point lies
-				// and then finding the corresponding lines in the target image and computing their instersection
-				int srcIndexX = point->getHorizontalLineIndex();
-				int srcIndexY = point->getVerticalLineIndex();
-				auto idxx = mappers[index].mapHorizontal(srcIndexX);
-				auto idxy = mappers[index].mapVertical(srcIndexY);
-				auto x = target.getHorizontalLines()[idxx].position;
-				auto y = target.getVerticalLines()[idxy].position;
-				imagePoints.back().push_back(cv::Point2f(x, y));
+				// fit line to points
+				cv::Vec4f lineParams;
+				cv::fitLine(linePoints, lineParams, CV_DIST_L2, 0, 0.01, 0.01);
+
+				cv::Vec2f optimalDir(0.0, 1.0);
+				cv::Vec2f lineDir(lineParams[0], lineParams[1]);
+				angleSum += std::cosh(optimalDir.dot(lineDir));
 			}
+			sum.local() += angleSum / grid.getHorizontalLines().size();
 		}
-	}
-	// remaining parameters
-	cv::Mat cameraMatrix = cameraMatrixEstimate.clone();
-	cv::Mat distCoeffs = cv::Mat::zeros(8, 1, CV_64F);
-	std::vector<cv::Mat> rvecs, tvecs;
-	std::vector<float> reprojErrs;
+	);
 
-	// run the calibration
-	cv::calibrateCamera(objectPoints, imagePoints, cv::Size(IMAGE_SIZE, IMAGE_SIZE), cameraMatrix, distCoeffs, rvecs, tvecs, CV_CALIB_USE_INTRINSIC_GUESS);
-
-	// get the 2D affine transform
-	cv::Mat rotation3D;
-	cv::Rodrigues(rvecs[0], rotation3D); // get 3D rotation
-	cv::Mat rotation = cv::Mat::eye(3, 3, CV_64F);
-	cv::Mat editRot = rotation(cv::Range(0, 2), cv::Range(0, 2));
-	rotation3D(cv::Range(0, 2), cv::Range(0, 2)).copyTo(editRot); // we we need 2D, so we set z = 0 => top left submatrix suffice
-
-	cv::Mat translation = cv::Mat::eye(3, 3, CV_64F);
-	cv::Mat editTransl = translation.col(2).rowRange(0, 2);
-	tvecs[0].rowRange(0, 2).copyTo(editTransl);
-
-	return Lyli::Calibration::CalibrationData(cameraMatrix, distCoeffs, translation, rotation);
+	return sum.combine(std::plus<double>()) / gridList.size();
 }
 
 }
@@ -252,19 +225,18 @@ std::vector<Calibrator::CalibrationResult> Calibrator::calibrate() {
 	std::vector<CalibrationResult> result;
 	result.reserve(pimpl->clusterMap.size());
 
-	tbb::spin_mutex resultMutex;
-	tbb::parallel_for_each(pimpl->clusterMap, [&](const auto &cluster) {
-		// use only clusters that have more than one image for calibration to avoid stability issues
-		if(cluster.second.size() > 1) {
-			cv::Mat cameraMatrix = estimateCameraMatrix(cluster.first);
-			LensConfiguration lensConfig = LensConfiguration(cluster.first.getZoomstep(), cluster.first.getFocusstep());
-			CalibrationData calibData = calibrateCluster(pimpl->pointGridList, cluster.second, target.first, target.second, cameraMatrix);
+	// first determine the rotation
+	double rotation = calibrateRotation(pimpl->pointGridList);
 
-			tbb::spin_mutex::scoped_lock resultLock(resultMutex);
-			result.push_back(std::make_pair(lensConfig, calibData));
-			resultLock.release();
-		}
-	});
+	// store the results
+	for (const auto& cluster : pimpl->clusterMap) {
+		cv::Mat cameraMatrix = estimateCameraMatrix(cluster.first);
+		cv::Mat distCoeffs = cv::Mat::zeros(8, 1, CV_64F);
+		cv::Mat translation = cv::Mat::eye(3, 3, CV_64F);
+		CalibrationData calibData(cameraMatrix, distCoeffs, translation, rotation);
+
+		result.push_back(std::make_pair(LensConfiguration(cluster.first.getZoomstep(), cluster.first.getFocusstep()), calibData));
+	}
 	return result;
 }
 

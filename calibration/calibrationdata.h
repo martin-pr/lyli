@@ -32,7 +32,7 @@ namespace Calibration {
 class CalibrationData {
 public:
 	CalibrationData();
-	CalibrationData(const cv::Mat &cameraMatrix, const cv::Mat &distCoeffs, const cv::Mat &translation, const cv::Mat &rotation);
+	CalibrationData(const cv::Mat &cameraMatrix, const cv::Mat &distCoeffs, const cv::Mat &translation, double rotation);
 	~CalibrationData();
 
 	CalibrationData(const CalibrationData &other);
@@ -43,7 +43,7 @@ public:
 	cv::Mat& getCameraMatrix() const;
 	cv::Mat& getDistCoeffs() const;
 	cv::Mat& getTranslation() const;
-	cv::Mat& getRotation() const;
+	double getRotation() const;
 
 private:
 	class Impl;

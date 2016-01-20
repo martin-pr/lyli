@@ -133,10 +133,7 @@ void calibrate(const std::string &path) {
 		<< "tx,"
 		<< "ty,"
 		// rotation
-		<< "r00,"
-		<< "r10,"
-		<< "r01,"
-		<< "r11,"
+		<< "rotation,"
 		// camera matrix
 		<< "fx,"
 		<< "fy,"
@@ -157,10 +154,7 @@ void calibrate(const std::string &path) {
 			<< res.second.getTranslation().at<double>(0,2) << "," // tx
 			<< res.second.getTranslation().at<double>(1,2) << "," // ty
 			// rotation
-			<< res.second.getRotation().at<double>(0,0) << "," // r00
-			<< res.second.getRotation().at<double>(0,1) << "," // r10
-			<< res.second.getRotation().at<double>(1,0) << "," // r01
-			<< res.second.getRotation().at<double>(1,1) << "," // r11
+			<< res.second.getRotation() << "," // rotation
 			// camera matrix
 			<< res.second.getCameraMatrix().at<double>(0,0) << "," // fx
 			<< res.second.getCameraMatrix().at<double>(1,1) << "," // fy
