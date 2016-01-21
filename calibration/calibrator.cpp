@@ -123,7 +123,7 @@ double calibrateRotation(const PointGridList &gridList) {
 	tbb::combinable<double> sum(0);
 	tbb::parallel_for_each(
 		gridList,
-		[&](const auto &grid) {
+		[&sum](const auto &grid) {
 			// compute rotation of each line
 			double angleSum = 0.0;
 			for (const auto &line : grid.getHorizontalLines()) {
