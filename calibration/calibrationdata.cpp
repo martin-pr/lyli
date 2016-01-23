@@ -25,16 +25,16 @@ namespace Calibration {
 
 class CalibrationData::Impl {
 public:
-	Impl(const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, const cv::Mat& translation, double rotation) {
+	Impl(const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, const cv::Vec2f& translation, double rotation) {
 		cameraMatrix.copyTo(m_cameraMatrix);
 		distCoeffs.copyTo(m_distCoeffs);
-		translation.copyTo(m_translation);
+		m_translation = translation;
 		m_rotation = rotation;
 	}
 
 	cv::Mat m_cameraMatrix;
 	cv::Mat m_distCoeffs;
-	cv::Mat m_translation;
+	cv::Vec2f m_translation;
 	double m_rotation;
 };
 
@@ -42,7 +42,7 @@ CalibrationData::CalibrationData() {
 
 }
 
-CalibrationData::CalibrationData(const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, const cv::Mat& translation, double rotation) :
+CalibrationData::CalibrationData(const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, const cv::Vec2f& translation, double rotation) :
 	pimpl(new Impl(cameraMatrix, distCoeffs, translation, rotation)) {
 
 }
@@ -85,7 +85,7 @@ cv::Mat& CalibrationData::getDistCoeffs() const {
 	return pimpl->m_distCoeffs;
 }
 
-cv::Mat& CalibrationData::getTranslation() const {
+cv::Vec2f& CalibrationData::getTranslation() const {
 	return pimpl->m_translation;
 }
 

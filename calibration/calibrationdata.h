@@ -21,6 +21,10 @@
 
 namespace cv {
 	class Mat;
+
+	template < typename _Tp, int cn>
+	class Vec;
+	typedef Vec<float, 2> Vec2f;
 }
 
 namespace Lyli {
@@ -32,7 +36,7 @@ namespace Calibration {
 class CalibrationData {
 public:
 	CalibrationData();
-	CalibrationData(const cv::Mat &cameraMatrix, const cv::Mat &distCoeffs, const cv::Mat &translation, double rotation);
+	CalibrationData(const cv::Mat &cameraMatrix, const cv::Mat &distCoeffs, const cv::Vec2f &translation, double rotation);
 	~CalibrationData();
 
 	CalibrationData(const CalibrationData &other);
@@ -42,7 +46,7 @@ public:
 
 	cv::Mat& getCameraMatrix() const;
 	cv::Mat& getDistCoeffs() const;
-	cv::Mat& getTranslation() const;
+	cv::Vec2f& getTranslation() const;
 	double getRotation() const;
 
 private:

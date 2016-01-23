@@ -119,6 +119,55 @@ cv::Mat estimateCameraMatrix(const Lyli::Image::Metadata::Devices::Lens &lens) {
 	return cameraMatrix;
 }
 
+/**
+ * Find line parameters for line that best fits a line of points.
+ *
+ * \param line line formed by a set of points
+ * \return (vx, vy, x0, y0), where (vx, vy) is a normalized vector collinear to the line and (x0, y0) is a point on the line.
+ */
+cv::Vec4f findLineParams(const Lyli::Calibration::PointGrid::Line& line) {
+	// construct a vector of line points
+	std::vector<cv::Point2f> linePoints;
+	linePoints.reserve(line.line.size());
+	for (const auto &point : line.line) {
+		linePoints.push_back(point->getPosition());
+	}
+
+	// fit line to points
+	cv::Vec4f lineParams;
+	cv::fitLine(linePoints, lineParams, CV_DIST_L2, 0, 0.01, 0.01);
+
+	return lineParams;
+}
+
+/**
+ * Rotate line in general form by a given angle
+ *
+ * \see http://stackoverflow.com/questions/27442437/rotate-a-line-by-a-given-angle
+ *
+ * \param line line to rotate
+ * \param angle rotation angle
+ * \return rotated line
+ */
+cv::Vec3f rotateGeneralLine(cv::Vec3f line, double angle) {
+	double theta = std::atan2(line[1], line[0]);
+	double p = -line[2]/std::sqrt(line[0]*line[0] + line[1]*line[1]);
+	return cv::Vec3f(std::cos(theta + angle), std::sin(theta + angle), -p);
+}
+
+/**
+ * Convert the openCV parametric line form to the general form.
+ *
+ * \param parametric parametric form of line as (vx, vy, x0, y0)
+ * \return coefficients (a,b,c) of the general form ax+by+c=0
+ */
+cv::Vec3f parametricToGeneral(cv::Vec4f parametric) {
+	// the general form is computed as
+	//   vy*x - vx*y + (y0*vx - x0*vy) = 0
+	auto d = parametric[3]*parametric[0] - parametric[2]*parametric[1];
+	return cv::Vec3f(parametric[1], -parametric[0], d);
+}
+
 double calibrateRotation(const PointGridList &gridList) {
 	tbb::combinable<double> sum(0);
 	tbb::parallel_for_each(
@@ -127,16 +176,7 @@ double calibrateRotation(const PointGridList &gridList) {
 			// compute rotation of each line
 			double angleSum = 0.0;
 			for (const auto &line : grid.getHorizontalLines()) {
-				// construct a vector of line points
-				std::vector<cv::Point2f> linePoints;
-				linePoints.reserve(line.line.size());
-				for (const auto &point : line.line) {
-					linePoints.push_back(point->getPosition());
-				}
-
-				// fit line to points
-				cv::Vec4f lineParams;
-				cv::fitLine(linePoints, lineParams, CV_DIST_L2, 0, 0.01, 0.01);
+				cv::Vec4f lineParams(findLineParams(line));
 
 				cv::Vec2f optimalDir(0.0, 1.0);
 				cv::Vec2f lineDir(lineParams[0], lineParams[1]);
@@ -147,6 +187,67 @@ double calibrateRotation(const PointGridList &gridList) {
 	);
 
 	return sum.combine(std::plus<double>()) / gridList.size();
+}
+
+/**
+ * \param direction a unit direction vector corresponding to the general tranlation direction we're computing
+ *        Eg. if we are computing vertical translation (ie. translation in the x-direction due to swapped x andy)
+ *        the direction should be (1, 0)
+ * \param angle the rotation of the image that is applied prior the computation
+ */
+double findTranslation(const Lyli::Calibration::PointGrid::LineList &lines,
+                       cv::Vec2f direction, double angle,
+                       const Lyli::Calibration::LineGrid &target, const Lyli::Calibration::GridMapper &mapper) {
+	double distanceSum = 0.0;
+	for (const auto &line : lines) {
+		// fit a line to points and rotate it by the given angle
+		cv::Vec4f parametric(findLineParams(line));
+		cv::Vec3f general(parametricToGeneral(parametric));
+		cv::Vec3f lineParams(rotateGeneralLine(general, angle));
+
+		// find the corresponding line in target grid
+		Lyli::Calibration::LineGrid::Line targetLine;
+		if(direction.dot(cv::Vec2f(1, 0)) > 0.5) {
+			targetLine = target.getHorizontalLines()[mapper.mapHorizontal(line.line.front()->getHorizontalLineIndex())];
+		}
+		else {
+			targetLine = target.getVerticalLines()[mapper.mapVertical(line.line.front()->getVerticalLineIndex())];
+		}
+
+		// find the general form of the target line, where:
+		//   the normal=direction, and the translation corresponds to the line position
+		cv::Vec3f targetParams(direction[0], direction[1], -targetLine.position);
+
+		// find the general form of the intersection line that is orthogonal to the target line
+		// and which goes through the middle of the image
+		cv::Vec3f intersectLineParams(direction[1], -direction[0], -IMAGE_SIZE/2);
+
+		// find the intersection points between the intersection line and other lines
+		// we use the homogenous coordinates and duality for this
+		cv::Vec3f point1(lineParams.cross(intersectLineParams));
+		cv::Vec3f point2(targetParams.cross(intersectLineParams));
+
+		// find the required translation as the distance between the two points
+		// note that point1 and point2 are still in homogenous coordinates
+		cv::Vec2f point1E2(point1[0]/point1[2], point1[1]/point1[2]);
+		cv::Vec2f point2E2(point2[0]/point2[2], point2[1]/point2[2]);
+		distanceSum += cv::norm(point1E2 - point2E2);
+	}
+	return distanceSum / lines.size();
+}
+
+cv::Vec2f calibrateTranslation(const PointGridList &gridList, double angle,
+                               const Lyli::Calibration::LineGrid &target, const std::vector<Lyli::Calibration::GridMapper> &mappers) {
+	double verticalSum = 0;
+	double horizontalSum = 0;
+	for (std::size_t i = 0; i < gridList.size(); ++i) {
+		verticalSum +=  findTranslation(gridList[i].getHorizontalLines(), cv::Vec2f(1, 0), -angle, target, mappers[i]);
+		horizontalSum +=  findTranslation(gridList[i].getVerticalLines(), cv::Vec2f(0, 1), -angle, target, mappers[i]);
+	}
+	float vertical = verticalSum / gridList.size();
+	float horizontal = horizontalSum / gridList.size();
+
+	return {vertical, horizontal};
 }
 
 }
@@ -228,11 +329,13 @@ std::vector<Calibrator::CalibrationResult> Calibrator::calibrate() {
 	// first determine the rotation
 	double rotation = calibrateRotation(pimpl->pointGridList);
 
+	// next determine translation
+	cv::Vec2f translation = calibrateTranslation(pimpl->pointGridList, -rotation, target.first, target.second);
+
 	// store the results
 	for (const auto& cluster : pimpl->clusterMap) {
 		cv::Mat cameraMatrix = estimateCameraMatrix(cluster.first);
 		cv::Mat distCoeffs = cv::Mat::zeros(8, 1, CV_64F);
-		cv::Mat translation = cv::Mat::eye(3, 3, CV_64F);
 		CalibrationData calibData(cameraMatrix, distCoeffs, translation, rotation);
 
 		result.push_back(std::make_pair(LensConfiguration(cluster.first.getZoomstep(), cluster.first.getFocusstep()), calibData));

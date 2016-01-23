@@ -151,8 +151,8 @@ void calibrate(const std::string &path) {
 		ofs << res.first.getZoomStep() << ","
 			<< res.first.getFocusStep() << ","
 			// translation
-			<< res.second.getTranslation().at<double>(0,2) << "," // tx
-			<< res.second.getTranslation().at<double>(1,2) << "," // ty
+			<< res.second.getTranslation()[0] << "," // tx
+			<< res.second.getTranslation()[1] << "," // ty
 			// rotation
 			<< res.second.getRotation() << "," // rotation
 			// camera matrix
