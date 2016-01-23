@@ -140,7 +140,7 @@ double calibrateRotation(const PointGridList &gridList) {
 
 				cv::Vec2f optimalDir(0.0, 1.0);
 				cv::Vec2f lineDir(lineParams[0], lineParams[1]);
-				angleSum += std::cosh(optimalDir.dot(lineDir));
+				angleSum += std::acos(optimalDir.dot(lineDir));
 			}
 			sum.local() += angleSum / grid.getHorizontalLines().size();
 		}
