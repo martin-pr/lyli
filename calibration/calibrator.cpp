@@ -193,7 +193,7 @@ double calibrateRotation(const PointGridList &gridList) {
 
 /**
  * \param direction a unit direction vector corresponding to the general tranlation direction we're computing
- *        Eg. if we are computing vertical translation (ie. translation in the x-direction due to swapped x andy)
+ *        Eg. if we are computing vertical translation (ie. translation in the x-direction due to swapped x and y)
  *        the direction should be (1, 0)
  * \param angle the rotation of the image that is applied prior the computation
  */
