@@ -21,6 +21,7 @@
 #include "gridmapper.h"
 #include "gridmath.h"
 #include "linegrid.h"
+#include "mathutil.h"
 #include "pointgrid.h"
 
 #include <algorithm>
@@ -41,7 +42,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include <tbb/combinable.h>
+#include <tbb/concurrent_vector.h>
 #include <tbb/parallel_for_each.h>
 #include <tbb/spin_mutex.h>
 
@@ -135,7 +136,7 @@ cv::Vec4f findLineParams(const Lyli::Calibration::PointGrid::Line& line) {
 
 	// fit line to points
 	cv::Vec4f lineParams;
-	cv::fitLine(linePoints, lineParams, CV_DIST_L2, 0, 0.01, 0.01);
+	cv::fitLine(linePoints, lineParams, CV_DIST_L2, 0, 0.01, 0.001);
 
 	return lineParams;
 }
@@ -169,24 +170,25 @@ cv::Vec3f parametricToGeneral(cv::Vec4f parametric) {
 }
 
 double calibrateRotation(const PointGridList &gridList) {
-	tbb::combinable<double> sum(0);
+	tbb::concurrent_vector<double> angles;
+	angles.reserve(gridList.size());
 	tbb::parallel_for_each(
 		gridList,
-		[&sum](const auto &grid) {
+		[&angles](const auto &grid) {
 			// compute rotation of each line
 			double angleSum = 0.0;
-			for (const auto &line : grid.getHorizontalLines()) {
+			for (const auto &line : grid.getVerticalLines()) {
 				cv::Vec4f lineParams(findLineParams(line));
 
-				cv::Vec2f optimalDir(0.0, 1.0);
-				cv::Vec2f lineDir(lineParams[0], lineParams[1]);
+				cv::Vec2d optimalDir(1.0, 0.0);
+				cv::Vec2d lineDir(lineParams[0], lineParams[1]);
 				angleSum += std::acos(optimalDir.dot(lineDir));
 			}
-			sum.local() += angleSum / grid.getHorizontalLines().size();
+			angles.push_back(angleSum / grid.getVerticalLines().size());
 		}
 	);
 
-	return sum.combine(std::plus<double>()) / gridList.size();
+	return Lyli::Calibration::filteredAverage(angles, 2.0);
 }
 
 /**
