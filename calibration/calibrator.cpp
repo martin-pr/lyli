@@ -201,7 +201,8 @@ double calibrateRotation(const PointGridList &gridList) {
 double findTranslation(const Lyli::Calibration::PointGrid::LineList &lines,
                        cv::Vec2f direction, double angle,
                        const Lyli::Calibration::LineGrid &target, const Lyli::Calibration::GridMapper &mapper) {
-	double distanceSum = 0.0;
+	std::vector<double> distances;
+	distances.reserve(lines.size());
 	for (const auto &line : lines) {
 		// fit a line to points and rotate it by the given angle
 		cv::Vec4f parametric(findLineParams(line));
@@ -234,21 +235,23 @@ double findTranslation(const Lyli::Calibration::PointGrid::LineList &lines,
 		// note that point1 and point2 are still in homogenous coordinates
 		cv::Vec2f point1E2(point1[0]/point1[2], point1[1]/point1[2]);
 		cv::Vec2f point2E2(point2[0]/point2[2], point2[1]/point2[2]);
-		distanceSum += cv::norm(point1E2 - point2E2);
+		distances.push_back(cv::norm(point1E2 - point2E2));
 	}
-	return distanceSum / lines.size();
+	return Lyli::Calibration::filteredAverage(distances, 2.0);
 }
 
 cv::Vec2f calibrateTranslation(const PointGridList &gridList, double angle,
                                const Lyli::Calibration::LineGrid &target, const std::vector<Lyli::Calibration::GridMapper> &mappers) {
-	double verticalSum = 0;
-	double horizontalSum = 0;
+	std::vector<double> verticalDistances;
+	verticalDistances.reserve(gridList.size());
+	std::vector<double> horizontalDistances;
+	horizontalDistances.reserve(gridList.size());
 	for (std::size_t i = 0; i < gridList.size(); ++i) {
-		verticalSum +=  findTranslation(gridList[i].getHorizontalLines(), cv::Vec2f(1, 0), -angle, target, mappers[i]);
-		horizontalSum +=  findTranslation(gridList[i].getVerticalLines(), cv::Vec2f(0, 1), -angle, target, mappers[i]);
+		verticalDistances.push_back(findTranslation(gridList[i].getHorizontalLines(), cv::Vec2f(1, 0), -angle, target, mappers[i]));
+		horizontalDistances.push_back(findTranslation(gridList[i].getVerticalLines(), cv::Vec2f(0, 1), -angle, target, mappers[i]));
 	}
-	float vertical = verticalSum / gridList.size();
-	float horizontal = horizontalSum / gridList.size();
+	float vertical = Lyli::Calibration::filteredAverage(verticalDistances, 2.0);
+	float horizontal = Lyli::Calibration::filteredAverage(horizontalDistances, 2.0);
 
 	return {vertical, horizontal};
 }
