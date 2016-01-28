@@ -176,15 +176,16 @@ double calibrateRotation(const PointGridList &gridList) {
 		gridList,
 		[&angles](const auto &grid) {
 			// compute rotation of each line
-			double angleSum = 0.0;
+			std::vector<double> localAngles;
+			localAngles.reserve(grid.getVerticalLines().size());
 			for (const auto &line : grid.getVerticalLines()) {
 				cv::Vec4f lineParams(findLineParams(line));
 
 				cv::Vec2d optimalDir(1.0, 0.0);
 				cv::Vec2d lineDir(lineParams[0], lineParams[1]);
-				angleSum += std::acos(optimalDir.dot(lineDir));
+				localAngles.push_back(std::acos(optimalDir.dot(lineDir)));
 			}
-			angles.push_back(angleSum / grid.getVerticalLines().size());
+			angles.push_back(Lyli::Calibration::filteredAverage(localAngles, 2.0));
 		}
 	);
 
