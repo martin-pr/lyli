@@ -19,14 +19,8 @@
 #define LYLI_CALIBRATION_CALIBRATOR_H_
 
 #include <memory>
-#include <utility>
-#include <vector>
 
 #include <calibration/calibrationdata.h>
-
-namespace cv {
-	class Mat;
-}
 
 namespace Lyli {
 namespace Image {
@@ -45,18 +39,6 @@ class PointGrid;
  */
 class Calibrator {
 public:
-	class LensConfiguration {
-	public:
-		LensConfiguration(int zoom, int focus);
-		int getZoomStep() const;
-		int getFocusStep() const;
-	private:
-		int zoomStep;
-		int focusStep;
-	};
-
-	using CalibrationResult = std::pair<LensConfiguration, CalibrationData>;
-
 	Calibrator();
 	~Calibrator();
 
@@ -76,7 +58,7 @@ public:
 	 *
 	 * @return the calibration data
 	 */
-	std::vector<CalibrationResult> calibrate();
+	CalibrationData calibrate();
 
 	/**
 	 * Reset the calibrator state.

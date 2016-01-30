@@ -113,16 +113,6 @@ void calibrate(const std::string &path) {
 	auto calibrationResult = calibrator.calibrate();
 	std::cout << "DONE" << std::endl;
 
-	// sort the results
-	std::sort(calibrationResult.begin(), calibrationResult.end(),
-			  [](const auto &a, const auto &b) {
-				  if(a.first.getZoomStep() < b.first.getZoomStep())
-					  return true;
-				  else if (a.first.getZoomStep() == b.first.getZoomStep())
-					  return a.first.getFocusStep() < b.first.getFocusStep();
-				  return false;
-			});
-
 	// prepare the output of the results
 	std::ofstream ofs("XXX.csv", std::ofstream::out | std::ofstream::binary);
 
@@ -146,15 +136,15 @@ void calibrate(const std::string &path) {
 		<< "p2,"
 		<< "k3,"
 		<< std::endl;
-	// dtore the results
-	for (const auto& res : calibrationResult) {
+	// store the results
+	for (const auto& res : calibrationResult.getLens()) {
 		ofs << res.first.getZoomStep() << ","
 			<< res.first.getFocusStep() << ","
 			// translation
-			<< res.second.getTranslation()[0] << "," // tx
-			<< res.second.getTranslation()[1] << "," // ty
+			<< calibrationResult.getArray().getTranslation()[0] << "," // tx
+			<< calibrationResult.getArray().getTranslation()[1] << "," // ty
 			// rotation
-			<< res.second.getRotation() << "," // rotation
+			<< calibrationResult.getArray().getRotation() << "," // rotation
 			// camera matrix
 			<< res.second.getCameraMatrix().at<double>(0,0) << "," // fx
 			<< res.second.getCameraMatrix().at<double>(1,1) << "," // fy

@@ -38,7 +38,6 @@
 #include <utility>
 #include <vector>
 
-#include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -265,18 +264,6 @@ cv::Vec2f calibrateTranslation(const PointGridList &gridList, double angle,
 namespace Lyli {
 namespace Calibration {
 
-Calibrator::LensConfiguration::LensConfiguration(int zoom, int focus) : zoomStep(zoom), focusStep(focus) {
-
-}
-
-int Calibrator::LensConfiguration::getZoomStep() const {
-	return zoomStep;
-}
-
-int Calibrator::LensConfiguration::getFocusStep() const {
-	return focusStep;
-}
-
 class Calibrator::Impl {
 public:
 	PointGridList pointGridList;
@@ -314,7 +301,7 @@ void Calibrator::addGrid(const PointGrid &pointGrid, const Lyli::Image::Metadata
 	lock.release();
 }
 
-std::vector<Calibrator::CalibrationResult> Calibrator::calibrate() {
+CalibrationData Calibrator::calibrate() {
 	// create line grids for all point grids
 	std::vector<LineGrid> linegrids;
 	int i = 0;
@@ -333,24 +320,21 @@ std::vector<Calibrator::CalibrationResult> Calibrator::calibrate() {
 	drawLineGrid("target.png", target.first);
 	// END DEBUG*/
 
-	std::vector<CalibrationResult> result;
-	result.reserve(pimpl->clusterMap.size());
-
-	// first determine the rotation
+	// the lens array calibration
 	double rotation = calibrateRotation(pimpl->pointGridList);
-
-	// next determine translation
 	cv::Vec2f translation = calibrateTranslation(pimpl->pointGridList, -rotation, target.first, target.second);
+	ArrayParameters arrayCalib(target.first, translation, rotation);
 
-	// store the results
+	// the lens calibration depending on the zoom etc.
+	CalibrationData::LensCalibration lensCalib;
 	for (const auto& cluster : pimpl->clusterMap) {
 		cv::Mat cameraMatrix = estimateCameraMatrix(cluster.first);
 		cv::Mat distCoeffs = cv::Mat::zeros(8, 1, CV_64F);
-		CalibrationData calibData(cameraMatrix, distCoeffs, translation, rotation);
-
-		result.push_back(std::make_pair(LensConfiguration(cluster.first.getZoomstep(), cluster.first.getFocusstep()), calibData));
+		LensParameters lensParam(cameraMatrix, distCoeffs);
+		lensCalib.push_back(std::make_pair(LensConfiguration(cluster.first.getZoomstep(), cluster.first.getFocusstep()), lensParam));
 	}
-	return result;
+
+	return CalibrationData(arrayCalib, lensCalib);
 }
 
 }

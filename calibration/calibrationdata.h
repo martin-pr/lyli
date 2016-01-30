@@ -18,6 +18,8 @@
 #define LYLI_CALIBRATION_CALIBRATIONDATA_H_
 
 #include <memory>
+#include <utility>
+#include <vector>
 
 namespace cv {
 	class Mat;
@@ -30,24 +32,96 @@ namespace cv {
 namespace Lyli {
 namespace Calibration {
 
+class LineGrid;
+
+/**
+ * Calibration data for the lens array.
+ *
+ * The lens array parameters stay the same for all lens configuration.
+ */
+class ArrayParameters {
+public:
+	ArrayParameters();
+	ArrayParameters(const LineGrid& grid, const cv::Vec2f& translation, double rotation);
+	~ArrayParameters();
+
+	ArrayParameters(const ArrayParameters& other);
+	ArrayParameters& operator=(const ArrayParameters& other);
+	ArrayParameters(ArrayParameters&& other) noexcept;
+	ArrayParameters& operator=(ArrayParameters&& other) noexcept;
+
+	const LineGrid& getGrid() const;
+	const cv::Vec2f& getTranslation() const;
+	double getRotation() const;
+
+private:
+	class Impl;
+	std::unique_ptr<Impl> pimpl;
+};
+
+/**
+ * Calibration data for the camera lens.
+ *
+ * The camera parameters depend on a lens configuration.
+ */
+class LensParameters {
+public:
+	LensParameters();
+	LensParameters(const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs);
+	~LensParameters();
+
+	LensParameters(const LensParameters& other);
+	LensParameters& operator=(const LensParameters& other);
+	LensParameters(LensParameters&& other) noexcept;
+	LensParameters& operator=(LensParameters&& other) noexcept;
+
+	const cv::Mat& getCameraMatrix() const;
+	const cv::Mat& getDistCoeffs() const;
+private:
+	class Impl;
+	std::unique_ptr<Impl> pimpl;
+};
+
+/**
+ * A specific lens configuration
+ */
+class LensConfiguration {
+public:
+	LensConfiguration();
+	LensConfiguration(int zoom, int focus);
+	~LensConfiguration();
+
+	LensConfiguration(const LensConfiguration& other);
+	LensConfiguration& operator=(const LensConfiguration& other);
+	LensConfiguration(LensConfiguration&& other) noexcept;
+	LensConfiguration& operator=(LensConfiguration&& other) noexcept;
+
+	int getZoomStep() const;
+	int getFocusStep() const;
+private:
+	class Impl;
+	std::unique_ptr<Impl> pimpl;
+};
+
 /**
  * Holds all calibration data.
  */
 class CalibrationData {
 public:
+	using LensConfigPair = std::pair<LensConfiguration, LensParameters>;
+	using LensCalibration = std::vector<LensConfigPair>;
+
 	CalibrationData();
-	CalibrationData(const cv::Mat &cameraMatrix, const cv::Mat &distCoeffs, const cv::Vec2f &translation, double rotation);
+	CalibrationData(const ArrayParameters& array, const LensCalibration& lens);
 	~CalibrationData();
 
-	CalibrationData(const CalibrationData &other);
-	CalibrationData& operator=(const CalibrationData &other);
-	CalibrationData(CalibrationData &&other) noexcept;
-	CalibrationData& operator=(CalibrationData &&other) noexcept;
+	CalibrationData(const CalibrationData& other);
+	CalibrationData& operator=(const CalibrationData& other);
+	CalibrationData(CalibrationData&& other) noexcept;
+	CalibrationData& operator=(CalibrationData&& other) noexcept;
 
-	cv::Mat& getCameraMatrix() const;
-	cv::Mat& getDistCoeffs() const;
-	cv::Vec2f& getTranslation() const;
-	double getRotation() const;
+	const ArrayParameters& getArray() const;
+	const LensCalibration& getLens() const;
 
 private:
 	class Impl;
