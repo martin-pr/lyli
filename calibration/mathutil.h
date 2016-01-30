@@ -58,6 +58,13 @@ T filteredAverage(const Container<T, Alloc<T>>& container, double sigmaLimit){
 	return sum/count;
 }
 
+/**
+ * Signum function.
+ */
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
 }
 }
 

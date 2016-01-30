@@ -235,7 +235,11 @@ double findTranslation(const Lyli::Calibration::PointGrid::LineList &lines,
 		// note that point1 and point2 are still in homogenous coordinates
 		cv::Vec2f point1E2(point1[0]/point1[2], point1[1]/point1[2]);
 		cv::Vec2f point2E2(point2[0]/point2[2], point2[1]/point2[2]);
-		distances.push_back(cv::norm(point1E2 - point2E2));
+		cv::Vec2f dif(point1E2 - point2E2);
+		// the norm is always unsigned, meaning we have no directional information
+		// this provides correct sign describing the general direction of the translation
+		float sign = Lyli::Calibration::sgn(dif.dot(cv::Vec2f(1.0, 1.0)));
+		distances.push_back(sign * cv::norm(dif));
 	}
 	return Lyli::Calibration::filteredAverage(distances, 2.0);
 }
