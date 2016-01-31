@@ -26,14 +26,23 @@
 #include <string>
 #include <unistd.h>
 
+#include <tbb/parallel_for_each.h>
+
 #include <opencv2/opencv.hpp>
 
 #include <libusbpp/context.h>
 
+#include <json/value.h>
+#include <json/writer.h>
+
 #include <camera.h>
 #include <calibration/calibrator.h>
+#include <calibration/fftpreprocessor.h>
+#include <calibration/lensdetector.h>
+#include <calibration/pointgrid.h>
 #include <filesystem/filesystemaccess.h>
 #include <filesystem/photo.h>
+#include <image/metadata.h>
 #include <image/rawimage.h>
 
 void showHelp() {
@@ -149,7 +158,7 @@ void downloadCalib(Lyli::Camera *camera, const std::string &path) {
 	}
 }
 
-void calibrate(const std::string &path) {
+void calibrate(const std::string& path, const std::string& out) {
 	std::vector<std::string> files;
 
 	if (chdir(path.c_str()) != 0) {
@@ -177,31 +186,50 @@ void calibrate(const std::string &path) {
 	}
 	closedir(dir);
 
-	// sort the files (it's more user-friendly)
-	std::sort(files.begin(), files.end());
-
 	// calibrate
-	std::stringstream ss;
-	for (const auto &filebase : files) {
+	Lyli::Calibration::Calibrator calibrator;
+	Lyli::Calibration::LensDetector lensDetector(std::make_unique<Lyli::Calibration::FFTPreprocessor>());
+	tbb::parallel_for_each(files, [&calibrator,&lensDetector](const auto &filebase){
+		std::cout << filebase << " reading image..." << std::endl;
+		std::stringstream ss;
+
+		// read image
 		ss << filebase << ".RAW";
-		std::cout << "reading image: " << ss.str() << std::endl;
 		std::fstream fin(ss.str(), std::fstream::in | std::fstream::binary);
 		ss.str("");
 		ss.clear();
-
-		std::cout << "calibrating image..." << std::endl;
-
-		Lyli::Calibration::Calibrator calibrator;
 		Lyli::Image::RawImage rawimg(fin, 3280, 3280);
-		/*calibrator.addImage(rawimg.getData());
-		calibrator.calibrate();*/
 
-		ss << filebase << "-color.png";
-		std::cout << "writing calibration grid: " << ss.str() << std::endl;
-		cv::imwrite(ss.str(), rawimg.getData());
+		// read metadata
+		ss << filebase << ".TXT";
+		std::fstream finmeta(ss.str(), std::fstream::in | std::fstream::binary);
 		ss.str("");
 		ss.clear();
-	}
+		Lyli::Image::Metadata metadata(finmeta);
+		// detect the lenses
+		std::cout << filebase << " processing image..." << std::endl;
+
+		Lyli::Calibration::PointGrid pointGrid = lensDetector.detect(rawimg.getData());
+		if (pointGrid.isEmpty()) {
+			std::cout << filebase << " image is too flat, skipping" << std::endl;
+			return;
+		}
+
+		// add grid with the lenses to the calibrator
+		calibrator.addGrid(pointGrid, metadata);
+	});
+
+	// CALIBRATE!
+	std::cout << "calibrating images..." << std::endl;
+	Lyli::Calibration::CalibrationData calibrationResult = calibrator.calibrate();
+	std::cout << "DONE" << std::endl;
+
+	// store the results
+	Json::Value json = calibrationResult.serialize();
+	std::ofstream fin(out, std::fstream::out | std::fstream::trunc | std::fstream::binary);
+	Json::StyledWriter styledWriter;
+	fin << styledWriter.write(json);
+	fin.close();
 }
 
 void downloadFile(Lyli::Camera *camera, const std::string &path) {
@@ -257,7 +285,7 @@ int main(int argc, char *argv[]) {
 				downloadCalib(camera, optarg);
 				return 0;
 			case 'c':
-				calibrate(optarg);
+				calibrate(optarg, "calibration.json");
 				return 0;
 			case 'f':
 				downloadFile(camera, optarg);

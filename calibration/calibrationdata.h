@@ -29,6 +29,10 @@ namespace cv {
 	typedef Vec<float, 2> Vec2f;
 }
 
+namespace Json {
+	class Value;
+}
+
 namespace Lyli {
 namespace Calibration {
 
@@ -54,6 +58,11 @@ public:
 	const cv::Vec2f& getTranslation() const;
 	double getRotation() const;
 
+	/**
+	 * Serialize into a JSON object
+	 * \return JSON object representing the class
+	 */
+	Json::Value serialize() const;
 private:
 	class Impl;
 	std::unique_ptr<Impl> pimpl;
@@ -77,6 +86,12 @@ public:
 
 	const cv::Mat& getCameraMatrix() const;
 	const cv::Mat& getDistCoeffs() const;
+
+	/**
+	 * Serialize into a JSON object
+	 * \return JSON object representing the class
+	 */
+	Json::Value serialize() const;
 private:
 	class Impl;
 	std::unique_ptr<Impl> pimpl;
@@ -98,6 +113,12 @@ public:
 
 	int getZoomStep() const;
 	int getFocusStep() const;
+
+	/**
+	 * Serialize into a JSON object
+	 * \return JSON object representing the class
+	 */
+	Json::Value serialize() const;
 private:
 	class Impl;
 	std::unique_ptr<Impl> pimpl;
@@ -123,6 +144,11 @@ public:
 	const ArrayParameters& getArray() const;
 	const LensCalibration& getLens() const;
 
+	/**
+	 * Serialize into a JSON object
+	 * \return JSON object representing the class
+	 */
+	Json::Value serialize() const;
 private:
 	class Impl;
 	std::unique_ptr<Impl> pimpl;

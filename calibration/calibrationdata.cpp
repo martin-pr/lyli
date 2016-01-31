@@ -20,6 +20,9 @@
 #include <utility>
 
 #include "linegrid.h"
+#include "serialization.h"
+
+#include <json/value.h>
 
 #include <opencv2/core/core.hpp>
 
@@ -91,6 +94,13 @@ double ArrayParameters::getRotation() const {
 	return pimpl->m_rotation;
 }
 
+Json::Value ArrayParameters::serialize() const {
+	Json::Value root(Json::objectValue);
+	root["translation"] = ::Lyli::Calibration::serialize(pimpl->m_translation);
+	root["rotation"] = pimpl->m_rotation;
+	return root;
+}
+
 /*******************
  * LensParameters *
  *******************/
@@ -151,6 +161,13 @@ const cv::Mat& LensParameters::getDistCoeffs() const {
 	return pimpl->m_distCoeffs;
 }
 
+Json::Value LensParameters::serialize() const {
+	Json::Value root(Json::objectValue);
+	root["cameraMatrix"] = ::Lyli::Calibration::serialize(pimpl->m_cameraMatrix);
+	root["distCoeffs"] = ::Lyli::Calibration::serialize(pimpl->m_distCoeffs);
+	return root;
+}
+
 /********************
  * LensConfiguration *
  ********************/
@@ -209,6 +226,13 @@ int LensConfiguration::getZoomStep() const {
 
 int LensConfiguration::getFocusStep() const {
 	return pimpl->m_focus;
+}
+
+Json::Value LensConfiguration::serialize() const {
+	Json::Value root(Json::objectValue);
+	root["zoomStep"] = pimpl->m_zoom;
+	root["focusStep"] = pimpl->m_focus;
+	return root;
 }
 
 /*******************
@@ -275,6 +299,17 @@ const ArrayParameters& CalibrationData::getArray() const {
 
 const CalibrationData::LensCalibration& CalibrationData::getLens() const {
 	return pimpl->m_lens;
+}
+
+Json::Value CalibrationData::serialize() const {
+	Json::Value root(Json::objectValue);
+	root["array"] = pimpl->m_array.serialize();
+	root["lens"] = Json::Value(Json::arrayValue);
+	for (std::size_t i = 0; i < pimpl->m_lens.size(); ++i) {
+		root["lens"][static_cast<int>(i)]["configuration"] = pimpl->m_lens[i].first.serialize();
+		root["lens"][static_cast<int>(i)]["parameters"] = pimpl->m_lens[i].second.serialize();
+	}
+	return root;
 }
 
 }
