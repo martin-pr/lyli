@@ -27,11 +27,22 @@ namespace Calibration {
 
 /**
  * Serialize cv::Mat
+ * \param mat Matrix to serialize
+ * \return serialized value
  */
 Json::Value serialize(const cv::Mat& mat);
 
 /**
+ * Deserialize cv::Mat
+ * \param value JSON value to deserialize
+ * \param[out] mat reference to matrix where the value is deserialized
+ */
+void deserialize(const Json::Value& value, cv::Mat& mat);
+
+/**
  * Serialize cv::Vec*
+ * \param vec vector to serialize
+ * \return serialized value
  */
 template<typename T, int cn>
 Json::Value serialize(const cv::Vec<T, cn>& vec) {
@@ -40,6 +51,25 @@ Json::Value serialize(const cv::Vec<T, cn>& vec) {
 		root[i] = vec[i];
 	}
 	return root;
+}
+
+/**
+ * Deserialize cv::Vec*
+ * \param value JSON value from which the vector is deserialized
+ * \param[out] vec output vector
+ */
+template<int cn>
+void deserialize(const Json::Value& value, cv::Vec<float, cn>& vec) {
+	for (int i = 0; i < cn; ++i) {
+		vec[i] = value[i].asFloat();
+	}
+}
+
+template<int cn>
+void deserialize(const Json::Value& value, cv::Vec<double, cn>& vec) {
+	for (int i = 0; i < cn; ++i) {
+		vec[i] = value[i].asDouble();
+	}
 }
 
 }

@@ -40,5 +40,17 @@ Json::Value serialize(const cv::Mat& mat) {
 	return root;
 }
 
+void deserialize(const Json::Value& value, cv::Mat& mat) {
+	assert(value.isArray());
+	assert(!value.empty() && value[0].isArray());
+
+	mat = cv::Mat(value.size(), value[0].size(), CV_64F);
+	for (int i = 0; i < mat.rows; ++i) {
+		for (int j = 0; j < mat.cols; ++j) {
+			mat.at<double>(i, j) = value[i][j].asDouble();
+		}
+	}
+}
+
 }
 }

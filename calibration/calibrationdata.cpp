@@ -46,7 +46,7 @@ public:
 	double m_rotation;
 };
 
-ArrayParameters::ArrayParameters() {
+ArrayParameters::ArrayParameters() : pimpl(new Impl) {
 
 }
 
@@ -98,7 +98,14 @@ Json::Value ArrayParameters::serialize() const {
 	Json::Value root(Json::objectValue);
 	root["translation"] = ::Lyli::Calibration::serialize(pimpl->m_translation);
 	root["rotation"] = pimpl->m_rotation;
+	root["grid"] = pimpl->m_grid.serialize();
 	return root;
+}
+
+void ArrayParameters::deserialize(const Json::Value& value) {
+	::Lyli::Calibration::deserialize(value["translation"], pimpl->m_translation);
+	pimpl->m_rotation = value["rotation"].asDouble();
+	pimpl->m_grid.deserialize(value["grid"]);
 }
 
 /*******************
@@ -117,7 +124,7 @@ public:
 	cv::Mat m_distCoeffs;
 };
 
-LensParameters::LensParameters() {
+LensParameters::LensParameters() : pimpl(new Impl) {
 
 }
 
@@ -168,6 +175,11 @@ Json::Value LensParameters::serialize() const {
 	return root;
 }
 
+void LensParameters::deserialize(const Json::Value& value) {
+	::Lyli::Calibration::deserialize(value["cameraMatrix"], pimpl->m_cameraMatrix);
+	::Lyli::Calibration::deserialize(value["distCoeffs"], pimpl->m_distCoeffs);
+}
+
 /********************
  * LensConfiguration *
  ********************/
@@ -184,7 +196,7 @@ public:
 	int m_focus;
 };
 
-LensConfiguration::LensConfiguration() {
+LensConfiguration::LensConfiguration() : pimpl(new Impl) {
 
 }
 
@@ -235,11 +247,19 @@ Json::Value LensConfiguration::serialize() const {
 	return root;
 }
 
+void LensConfiguration::deserialize(const Json::Value& value) {
+	pimpl->m_zoom = value["zoomStep"].asDouble();
+	pimpl->m_focus = value["focusStep"].asDouble();
+}
+
 /*******************
  * CalibrationData *
  *******************/
 class CalibrationData::Impl {
 public:
+	Impl() {
+
+	}
 	Impl(const ArrayParameters& array, const LensCalibration& lens) : m_array(array), m_lens(lens) {
 		// sort the lens parameters
 		std::sort(m_lens.begin(), m_lens.end(),
@@ -256,7 +276,7 @@ public:
 	LensCalibration m_lens;
 };
 
-CalibrationData::CalibrationData() {
+CalibrationData::CalibrationData() : pimpl(new Impl) {
 
 }
 
@@ -310,6 +330,18 @@ Json::Value CalibrationData::serialize() const {
 		root["lens"][static_cast<int>(i)]["parameters"] = pimpl->m_lens[i].second.serialize();
 	}
 	return root;
+}
+
+void CalibrationData::deserialize(const Json::Value& value) {
+	pimpl->m_array.deserialize(value["array"]);
+	const Json::Value& lensRoot = value["lens"];
+	for (Json::Value::ArrayIndex i = 0, end = lensRoot.size(); i < end; ++i) {
+		LensConfiguration config;
+		config.deserialize(lensRoot[i]["configuration"]);
+		LensParameters array;
+		array.deserialize(lensRoot[i]["parameters"]);
+		pimpl->m_lens.push_back(std::make_pair(config, array));
+	}
 }
 
 }

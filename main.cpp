@@ -226,10 +226,10 @@ void calibrate(const std::string& path, const std::string& out) {
 
 	// store the results
 	Json::Value json = calibrationResult.serialize();
-	std::ofstream fin(out, std::fstream::out | std::fstream::trunc | std::fstream::binary);
-	Json::StyledWriter styledWriter;
-	fin << styledWriter.write(json);
-	fin.close();
+	std::ofstream fout(out, std::fstream::out | std::fstream::trunc | std::fstream::binary);
+	Json::StyledStreamWriter styledWriter;
+	styledWriter.write(fout, json);
+	fout.close();
 }
 
 void downloadFile(Lyli::Camera *camera, const std::string &path) {

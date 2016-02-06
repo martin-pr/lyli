@@ -63,6 +63,12 @@ public:
 	 * \return JSON object representing the class
 	 */
 	Json::Value serialize() const;
+	/**
+	 * Deserialize from a JSON object
+	 * \param value JSON object representing the class
+	 */
+	void deserialize(const Json::Value& value);
+
 private:
 	class Impl;
 	std::unique_ptr<Impl> pimpl;
@@ -92,6 +98,12 @@ public:
 	 * \return JSON object representing the class
 	 */
 	Json::Value serialize() const;
+	/**
+	 * Deserialize from a JSON object
+	 * \param value JSON object representing the class
+	 */
+	void deserialize(const Json::Value& value);
+
 private:
 	class Impl;
 	std::unique_ptr<Impl> pimpl;
@@ -119,6 +131,12 @@ public:
 	 * \return JSON object representing the class
 	 */
 	Json::Value serialize() const;
+	/**
+	 * Deserialize from a JSON object
+	 * \param value JSON object representing the class
+	 */
+	void deserialize(const Json::Value& value);
+
 private:
 	class Impl;
 	std::unique_ptr<Impl> pimpl;
@@ -149,6 +167,12 @@ public:
 	 * \return JSON object representing the class
 	 */
 	Json::Value serialize() const;
+	/**
+	 * Deserialize from a JSON object
+	 * \param value JSON object representing the class
+	 */
+	void deserialize(const Json::Value& value);
+
 private:
 	class Impl;
 	std::unique_ptr<Impl> pimpl;

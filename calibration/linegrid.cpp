@@ -17,6 +17,8 @@
 
 #include "linegrid.h"
 
+#include <json/value.h>
+
 #include "pointgrid.h"
 
 namespace Lyli {
@@ -28,6 +30,18 @@ LineGrid::Line::Line() : subgrid(SubGrid::SUBGRID_A), position(0.0f) {
 
 LineGrid::Line::Line(SubGrid sub, float pos) : subgrid(sub), position(pos) {
 
+}
+
+Json::Value LineGrid::Line::serialize() const {
+	Json::Value root(Json::objectValue);
+	root["subgrid"] = static_cast<int>(subgrid);
+	root["position"] = position;
+	return root;
+}
+
+void LineGrid::Line::deserialize(const Json::Value& value) {
+	subgrid = static_cast<SubGrid>(value["zoomStep"].asInt());
+	position = value["position"].asFloat();
 }
 
 LineGrid::LineGrid(const PointGrid &pointGrid) {
@@ -93,6 +107,35 @@ const LineGrid::LineList& LineGrid::getHorizontalLines() const {
 const LineGrid::LineList& LineGrid::getVerticalLines() const {
 	return verticalLines;
 }
+
+Json::Value LineGrid::serialize() const {
+	Json::Value root(Json::objectValue);
+	root["horizontal"] = Json::Value(Json::arrayValue);
+	for (std::size_t i = 0; i < horizonalLines.size(); ++i) {
+		root["horizontal"][static_cast<int>(i)] = horizonalLines[i].serialize();
+	}
+	root["vertical"] = Json::Value(Json::arrayValue);
+	for (std::size_t i = 0; i < verticalLines.size(); ++i) {
+		root["vertical"][static_cast<int>(i)] = verticalLines[i].serialize();
+	}
+	return root;
+}
+
+void LineGrid::deserialize(const Json::Value& value) {
+	const Json::Value& horizontal = value["horizontal"];
+	for (Json::Value::ArrayIndex i = 0, end = horizontal.size(); i < end; ++i) {
+		Line line;
+		line.deserialize(horizontal[i]);
+		horizonalLines.push_back(line);
+	}
+	const Json::Value& vertical = value["vertical"];
+	for (Json::Value::ArrayIndex i = 0, end = vertical.size(); i < end; ++i) {
+		Line line;
+		line.deserialize(vertical[i]);
+		verticalLines.push_back(line);
+	}
+}
+
 
 }
 }

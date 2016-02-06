@@ -22,6 +22,10 @@
 
 #include <calibration/subgrid.h>
 
+namespace Json {
+class Value;
+}
+
 namespace Lyli {
 namespace Calibration {
 
@@ -38,6 +42,17 @@ public:
 	struct Line {
 		Line();
 		Line(SubGrid subgrid, float position);
+
+		/**
+		 * Serialize into a JSON object
+		 * \return JSON object representing the class
+		 */
+		Json::Value serialize() const;
+		/**
+		 * Deserialize from a JSON object
+		 * \param value JSON object representing the class
+		 */
+		void deserialize(const Json::Value& value);
 
 		SubGrid subgrid;
 		float position;
@@ -77,6 +92,17 @@ public:
 	 * Get the vertical lines.
 	 */
 	const LineList& getVerticalLines() const;
+
+	/**
+	 * Serialize into a JSON object
+	 * \return JSON object representing the class
+	 */
+	Json::Value serialize() const;
+	/**
+	 * Deserialize from a JSON object
+	 * \param value JSON object representing the class
+	 */
+	void deserialize(const Json::Value& value);
 
 private:
 	LineList horizonalLines;
