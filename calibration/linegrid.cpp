@@ -40,7 +40,7 @@ Json::Value LineGrid::Line::serialize() const {
 }
 
 void LineGrid::Line::deserialize(const Json::Value& value) {
-	subgrid = static_cast<SubGrid>(value["zoomStep"].asInt());
+	subgrid = static_cast<SubGrid>(value["subgrid"].asInt());
 	position = value["position"].asFloat();
 }
 
