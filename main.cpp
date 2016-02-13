@@ -24,14 +24,15 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <unistd.h>
 
 #include <tbb/parallel_for_each.h>
 
 #include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #include <libusbpp/context.h>
 
+#include <json/reader.h>
 #include <json/value.h>
 #include <json/writer.h>
 
@@ -42,6 +43,7 @@
 #include <calibration/pointgrid.h>
 #include <filesystem/filesystemaccess.h>
 #include <filesystem/photo.h>
+#include <image/lightfieldimage.h>
 #include <image/metadata.h>
 #include <image/rawimage.h>
 
@@ -54,6 +56,10 @@ void showHelp() {
 	std::cout << "\t     \t The image is downloaded to the current directory" << std::endl;
 	std::cout << "\t-t dir\t download calibration images to a specified directory" << std::endl;
 	std::cout << "\t-c dir\t calibrate using files from a specified directory" << std::endl;
+	std::cout << "\t      \t The output is stored in file \"calibration.json\"" << std::endl;
+	std::cout << "\t-p dir\t process images in the selected directory." << std::endl;
+	std::cout << "\t      \t The option requires a file \"calibration.json\" to exist" << std::endl;
+	std::cout << "\t      \t in the selected directory." << std::endl;
 	std::cout << "\t-f path\t download a file specified by a full path, potentialy dangerous" << std::endl;
 	std::cout << "\t     \t Requires knowledge of the camera file structure." << std::endl;
 }
@@ -232,6 +238,69 @@ void calibrate(const std::string& path, const std::string& out) {
 	fout.close();
 }
 
+void process(const std::string& path, const std::string& in) {
+	std::vector<std::string> files;
+
+	if (chdir(path.c_str()) != 0) {
+		std::perror("failed to change directory");
+		return;
+	}
+
+	// read all files
+	DIR *dir = opendir(".");
+	if (dir == nullptr) {
+		std::perror("failed to change directory");
+		return;
+	}
+	dirent *ent;
+	const std::string ext(".RAW");
+	while ((ent = readdir(dir)) != nullptr) {
+		std::string file(ent->d_name);
+		if (file.size() < ext.size()
+		    || ! std::equal(ext.rbegin(), ext.rend(), file.rbegin())) {
+			// skip the file
+			continue;
+		}
+		std::string filebase(file.substr(0, file.size() - 4));
+		files.push_back(filebase);
+	}
+	closedir(dir);
+
+	// read calibration data
+	std::fstream fin(in, std::fstream::in | std::fstream::binary);
+	Json::CharReaderBuilder readerbuilder;
+	Json::Value root;
+	Json::parseFromStream(readerbuilder, fin, &root, 0);
+	Lyli::Calibration::CalibrationData calibration;
+	calibration.deserialize(root);
+
+	tbb::parallel_for_each(files, [&calibration](const auto &filebase){
+		std::cout << filebase << " reading image..." << std::endl;
+		std::stringstream ss;
+
+		// read image
+		ss << filebase << ".RAW";
+		std::fstream fin(ss.str(), std::fstream::in | std::fstream::binary);
+		ss.str("");
+		ss.clear();
+		Lyli::Image::RawImage rawimg(fin, 3280, 3280);
+
+		// read metadata
+		ss << filebase << ".TXT";
+		std::fstream finmeta(ss.str(), std::fstream::in | std::fstream::binary);
+		ss.str("");
+		ss.clear();
+		Lyli::Image::Metadata metadata(finmeta);
+
+		// straighten etc.
+		Lyli::Image::LightfieldImage lightfieldimg(rawimg, metadata, calibration);
+		ss << filebase << "-flat.png";
+		cv::imwrite(ss.str(), lightfieldimg.getData());
+		ss.str("");
+		ss.clear();
+	});
+}
+
 void downloadFile(Lyli::Camera *camera, const std::string &path) {
 	std::size_t sepPos = path.find_last_of("/\\");
 	std::string outputFile(sepPos != std::string::npos ? path.substr(sepPos + 1) : path);
@@ -252,7 +321,7 @@ int main(int argc, char *argv[]) {
 
 	// first prepare camera if we are calling a function requiring camera to be operating
 	int c;
-	while ((c = getopt(argc, argv, "ild:t:c:f:")) != -1) {
+	while ((c = getopt(argc, argv, "ild:t:c:f:p:")) != -1) {
 		switch (c) {
 			case 'i':
 			case 'l':
@@ -270,7 +339,7 @@ int main(int argc, char *argv[]) {
 	optind = 1;
 	
 	// process the options
-	while ((c = getopt(argc, argv, "ild:t:c:f:")) != -1) {
+	while ((c = getopt(argc, argv, "ild:t:c:f:p:")) != -1) {
 		switch (c) {
 			case 'i':
 				getCameraInformation(camera);
@@ -289,6 +358,9 @@ int main(int argc, char *argv[]) {
 				return 0;
 			case 'f':
 				downloadFile(camera, optarg);
+				return 0;
+			case 'p':
+				process(optarg, "calibration.json");
 				return 0;
 			default:
 				showHelp();
