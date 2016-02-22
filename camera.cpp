@@ -34,26 +34,6 @@
 #include <ostream>
 #include <thread>
 
-// TODO: remove this later
-#define NDEBUG
-
-#ifndef NDEBUG
-#include <iostream>
-#include <iomanip>
-void printbuf(unsigned char *dataBuffer, std::size_t len) {
-	int lineBytes(0);
-	for (int j(0); j < len; ++j) {
-		std::cout << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(dataBuffer[j]) << " ";
-		++lineBytes;
-		if (lineBytes == 33) {
-			lineBytes = 0;
-			std::cout << std::endl;
-		}
-	}
-	std::cout << std::endl;
-}
-#endif
-
 namespace Lyli {
 
 class Camera::Impl {
@@ -101,10 +81,6 @@ public:
 		// get the expected response length
 		Usbpp::MassStorage::CommandBlockWrapper cmdGetLen(65536, 0x80, 0, {0xc6, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00});
 		device.sendCommand(LIBUSB_ENDPOINT_OUT | 0x02, cmdGetLen, &response);
-#ifndef NDEBUG
-		std::size_t len(*reinterpret_cast<uint32_t*>(response.data()));
-		std::cout << "expected length " << len << " bytes" << std::endl;
-#endif
 
 		// read the file list
 		unsigned char packet(0);
@@ -170,11 +146,6 @@ public:
 		cameraLock.unlock();
 
 		out.write(reinterpret_cast<const char*>(response.data()), response.size());
-
-#ifndef NDEBUG
-		std::cout << "response length " << response.size() << std::endl;
-		printbuf(response.data(), response.size());
-#endif
 	}
 
 	Camera *camera;
@@ -182,10 +153,6 @@ public:
 
 	mutable std::mutex cameraAccessMutex;
 };
-
-Camera::Camera() {
-
-}
 
 Camera::Camera(const Usbpp::MassStorage::MSDevice &device) : pimpl(std::make_unique<Impl>(this, device)) {
 

@@ -15,18 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LYLI_DOWNLOADER_H_
-#define LYLI_DOWNLOADER_H_
+#ifndef LYLI_CAMERA_H_
+#define LYLI_CAMERA_H_
 
-#include <cstdint>
-#include <ctime>
 #include <memory>
-#include <ostream>
+#include <iosfwd>
 #include <string>
 #include <vector>
 
-#include "filesystem/filelist.h"
-
+// forward declarations
 namespace Usbpp {
 class ByteBuffer;
 class Context;
@@ -36,38 +33,74 @@ class MSDevice;
 }
 
 namespace Lyli {
-
+class Camera;
 namespace Filesystem {
 class FilesystemAccess;
 }
+}
 
-class Camera;
-typedef std::vector<Camera> CameraList;
+namespace Lyli {
 
+using CameraList = std::vector<Camera>;
+
+/**
+ * Get list of cameras.
+ * \param context USB context to use for detecting cameras
+ */
 CameraList getCameras(Usbpp::Context &context);
 
+/**
+ * Basic camera information
+ */
 struct CameraInformation {
 	std::string vendor;
 	std::string product;
 	std::string revision;
 };
 
+/**
+ * Interface to a single camera
+ */
 class Camera {
 public:
-	Camera();
+	/**
+	 * A destructor (required for pimpl std::unique_ptr).
+	 */
 	~Camera();
 
+	/**
+	 * A move constructor.
+	 */
 	Camera(Camera &&other) noexcept;
+	/**
+	 * A move assignment operator.
+	 */
 	Camera &operator=(Camera &&other) noexcept;
 
+	/**
+	 * Wait for the camera to become ready to communicate.
+	 *
+	 * The fcuntions blocks until the camera becomes ready.
+	 */
 	void waitReady();
 
+	/**
+	 * Get basic camera inforamtion
+	 * \return the camera information
+	 */
 	CameraInformation getCameraInformation() const;
 
-	void getVersion();
-
+	/**
+	 * Get specific file from camera
+	 * \param out output stream where the file is written to.
+	 * \param fileName the path to file to download
+	 */
 	void getFile(std::ostream &out, const std::string &fileName) const;
 
+	/**
+	 * Get an object abstracting access to files on camera
+	 * \return objects providing file access
+	 */
 	Filesystem::FilesystemAccess getFilesystemAccess();
 
 private:
