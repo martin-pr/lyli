@@ -78,7 +78,7 @@ void calibrate(const std::string &path) {
 	// add images to the calibrator
 	Lyli::Calibration::Calibrator calibrator;
 	Lyli::Calibration::LensDetector lensDetector(std::make_unique<Lyli::Calibration::FFTPreprocessor>());
-	tbb::parallel_for_each(files, [&calibrator,&lensDetector](const auto &filebase){
+	tbb::parallel_for_each(files, [&calibrator,&lensDetector](const auto &filebase) {
 		std::cout << filebase << " reading image..." << std::endl;
 		std::stringstream ss;
 
@@ -118,45 +118,45 @@ void calibrate(const std::string &path) {
 
 	// print header
 	ofs << "Zoomstep,"
-		<< "Focusstep,"
-		// translation
-		<< "tx,"
-		<< "ty,"
-		// rotation
-		<< "rotation,"
-		// camera matrix
-		<< "fx,"
-		<< "fy,"
-		<< "cx,"
-		<< "cy,"
-		// distortion coefficients
-		<< "k1,"
-		<< "k2,"
-		<< "p1,"
-		<< "p2,"
-		<< "k3,"
-		<< std::endl;
+	    << "Focusstep,"
+	    // translation
+	    << "tx,"
+	    << "ty,"
+	    // rotation
+	    << "rotation,"
+	    // camera matrix
+	    << "fx,"
+	    << "fy,"
+	    << "cx,"
+	    << "cy,"
+	    // distortion coefficients
+	    << "k1,"
+	    << "k2,"
+	    << "p1,"
+	    << "p2,"
+	    << "k3,"
+	    << std::endl;
 	// store the results
 	for (const auto& res : calibrationResult.getLens()) {
 		ofs << res.first.getZoomStep() << ","
-			<< res.first.getFocusStep() << ","
-			// translation
-			<< calibrationResult.getArray().getTranslation()[0] << "," // tx
-			<< calibrationResult.getArray().getTranslation()[1] << "," // ty
-			// rotation
-			<< calibrationResult.getArray().getRotation() << "," // rotation
-			// camera matrix
-			<< res.second.getCameraMatrix().at<double>(0,0) << "," // fx
-			<< res.second.getCameraMatrix().at<double>(1,1) << "," // fy
-			<< res.second.getCameraMatrix().at<double>(0,2) << "," // cx
-			<< res.second.getCameraMatrix().at<double>(1,2) << "," // cy
-			// distortion coefficients
-			<< res.second.getDistCoeffs().at<double>(0) << "," // k1
-			<< res.second.getDistCoeffs().at<double>(1) << "," // k2
-			<< res.second.getDistCoeffs().at<double>(2) << "," // p1
-			<< res.second.getDistCoeffs().at<double>(3) << "," // p2
-			<< res.second.getDistCoeffs().at<double>(4) << "," // k3
-			<< std::endl;
+		    << res.first.getFocusStep() << ","
+		    // translation
+		    << calibrationResult.getArray().getTranslation()[0] << "," // tx
+		    << calibrationResult.getArray().getTranslation()[1] << "," // ty
+		    // rotation
+		    << calibrationResult.getArray().getRotation() << "," // rotation
+		    // camera matrix
+		    << res.second.getCameraMatrix().at<double>(0,0) << "," // fx
+		    << res.second.getCameraMatrix().at<double>(1,1) << "," // fy
+		    << res.second.getCameraMatrix().at<double>(0,2) << "," // cx
+		    << res.second.getCameraMatrix().at<double>(1,2) << "," // cy
+		    // distortion coefficients
+		    << res.second.getDistCoeffs().at<double>(0) << "," // k1
+		    << res.second.getDistCoeffs().at<double>(1) << "," // k2
+		    << res.second.getDistCoeffs().at<double>(2) << "," // p1
+		    << res.second.getDistCoeffs().at<double>(3) << "," // p2
+		    << res.second.getDistCoeffs().at<double>(4) << "," // k3
+		    << std::endl;
 	}
 
 	ofs.close();

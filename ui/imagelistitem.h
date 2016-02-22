@@ -29,25 +29,24 @@
 #include <camera.h>
 #include <filesystem/photoptr.h>
 
-class ImageListItem : public QObject
-{
+class ImageListItem : public QObject {
 	Q_OBJECT
 
 public:
-    ImageListItem();
+	ImageListItem();
 	ImageListItem(Lyli::Camera *camera, const Lyli::Filesystem::PhotoPtr &photo, QObject* parent = nullptr);
 	ImageListItem(const ImageListItem& other);
 	~ImageListItem();
-	
+
 	ImageListItem &operator=(const ImageListItem &other);
-	
+
 	bool isNull() const;
-	
+
 	QDateTime getTime() const;
 	QImage getImage() const;
-	
+
 	Lyli::Filesystem::PhotoPtr getPhoto();
-	
+
 	Q_PROPERTY(bool null READ isNull)
 	Q_PROPERTY(QDateTime time READ getTime)
 	Q_PROPERTY(QImage image READ getImage)
@@ -57,7 +56,7 @@ private:
 	Lyli::Filesystem::PhotoPtr m_photo;
 	// cached image
 	mutable std::shared_ptr<QImage> m_image;
-	
+
 	static constexpr int IMG_WIDTH = 128;
 	static constexpr int IMG_HEIGHT = 128;
 };

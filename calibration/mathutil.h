@@ -34,7 +34,7 @@ namespace Calibration {
  * @param sigmaLimit limit used for filtering values
  */
 template < typename T, template <typename, typename> class Container, template <typename> class Alloc >
-T filteredAverage(const Container<T, Alloc<T>>& container, double sigmaLimit){
+T filteredAverage(const Container<T, Alloc<T>>& container, double sigmaLimit) {
 	double EX2sum = 0;
 	double EXsum = 0;
 	for (auto val : container) {
@@ -49,7 +49,7 @@ T filteredAverage(const Container<T, Alloc<T>>& container, double sigmaLimit){
 	double sum = 0;
 	std::size_t count = 0;
 	for (auto val : container) {
-		if(std::abs(val-EX) <= limit) {
+		if (std::abs(val-EX) <= limit) {
 			sum += val;
 			++count;
 		}
@@ -62,7 +62,7 @@ T filteredAverage(const Container<T, Alloc<T>>& container, double sigmaLimit){
  * Signum function.
  */
 template <typename T> int sgn(T val) {
-    return (T(0) < val) - (val < T(0));
+	return (T(0) < val) - (val < T(0));
 }
 
 }

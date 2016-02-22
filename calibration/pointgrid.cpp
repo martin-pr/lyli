@@ -220,7 +220,7 @@ void PointGrid::finalize() {
 	}
 
 	// create final line maps that are used for public interfaces and update subgrids
-	for(auto itOdd = tmpLineMapOdd.begin(), itEven = tmpLineMapEven.begin(); itOdd != tmpLineMapOdd.end() || itEven != tmpLineMapEven.end();) {
+	for (auto itOdd = tmpLineMapOdd.begin(), itEven = tmpLineMapEven.begin(); itOdd != tmpLineMapOdd.end() || itEven != tmpLineMapEven.end();) {
 		// store the points in increasing y-order to the line list
 		// also store the indices for each subgrid
 		if (itOdd == tmpLineMapOdd.end()) {
@@ -335,7 +335,7 @@ void PointGrid::mapAddConstruct(TmpLineMap &lineMap, float position, Point *poin
 	auto lineIt = diffLb < diffUb ? lb : ub;
 
 	// if a point is far from its bounds, it creates a new line
-	if(std::abs(lineIt->first - position) > MAX_DIFF) {
+	if (std::abs(lineIt->first - position) > MAX_DIFF) {
 		// construct a new line
 		auto res = lineMap.emplace(position, Line());
 		lineIt = res.first; // TODO: error handling
@@ -362,7 +362,7 @@ void PointGrid::mapAdd(TmpLineMap &lineMap, float position, Point *point) {
 	auto lineIt = diffLb < diffUb ? lb : ub;
 
 	// only the points close enough to the nearest line are added
-	if(std::abs(lineIt->first - position) < MAX_DIFF) {
+	if (std::abs(lineIt->first - position) < MAX_DIFF) {
 		// update the key
 		Line line(std::move(lineIt->second));
 		auto nextLineIt = lineMap.erase(lineIt);
@@ -373,8 +373,8 @@ void PointGrid::mapAdd(TmpLineMap &lineMap, float position, Point *point) {
 }
 
 void PointGrid::verticalLineConstructor(int start, int end,
-                                       std::function<void(Point *)> inserterOdd,
-                                       std::function<void(Point *)> inserterEven) {
+                                        std::function<void(Point *)> inserterOdd,
+                                        std::function<void(Point *)> inserterEven) {
 	int step = (end > start) ? 1 : -1;
 	for (int i = start; i != end; i+= step) {
 		const Line &tmpline = linesHorizontal[i];

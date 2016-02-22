@@ -23,34 +23,33 @@
 
 #include "imagelistmodel.h"
 
-class ImageDownloader : public QObject
-{
+class ImageDownloader : public QObject {
 	Q_OBJECT
 
 public:
 	ImageDownloader(ImageListModel *model, const QModelIndexList &indices, QString outputDir);
 	virtual ~ImageDownloader();
-	
+
 public slots:
 	void onDownloadAll();
 	void onDownloadSelected();
-	
+
 signals:
 	/** Signal emitted when the download starts.
-	 * 
+	 *
 	 * @param files the total number of files to be downloaded
 	 */
 	void started(int files);
 	/** Signal emitted during the download to update the progress.
-	 * 
+	 *
 	 * @param progress the order of the currently downloaded file
 	 */
 	void progress(int progress);
 	/** Signal emitted when the download finishes.
-	 * 
+	 *
 	 */
 	void finished();
-	
+
 private:
 	ImageListModel *m_model;
 	QModelIndexList m_indices;

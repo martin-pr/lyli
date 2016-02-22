@@ -76,7 +76,7 @@ Lyli::Camera* prepareCamera(Lyli::CameraList &cameraList, std::size_t idx) {
 
 void getCameraInformation(Lyli::Camera *camera) {
 	Lyli::CameraInformation info(camera->getCameraInformation());
-	
+
 	std::cout << "Vendor: " << info.vendor << std::endl;
 	std::cout << "Product: " << info.product << std::endl;
 	std::cout << "Revision: " << info.revision << std::endl;
@@ -84,12 +84,12 @@ void getCameraInformation(Lyli::Camera *camera) {
 
 void listFiles(Lyli::Camera *camera) {
 	Lyli::Filesystem::PhotoList fileList(camera->getFilesystemAccess().getPictureList());
-	
+
 	std::cout << std::setw(3) <<"id" << std::setw(28) << "date" << std::endl;
 	std::size_t i(0);
 	for (auto file : fileList) {
 		std::cout << std::setw(3) << i++;
-		
+
 		// time
 		std::time_t time(file->getTime());
 		std::tm *tm = std::localtime(&time);
@@ -97,7 +97,7 @@ void listFiles(Lyli::Camera *camera) {
 		std::strftime(buf, 28, "%c", tm);
 		buf[28] = '\0';
 		std::cout << std::setw(28) << buf;
-		
+
 		std::cout << std::endl;
 	}
 }
@@ -105,10 +105,10 @@ void listFiles(Lyli::Camera *camera) {
 void downloadImage(Lyli::Camera *camera, int id) {
 	Lyli::Filesystem::PhotoList fileList(camera->getFilesystemAccess().getPictureList());
 	::Lyli::Filesystem::Photo *photo = fileList[id].get();
-	
+
 	std::stringstream ss;
 	std::ofstream ofs;
-	
+
 	ss << photo->getName() << ".TXT";
 	ofs.open(ss.str(), std::ofstream::out | std::ofstream::binary);
 	photo->getImageMetadata(ofs);
@@ -116,7 +116,7 @@ void downloadImage(Lyli::Camera *camera, int id) {
 	ofs.close();
 	ss.str("");
 	ss.clear();
-	
+
 	ss << photo->getName() << ".128";
 	ofs.open(ss.str(), std::ofstream::out | std::ofstream::binary);
 	photo->getImageThumbnail(ofs);
@@ -124,7 +124,7 @@ void downloadImage(Lyli::Camera *camera, int id) {
 	ofs.close();
 	ss.str("");
 	ss.clear();
-	
+
 	ss << photo->getName() << ".RAW";
 	ofs.open(ss.str(), std::ofstream::out | std::ofstream::binary);
 	photo->getImageData(ofs);
@@ -195,7 +195,7 @@ void calibrate(const std::string& path, const std::string& out) {
 	// calibrate
 	Lyli::Calibration::Calibrator calibrator;
 	Lyli::Calibration::LensDetector lensDetector(std::make_unique<Lyli::Calibration::FFTPreprocessor>());
-	tbb::parallel_for_each(files, [&calibrator,&lensDetector](const auto &filebase){
+	tbb::parallel_for_each(files, [&calibrator,&lensDetector](const auto &filebase) {
 		std::cout << filebase << " reading image..." << std::endl;
 		std::stringstream ss;
 
@@ -274,7 +274,7 @@ void process(const std::string& path, const std::string& in) {
 	Lyli::Calibration::CalibrationData calibration;
 	calibration.deserialize(root);
 
-	tbb::parallel_for_each(files, [&calibration](const auto &filebase){
+	tbb::parallel_for_each(files, [&calibration](const auto &filebase) {
 		std::cout << filebase << " reading image..." << std::endl;
 		std::stringstream ss;
 
@@ -314,7 +314,7 @@ int main(int argc, char *argv[]) {
 		showHelp();
 		return 0;
 	}
-	
+
 	Usbpp::Context context;
 	Lyli::CameraList cameras(Lyli::getCameras(context));
 	Lyli::Camera *camera(0);
@@ -337,7 +337,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	optind = 1;
-	
+
 	// process the options
 	while ((c = getopt(argc, argv, "ild:t:c:f:p:")) != -1) {
 		switch (c) {

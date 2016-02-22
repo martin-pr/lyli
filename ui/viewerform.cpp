@@ -28,13 +28,12 @@
 
 #include "lytroimage.h"
 
-ViewerForm::ViewerForm(QWidget *parent) : QWidget(parent), m_scale(1.0)
-{
+ViewerForm::ViewerForm(QWidget *parent) : QWidget(parent), m_scale(1.0) {
 	LytroImage::init();
-	
+
 	ui = new Ui::ViewerForm;
 	ui->setupUi(this);
-	
+
 	m_dirModel = new QFileSystemModel;
 	m_dirModel->setReadOnly(true);
 	m_dirModel->setRootPath(QDir::currentPath());
@@ -42,7 +41,7 @@ ViewerForm::ViewerForm(QWidget *parent) : QWidget(parent), m_scale(1.0)
 	ui->directoryList->setModel(m_dirModel);
 	ui->directoryList->setRootIndex(m_dirModel->index(QDir::currentPath()));
 	connect(ui->directoryList, &QListView::activated, this, &ViewerForm::directoryViewClicked);
-	
+
 	m_fileModel = new QFileSystemModel;
 	m_fileModel->setReadOnly(true);
 	m_fileModel->setRootPath(QDir::currentPath());
@@ -52,36 +51,32 @@ ViewerForm::ViewerForm(QWidget *parent) : QWidget(parent), m_scale(1.0)
 	ui->fileList->setModel(m_fileModel);
 	ui->fileList->setRootIndex(m_fileModel->index(QDir::currentPath()));
 	connect(ui->fileList, &QListView::activated, this, &ViewerForm::fileViewClicked);
-	
+
 	connect(ui->buttonSaveAs, &QToolButton::clicked, this, &ViewerForm::saveAs);
-	
+
 	connect(ui->buttonZoomIn, &QToolButton::clicked, this, &ViewerForm::zoomIn);
 	connect(ui->buttonZoomOut, &QToolButton::clicked, this, &ViewerForm::zoomOut);
 	connect(ui->buttonZoomFit, &QToolButton::clicked, this, &ViewerForm::zoomFit);
 	connect(ui->buttonZoomOriginal, &QToolButton::clicked, this, &ViewerForm::zoomOriginal);
 }
 
-ViewerForm::~ViewerForm()
-{
+ViewerForm::~ViewerForm() {
 	delete ui;
 }
 
-void ViewerForm::directoryViewClicked(const QModelIndex& index)
-{
+void ViewerForm::directoryViewClicked(const QModelIndex& index) {
 	QString selected = m_dirModel->fileInfo(index).absoluteFilePath();
 	ui->directoryList->setRootIndex(m_dirModel->setRootPath(selected));
 	ui->fileList->setRootIndex(m_fileModel->setRootPath(selected));
 }
 
-void ViewerForm::fileViewClicked(const QModelIndex& index)
-{
+void ViewerForm::fileViewClicked(const QModelIndex& index) {
 	// load the image
 	m_image = std::move(LytroImage(m_fileModel->fileInfo(index).absoluteFilePath().toLocal8Bit()));
 	ui->image->setPixmap(QPixmap::fromImage(*m_image.getQImage()));
 }
 
-void ViewerForm::saveAs()
-{
+void ViewerForm::saveAs() {
 	// prepare filters based on the QImageWriter::supportedImageFormats();
 	auto formats = QImageWriter::supportedImageFormats();
 	QString filters;
@@ -89,38 +84,34 @@ void ViewerForm::saveAs()
 		filters.append(QString("%1 images (*.%2);;").arg(QString(format.toUpper()), QString(format.toLower())));
 	}
 	filters.append(tr("All Files (*)"));
-	
+
 	QString fileName = QFileDialog::getSaveFileName(this,
 	                                                tr("Save File"),
 	                                                QDir::currentPath(),
 	                                                filters);
-	
+
 	if (! fileName.isEmpty()) {
 		m_image.getQImage()->save(fileName);
 	}
 }
 
-void ViewerForm::zoomIn()
-{
+void ViewerForm::zoomIn() {
 	m_scale *= 1.25;
 	scaleImage();
 }
 
-void ViewerForm::zoomOut()
-{
+void ViewerForm::zoomOut() {
 	m_scale *= 0.75;
 	scaleImage();
 }
 
-void ViewerForm::zoomFit()
-{
+void ViewerForm::zoomFit() {
 	m_scale = std::min((double) ui->scrollArea->size().width() / (double) ui->image->pixmap()->size().width(),
 	                   (double) ui->scrollArea->size().height() / (double) ui->image->pixmap()->size().height());
 	scaleImage();
 }
 
-void ViewerForm::zoomOriginal()
-{
+void ViewerForm::zoomOriginal() {
 	m_scale = 1.0;
 	scaleImage();
 }
@@ -130,8 +121,7 @@ void ViewerForm::resizeEvent(QResizeEvent *event) {
 	QWidget::resizeEvent(event);
 }
 
-void ViewerForm::scaleImage()
-{
+void ViewerForm::scaleImage() {
 	if (ui->image->pixmap() != nullptr) {
 		ui->image->resize(m_scale * ui->image->pixmap()->size());
 		ui->scrollAreaWidgetContents->setMinimumSize(ui->image->size());

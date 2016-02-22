@@ -64,7 +64,7 @@ Photo::Photo() {
 }
 
 Photo::Photo(Camera *camera, const std::string &dirBase, int dirId, const std::string &fileBase, int fileId, const Sha1Array &sha1, const std::time_t &time )
-: Image(camera, constructPath(dirBase, dirId), constructBaseName(fileBase, fileId)), pimpl(new Impl(sha1, time)) {
+	: Image(camera, constructPath(dirBase, dirId), constructBaseName(fileBase, fileId)), pimpl(new Impl(sha1, time)) {
 
 }
 

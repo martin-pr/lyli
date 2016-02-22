@@ -19,50 +19,45 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow()
-{
+MainWindow::MainWindow() {
 	ui = new Ui::MainWindow;
 	ui->setupUi(this);
-	
+
 	QHBoxLayout *cameraFormLayout = new QHBoxLayout;
 	m_cameraForm = new CameraForm(ui->tabCamera);
 	cameraFormLayout->setMargin(4);
 	cameraFormLayout->addWidget(m_cameraForm);
 	ui->tabCamera->setLayout(cameraFormLayout);
-	
+
 	QHBoxLayout *viewerFormLayout = new QHBoxLayout;
 	m_viewerForm = new ViewerForm(ui->tabCamera);
 	viewerFormLayout->setMargin(4);
 	viewerFormLayout->addWidget(m_viewerForm);
 	ui->tabViewer->setLayout(viewerFormLayout);
-	
+
 	m_progressBar = new QProgressBar;
 	m_progressBar->setEnabled(false);
 	m_progressBar->setFormat(QStringLiteral("%v/%m"));
 	ui->statusbar->addPermanentWidget(m_progressBar);
-	
+
 	connect(m_cameraForm, &CameraForm::progressStart, this, &MainWindow::onProgressStart);
 	connect(m_cameraForm, &CameraForm::progressRun, this, &MainWindow::onProgress);
 	connect(m_cameraForm, &CameraForm::progressFinish, this, &MainWindow::onProgressFinish);
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
 	delete ui;
 }
 
-void MainWindow::onProgressStart(int files)
-{
+void MainWindow::onProgressStart(int files) {
 	m_progressBar->setEnabled(true);
 	m_progressBar->setMaximum(files);
 }
 
-void MainWindow::onProgress(int progress)
-{
+void MainWindow::onProgress(int progress) {
 	m_progressBar->setValue(progress);
 }
 
-void MainWindow::onProgressFinish()
-{
+void MainWindow::onProgressFinish() {
 	m_progressBar->setEnabled(false);
 }

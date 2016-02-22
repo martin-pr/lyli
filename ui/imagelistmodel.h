@@ -26,14 +26,13 @@
 #include <camera.h>
 #include "imagelistitem.h"
 
-class ImageListModel : public QAbstractListModel
-{
+class ImageListModel : public QAbstractListModel {
 	Q_OBJECT
 
 public:
 	ImageListModel(QObject *parent = 0);
 	~ImageListModel();
-	
+
 	void downloadFile(const QModelIndex &index, const QString &outputDirectory);
 
 	// inherited members

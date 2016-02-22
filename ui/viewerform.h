@@ -24,28 +24,26 @@
 
 #include "lytroimage.h"
 
-namespace Ui
-{
+namespace Ui {
 class ViewerForm;
 }
 
 class QFileSystemModel;
 class QModelIndex;
 
-class ViewerForm : public QWidget
-{
+class ViewerForm : public QWidget {
 	Q_OBJECT
 
 public:
 	ViewerForm(QWidget *parent = nullptr);
 	~ViewerForm();
-	
+
 public slots:
 	void directoryViewClicked(const QModelIndex &index);
 	void fileViewClicked(const QModelIndex &index);
-	
+
 	void saveAs();
-	
+
 	void zoomIn();
 	void zoomOut();
 	void zoomFit();
@@ -53,17 +51,17 @@ public slots:
 
 protected:
 	virtual void resizeEvent(QResizeEvent *event);
-	
+
 private:
 	Ui::ViewerForm* ui;
 	QFileSystemModel *m_dirModel;
 	QFileSystemModel *m_fileModel;
-	
+
 	double m_scale;
 	LytroImage m_image;
-	
+
 	void scaleImage();
-	
+
 	ViewerForm(const ViewerForm& other);
 	ViewerForm& operator=(const ViewerForm& other);
 };

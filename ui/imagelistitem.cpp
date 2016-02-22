@@ -22,31 +22,26 @@
 
 #include <sstream>
 
-ImageListItem::ImageListItem(): m_camera(nullptr)
-{
+ImageListItem::ImageListItem(): m_camera(nullptr) {
 
 }
 
 ImageListItem::ImageListItem(Lyli::Camera *camera, const Lyli::Filesystem::PhotoPtr &photo, QObject* parent) :
 	QObject(parent),
-	m_camera(camera), m_photo(photo), m_image(std::make_shared<QImage>())
-{
-	
+	m_camera(camera), m_photo(photo), m_image(std::make_shared<QImage>()) {
+
 }
 
 ImageListItem::ImageListItem(const ImageListItem& other) :
-QObject(other.parent()), m_camera(other.m_camera), m_photo(other.m_photo), m_image(other.m_image)
-{
-	
+	QObject(other.parent()), m_camera(other.m_camera), m_photo(other.m_photo), m_image(other.m_image) {
+
 }
 
-ImageListItem::~ImageListItem()
-{
-	
+ImageListItem::~ImageListItem() {
+
 }
 
-ImageListItem& ImageListItem::operator=(const ImageListItem& other)
-{
+ImageListItem& ImageListItem::operator=(const ImageListItem& other) {
 	m_camera = other.m_camera;
 	m_photo = other.m_photo;
 	m_image = other.m_image;
@@ -54,36 +49,33 @@ ImageListItem& ImageListItem::operator=(const ImageListItem& other)
 	return *this;
 }
 
-bool ImageListItem::isNull() const
-{
+bool ImageListItem::isNull() const {
 	return m_camera == nullptr;
 }
 
-QDateTime ImageListItem::getTime() const
-{
+QDateTime ImageListItem::getTime() const {
 	if (m_camera == nullptr) {
 		return QDateTime();
 	}
-	
+
 	return QDateTime::fromTime_t(m_photo->getTime());
 }
 
-QImage ImageListItem::getImage() const
-{
+QImage ImageListItem::getImage() const {
 	if (m_image && ! m_image->isNull()) {
 		return *m_image;
 	}
-	
+
 	*m_image = QImage(IMG_WIDTH, IMG_HEIGHT, QImage::Format_RGB32);
-	
+
 	if (m_camera == nullptr) {
 		m_image->fill(Qt::gray);
 		return *m_image;
 	}
-	
+
 	std::stringstream ss;
 	m_photo->getImageThumbnail(ss);
-	
+
 	std::size_t pos(0);
 	char buf[2];
 	std::uint16_t tmpVal;
@@ -92,20 +84,19 @@ QImage ImageListItem::getImage() const
 		if (pos / IMG_WIDTH >= IMG_HEIGHT) {
 			break;
 		}
-		
+
 		ss.read(buf, 2);
-		
+
 		tmpVal = * (uint16_t*)(buf);
 		y = pos / IMG_WIDTH;
 		x = pos % IMG_WIDTH;
 		m_image->setPixel(x, y, qRgb(tmpVal, tmpVal, tmpVal));
 		++pos;
 	}
-	
+
 	return *m_image;
 }
 
-Lyli::Filesystem::PhotoPtr ImageListItem::getPhoto()
-{
+Lyli::Filesystem::PhotoPtr ImageListItem::getPhoto() {
 	return m_photo;
 }

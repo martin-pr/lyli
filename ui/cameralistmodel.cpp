@@ -20,27 +20,23 @@
 
 Usbpp::Context CameraListModel::m_context;
 
-CameraListModel::CameraListModel(QObject* parent): QAbstractListModel(parent)
-{
+CameraListModel::CameraListModel(QObject* parent): QAbstractListModel(parent) {
 	m_cameraList = std::move(Lyli::getCameras(m_context));
 }
 
-CameraListModel::~CameraListModel()
-{
+CameraListModel::~CameraListModel() {
 
 }
 
-Lyli::Camera* CameraListModel::getCamera(Lyli::CameraList::size_type index)
-{
+Lyli::Camera* CameraListModel::getCamera(Lyli::CameraList::size_type index) {
 	if (index > 0 || index >= m_cameraList.size()) {
 		return nullptr;
 	}
-	
+
 	return & (m_cameraList[index]);
 }
 
-QVariant CameraListModel::data(const QModelIndex& index, int role) const
-{
+QVariant CameraListModel::data(const QModelIndex& index, int role) const {
 	if (! index.isValid() || static_cast<Lyli::CameraList::size_type>(index.row()) >= m_cameraList.size()) {
 		return QVariant();
 	}
@@ -52,12 +48,11 @@ QVariant CameraListModel::data(const QModelIndex& index, int role) const
 		               + QString(info.revision.c_str()).trimmed();
 		return QVariant::fromValue(name);
 	}
-	
+
 	return QVariant();
 }
 
-int CameraListModel::rowCount(const QModelIndex& parent) const
-{
+int CameraListModel::rowCount(const QModelIndex& parent) const {
 	Q_UNUSED(parent);
 	return m_cameraList.size();
 }

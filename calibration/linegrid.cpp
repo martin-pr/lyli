@@ -92,7 +92,7 @@ LineGrid::LineGrid(const LineGrid &other) : horizonalLines(other.horizonalLines)
 }
 
 LineGrid &LineGrid::operator=(const LineGrid &other) {
-	if(this != &other) {
+	if (this != &other) {
 		LineGrid tmp(other);
 		std::swap(horizonalLines, tmp.horizonalLines);
 		std::swap(verticalLines, tmp.verticalLines);

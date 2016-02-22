@@ -33,12 +33,12 @@ public:
 };
 
 Image::Impl::Impl(Camera *camera, const std::string &path, const std::string basename)
-: m_camera(camera), m_fullpath(path + basename), m_basename(basename) {
+	: m_camera(camera), m_fullpath(path + basename), m_basename(basename) {
 
 }
 
 Image::Impl::Impl(const Impl& other)
-: m_camera(other.m_camera), m_fullpath(other.m_fullpath), m_basename(other.m_basename) {
+	: m_camera(other.m_camera), m_fullpath(other.m_fullpath), m_basename(other.m_basename) {
 
 }
 
@@ -63,14 +63,14 @@ Image::~Image() {
 }
 
 Image& Image::operator=(const Image& other) {
-	if(this != &other) {
+	if (this != &other) {
 		pimpl = std::make_unique<Impl>(*other.pimpl);
 	}
 	return *this;
 }
 
 Image& Image::operator=(Image&& other) noexcept {
-	if(this != &other) {
+	if (this != &other) {
 		pimpl = std::move(other.pimpl);
 	}
 	return *this;

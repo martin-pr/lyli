@@ -195,7 +195,7 @@ private:
 	 * \param inserter function that processes a point and adds it a corresponding line
 	 */
 	void horizontalLineInserter(int start, int end,
-	                             std::function<void(Point *)> inserter);
+	                            std::function<void(Point *)> inserter);
 	/**
 	 * Helper function to construct vertical lines
 	 *

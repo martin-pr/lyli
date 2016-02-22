@@ -19,44 +19,40 @@
 #include "imagedownloader.h"
 
 ImageDownloader::ImageDownloader(ImageListModel* model, const QModelIndexList& indices, QString outputDir):
-	m_model(model), m_indices(indices), m_outputDir(outputDir)
-{
+	m_model(model), m_indices(indices), m_outputDir(outputDir) {
 }
 
-ImageDownloader::~ImageDownloader()
-{
+ImageDownloader::~ImageDownloader() {
 }
 
-void ImageDownloader::onDownloadAll()
-{
+void ImageDownloader::onDownloadAll() {
 	const int rowCount = m_model->rowCount();
-	
+
 	emit started(rowCount);
-	
+
 	// download all files
 	for (int i = 0; i < rowCount; ++i) {
 		QModelIndex index = m_model->index(i, 0);
 		m_model->downloadFile(index, m_outputDir);
-		
+
 		emit progress(i+1);
 	}
-	
+
 	emit finished();
 }
 
-void ImageDownloader::onDownloadSelected()
-{
+void ImageDownloader::onDownloadSelected() {
 	emit started(m_indices.size());
-	
+
 	// download selected files
 	int i = 0;
-	foreach(const QModelIndex &index, m_indices) {
+	foreach (const QModelIndex &index, m_indices) {
 		m_model->downloadFile(index, m_outputDir);
-		
+
 		emit progress(i+1);
 		++i;
 	}
-	
+
 	emit finished();
 }
 

@@ -295,7 +295,7 @@ CalibrationData::CalibrationData(const CalibrationData& other) :
 }
 
 CalibrationData& CalibrationData::operator=(const CalibrationData& other) {
-	if(this !=& other) {
+	if (this !=& other) {
 		CalibrationData tmp(other);
 		std::swap(pimpl, tmp.pimpl);
 	}

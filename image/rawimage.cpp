@@ -20,10 +20,10 @@
 namespace {
 
 /** Return the index of a color corresponding to the value in bayer filter.
- * 
+ *
  * The function takes an x,y position in the image as the input and returns
  * the color that is stored at that position.
- * 
+ *
  * @return 0 - red, 1 - green, 2 - blue
  */
 std::size_t getColorIndex(std::size_t x, std::size_t y) {
@@ -63,26 +63,25 @@ namespace Lyli {
 namespace Image {
 
 RawImage::RawImage(std::istream& is, std::size_t width, std::size_t height) :
-m_data(height, width, CV_16UC3)
-{
+	m_data(height, width, CV_16UC3) {
 	unsigned char buf[3];
 	std::uint16_t tmp;
 	std::size_t pos(0);
-	
+
 	uint16_t *data = reinterpret_cast<uint16_t*>(m_data.data);
 	for (std::size_t y = 0; y < height; ++y) {
 		// this assumes that the x-dimension has even number of pixels
 		// so two pixels can be read at once
 		for (std::size_t x = 0; x < width;) {
 			is.read(reinterpret_cast<char*>(buf), 3);
-		
+
 			// mask out the first twelve bits
 			// the data are stored as big endian, so we have to fix that, too
 			tmp = (buf[0] << 8) | (buf[1] & 0xF0);
 			data[pos + getColorIndex(x, y)] = tmp;
 			pos += 3;
 			++x;
-			
+
 			// the second 12b
 			tmp = ((buf[1] & 0xF) << 12) | (buf[2] << 4);
 			data[pos + getColorIndex(x, y)] = tmp;
@@ -90,18 +89,16 @@ m_data(height, width, CV_16UC3)
 			++x;
 		}
 	}
-	
+
 	demosaic();
 }
 
-const cv::Mat &RawImage::getData() const
-{
+const cv::Mat &RawImage::getData() const {
 	return m_data;
 }
 
 // simple bilinear interpolation
-void RawImage::demosaic()
-{
+void RawImage::demosaic() {
 	uint16_t *data = reinterpret_cast<uint16_t*>(m_data.data);
 	const int Y_OFF = m_data.cols * 3; // the offset used when adding (or subtracting) 1 to y-dimension
 	const int X_OFF = 3; // // the offset used when adding (or subtracting) 1 to x-dimension

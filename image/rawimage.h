@@ -28,22 +28,22 @@ namespace Lyli {
 namespace Image {
 
 /** A class providing a simple interface for accessing the Lytro RAW images.
- * 
+ *
  */
 class RawImage {
 public:
 	/** Construct the image.
-	 * 
+	 *
 	 * \param is input stream to the opened .RAW file
 	 */
 	RawImage(std::istream &is, std::size_t width, std::size_t height);
-	
+
 	/** Get processed image data
-	 * 
+	 *
 	 * \return pointer to a buffer containing width*height RGB uint16_t pixels
 	 */
 	const cv::Mat &getData() const;
-	
+
 private:
 	cv::Mat m_data;
 

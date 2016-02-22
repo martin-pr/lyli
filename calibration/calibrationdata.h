@@ -22,15 +22,15 @@
 #include <vector>
 
 namespace cv {
-	class Mat;
+class Mat;
 
-	template < typename _Tp, int cn>
-	class Vec;
-	typedef Vec<float, 2> Vec2f;
+template < typename _Tp, int cn>
+class Vec;
+typedef Vec<float, 2> Vec2f;
 }
 
 namespace Json {
-	class Value;
+class Value;
 }
 
 namespace Lyli {

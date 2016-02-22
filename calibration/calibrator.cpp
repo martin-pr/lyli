@@ -210,7 +210,7 @@ double findTranslation(const Lyli::Calibration::PointGrid::LineList &lines,
 
 		// find the corresponding line in target grid
 		Lyli::Calibration::LineGrid::Line targetLine;
-		if(direction.dot(cv::Vec2f(1, 0)) > 0.5) {
+		if (direction.dot(cv::Vec2f(1, 0)) > 0.5) {
 			targetLine = target.getHorizontalLines()[mapper.mapHorizontal(line.line.front()->getHorizontalLineIndex())];
 		}
 		else {
@@ -305,7 +305,7 @@ CalibrationData Calibrator::calibrate() {
 	// create line grids for all point grids
 	std::vector<LineGrid> linegrids;
 	int i = 0;
-	for(const auto entry : pimpl->pointGridList) {
+	for (const auto entry : pimpl->pointGridList) {
 		linegrids.push_back(LineGrid(entry));
 		/*// BEGIN DEBUG
 		std::stringstream ss;

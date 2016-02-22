@@ -39,19 +39,17 @@ constexpr std::size_t IMG_HEIGHT=3280;
 
 unsigned char LytroImage::m_gamma[4096];
 
-LytroImage::LytroImage() : m_image(nullptr)
-{
+LytroImage::LytroImage() : m_image(nullptr) {
 
 }
 
-LytroImage::LytroImage(const char *file)
-{
+LytroImage::LytroImage(const char *file) {
 	m_image = new QImage(IMG_WIDTH, IMG_HEIGHT, QImage::Format_RGB32);
 	std::fstream fin(file, std::fstream::in | std::fstream::binary);
-	
+
 	Lyli::Image::RawImage image(fin, IMG_WIDTH, IMG_HEIGHT);
 	fin.close();
-	
+
 	// DEBUG: show prerocessed calibration image
 	/*Lyli::Calibrator calibrator;
 	calibrator.addImage(image.getData());
@@ -61,36 +59,32 @@ LytroImage::LytroImage(const char *file)
 	uint16_t *rawImage = reinterpret_cast<uint16_t*>(image.getData().data);
 	// combine the images
 	std::size_t pos(0);
-	for(std::size_t y = 0; y < IMG_HEIGHT; ++y) {
-		for(std::size_t x = 0; x < IMG_WIDTH; ++x) {
+	for (std::size_t y = 0; y < IMG_HEIGHT; ++y) {
+		for (std::size_t x = 0; x < IMG_WIDTH; ++x) {
 			m_image->setPixel(x, y, qRgb(
-				m_gamma[rawImage[pos] >> 4],
-				m_gamma[rawImage[pos+1] >> 4],
-				m_gamma[rawImage[pos+2] >> 4]));
+			                      m_gamma[rawImage[pos] >> 4],
+			                      m_gamma[rawImage[pos+1] >> 4],
+			                      m_gamma[rawImage[pos+2] >> 4]));
 			pos += 3;
 		}
 	}
 }
 
-LytroImage::~LytroImage()
-{
+LytroImage::~LytroImage() {
 	if (m_image != nullptr) {
 		delete m_image;
 	}
 }
 
-LytroImage::LytroImage(const LytroImage& other)
-{
+LytroImage::LytroImage(const LytroImage& other) {
 	m_image = new QImage(*other.m_image);
 }
 
-LytroImage::LytroImage(LytroImage&& other) : m_image(other.m_image)
-{
+LytroImage::LytroImage(LytroImage&& other) : m_image(other.m_image) {
 	other.m_image = nullptr;
 }
 
-LytroImage& LytroImage::operator=(const LytroImage& other)
-{
+LytroImage& LytroImage::operator=(const LytroImage& other) {
 	if (this != &other) {
 		LytroImage tmp(other);
 		std::swap(m_image, tmp.m_image);
@@ -98,8 +92,7 @@ LytroImage& LytroImage::operator=(const LytroImage& other)
 	return *this;
 }
 
-LytroImage& LytroImage::operator=(LytroImage&& other)
-{
+LytroImage& LytroImage::operator=(LytroImage&& other) {
 	if (this != &other) {
 		if (m_image) {
 			delete m_image;
@@ -110,8 +103,7 @@ LytroImage& LytroImage::operator=(LytroImage&& other)
 	return *this;
 }
 
-void LytroImage::init()
-{
+void LytroImage::init() {
 	static double gamma = 1.0/2.2;
 	for (uint16_t i = 0; i < 4096; ++i) {
 		double tmp = i / 4096.0;
@@ -119,7 +111,6 @@ void LytroImage::init()
 	}
 }
 
-const QImage *LytroImage::getQImage() const
-{
+const QImage *LytroImage::getQImage() const {
 	return m_image;
 }

@@ -85,7 +85,7 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 			int oldstartx = startx;
 			int tmppos = pos - 1;
 			int x = startx - 1;
-			while(x >= minx && maskData[tmppos] == Lyli::Calibration::Mask::OBJECT) {
+			while (x >= minx && maskData[tmppos] == Lyli::Calibration::Mask::OBJECT) {
 				// compute
 				m10 += y * data[tmppos];
 				m01 += x * data[tmppos];
@@ -99,7 +99,7 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 			// fill to the right
 			tmppos = pos;
 			x = oldstartx;
-			while(x < maxx && maskData[tmppos] == Lyli::Calibration::Mask::OBJECT) {
+			while (x < maxx && maskData[tmppos] == Lyli::Calibration::Mask::OBJECT) {
 				// compute
 				m10 += y * data[tmppos];
 				m01 += x * data[tmppos];
@@ -117,7 +117,7 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 			// compare against OBJECT rather than EMPTY, as we may hit PROCESSED pixels too
 			// in case there is a little "spur" that sticks out on top of already processed pixels
 			// which may happen if there are lenses that are fused together in the image
-			while(maskData[tmppos] != Lyli::Calibration::Mask::OBJECT) {
+			while (maskData[tmppos] != Lyli::Calibration::Mask::OBJECT) {
 				if (tmppos == endpos) {
 					// stop fill
 					goto findCentroid_stop;
@@ -128,7 +128,7 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 			}
 			// fill to the right
 			int x = startx;
-			while(x < maxx && maskData[tmppos] == Lyli::Calibration::Mask::OBJECT) {
+			while (x < maxx && maskData[tmppos] == Lyli::Calibration::Mask::OBJECT) {
 				// compute
 				m10 += y * data[tmppos];
 				m01 += x * data[tmppos];
@@ -143,7 +143,7 @@ cv::Point2f findCentroid(const cv::Mat &image, cv::Mat &mask, cv::Point2i start)
 		// move to the next row
 		++y;
 	}
-	findCentroid_stop:
+findCentroid_stop:
 
 	return cv::Point2f(m01/sum, m10/sum);
 }
@@ -248,7 +248,7 @@ PointGrid LensDetector::detect(const cv::Mat& image) {
 
 	// check whether the image is usefull at all
 	std::uint8_t mean = cv::mean(gray(cv::Rect(1620, 1620, 40, 40)))[0];
-	if(mean < 16 || mean > 240) {
+	if (mean < 16 || mean > 240) {
 		// skip flat image
 		return PointGrid();
 	}

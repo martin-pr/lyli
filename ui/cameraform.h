@@ -23,19 +23,17 @@
 #include <QtCore/QAbstractListModel>
 #include <QtWidgets/QWidget>
 
-namespace Ui
-{
+namespace Ui {
 class CameraForm;
 }
 class QModelIndex;
 
-class CameraForm : public QWidget
-{
+class CameraForm : public QWidget {
 	Q_OBJECT
 public:
 	CameraForm(QWidget *parent = nullptr);
 	~CameraForm();
-	
+
 signals:
 	void progressStart(int files);
 	void progressRun(int progress);
@@ -46,24 +44,24 @@ private:
 		ALL,
 		SELECTED
 	};
-	
+
 private slots:
 	void onChangeCamera(const QModelIndex& index);
 	void onDownloadAll();
 	void onDownloadSelected();
-	
+
 	void onDownloadStarted(int files);
 	void onDownloadRunning(int progress);
 	void onDownloadFinished();
-	
+
 private:
 	Ui::CameraForm* ui;
 	QThread m_downloadThread;
-	
+
 	/** Show the GUI for selecting the output directory and executes a download thread
 	 */
 	void download(DownloadMode mode);
-	
+
 	CameraForm(const CameraForm& other);
 	CameraForm& operator=(const CameraForm& other);
 };

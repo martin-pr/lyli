@@ -56,7 +56,7 @@ class Camera {
 public:
 	Camera();
 	~Camera();
-	
+
 	Camera(Camera &&other) noexcept;
 	Camera &operator=(Camera &&other) noexcept;
 
@@ -69,18 +69,18 @@ public:
 	void getFile(std::ostream &out, const std::string &fileName) const;
 
 	Filesystem::FilesystemAccess getFilesystemAccess();
-	
+
 private:
 	class Impl;
 	std::unique_ptr<Impl> pimpl;
-	
+
 	friend CameraList getCameras(Usbpp::Context &context);
 	friend class Filesystem::FilesystemAccess;;
 
 	Camera(const Usbpp::MassStorage::MSDevice &device);
 
 	Usbpp::ByteBuffer getPictureList();
-	
+
 	Camera(const Camera &other);
 	Camera &operator=(const Camera &other);
 };

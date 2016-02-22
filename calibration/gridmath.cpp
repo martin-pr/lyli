@@ -60,7 +60,7 @@ void insertLine(LineMap &map, const Lyli::Calibration::LineGrid::Line &line, con
 
 	auto lineIt = diffLb < diffUb ? lb : ub;
 
-	if(std::abs(lineIt->first - line.position) < limit) {
+	if (std::abs(lineIt->first - line.position) < limit) {
 		// replace the line entry with an average
 		LineEntry entry(std::move(lineIt->second));
 		entry.referees.push_back(referee);
@@ -112,29 +112,29 @@ std::pair<LineGrid, std::vector<GridMapper>> averageGrids(const std::vector<Line
 	// prepare grid mappers
 	std::vector<GridMapper> mappers;
 	mappers.reserve(grids.size());
-	for(const auto &grid : grids) {
+	for (const auto &grid : grids) {
 		mappers.push_back(GridMapper(grid.getHorizontalLines().size(), grid.getVerticalLines().size()));
 	}
 
 	// construct the line grid and store the mapping for each line
 	LineGrid lineGrid;
 	lineIndex = 0;
-	for(const auto& line : horizontal) {
-		if(line.second.counter > grids.size() / 2) {
+	for (const auto& line : horizontal) {
+		if (line.second.counter > grids.size() / 2) {
 			lineGrid.horizonalLines.push_back(line.second.line);
 			// store mapping
-			for(const auto &referee : line.second.referees) {
+			for (const auto &referee : line.second.referees) {
 				mappers[referee.first].mapHorizontal(referee.second, lineIndex);
 			}
 			++lineIndex;
 		}
 	}
 	lineIndex = 0;
-	for(const auto& line : vertical) {
-		if(line.second.counter > grids.size() / 2) {
+	for (const auto& line : vertical) {
+		if (line.second.counter > grids.size() / 2) {
 			lineGrid.verticalLines.push_back(line.second.line);
 			// store mapping
-			for(const auto &referee : line.second.referees) {
+			for (const auto &referee : line.second.referees) {
 				mappers[referee.first].mapVertical(referee.second, lineIndex);
 			}
 			++lineIndex;

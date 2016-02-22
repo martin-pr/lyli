@@ -60,11 +60,10 @@ class Camera::Impl {
 public:
 	Impl(Camera *camera_, const Usbpp::MassStorage::MSDevice &device_) :
 		camera(camera_),
-		device(device_)
-	{
+		device(device_) {
 		// ensure that the device is opened
 		device.open(true);
-		
+
 		// clear halt and reset the device, so it doesn't have to be reconnected manually in case of error
 		/*device.clearHalt(LIBUSB_ENDPOINT_OUT | 0x02);
 		device.clearHalt(LIBUSB_ENDPOINT_IN | 0x02);
@@ -73,32 +72,32 @@ public:
 			std::cerr << "Cannot reset device!" << std::endl;
 			return 1;
 		}*/
-		
+
 		// claim the interface
 		device.claimInterface(0);
 	}
-	
+
 	~Impl() {
 		device.close();
 	}
-	
+
 	bool isReady() {
 		Usbpp::MassStorage::CommandBlockWrapper cmdUnitReady(0, 0, 0, {0,0,0,0, 0,0,0,0, 0,0,0,0});
-		
+
 		std::unique_lock<std::mutex> cameraLock(cameraAccessMutex);
 		bool ready = device.sendCommand(LIBUSB_ENDPOINT_OUT | 0x02, cmdUnitReady, nullptr).getStatus() ==
-			Usbpp::MassStorage::CommandStatusWrapper::Status::PASSED;
+		             Usbpp::MassStorage::CommandStatusWrapper::Status::PASSED;
 		cameraLock.unlock();
-		
+
 		return ready;
 	}
-	
+
 	Usbpp::ByteBuffer downloadData() {
 		Usbpp::ByteBuffer result;
 		Usbpp::ByteBuffer response;
-		
+
 		// doesn't need locking, because the lock is already kept by caller
-		
+
 		// get the expected response length
 		Usbpp::MassStorage::CommandBlockWrapper cmdGetLen(65536, 0x80, 0, {0xc6, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00});
 		device.sendCommand(LIBUSB_ENDPOINT_OUT | 0x02, cmdGetLen, &response);
@@ -106,18 +105,19 @@ public:
 		std::size_t len(*reinterpret_cast<uint32_t*>(response.data()));
 		std::cout << "expected length " << len << " bytes" << std::endl;
 #endif
-		
+
 		// read the file list
 		unsigned char packet(0);
 		do {
 			Usbpp::MassStorage::CommandBlockWrapper cmdGetData(65536, 0x80, 0, {0xc4, 00, 01, 00, 00, packet++, 00, 00, 00, 00, 00, 00});
 			device.sendCommand(LIBUSB_ENDPOINT_OUT | 0x02, cmdGetData, &response);
 			result.append(response);
-		} while (response.size() == 65536);
-		
+		}
+		while (response.size() == 65536);
+
 		return result;
 	}
-	
+
 	CameraInformation getCameraInformation() const {
 		CameraInformation info;
 		std::unique_lock<std::mutex> cameraLock(cameraAccessMutex);
@@ -126,7 +126,7 @@ public:
 		info.vendor = std::string((const char*) response.getVendorIdentification().data(), response.getVendorIdentification().size());
 		info.product = std::string((const char*) response.getProductIdentification().data(), response.getProductIdentification().size());
 		info.revision = std::string((const char*) response.getProductRevisionLevel().data(), response.getProductRevisionLevel().size());
-		
+
 		return info;
 	}
 
@@ -146,66 +146,60 @@ public:
 
 		return response;
 	}
-	
-	void getFile(std::ostream &out, const char *fileName)
-	{
+
+	void getFile(std::ostream &out, const char *fileName) {
 		Usbpp::ByteBuffer dataBuffer(65536);
 		Usbpp::ByteBuffer response;
-		
+
 		std::size_t len(std::strlen(fileName) + 1);
 		Usbpp::ByteBuffer fileBuf(reinterpret_cast<const uint8_t*>(fileName), len);
-		
+
 		std::unique_lock<std::mutex> cameraLock(cameraAccessMutex);
-		
+
 		// request the file
 		Usbpp::MassStorage::CommandBlockWrapper cmdReqFile(len, 0, 0, {0xc2, 00, 01, 00, 00, 00, 00, 00, 00, 00, 00, 00});
 		device.bulkTransferOut(LIBUSB_ENDPOINT_OUT | 0x02, cmdReqFile.getBuffer(), 0);
 		device.bulkTransferOut(LIBUSB_ENDPOINT_OUT | 0x02, fileBuf, 0);
-		
+
 		// check the request status
 		device.bulkTransferIn(LIBUSB_ENDPOINT_IN | 0x02, dataBuffer, 0);
-		
+
 		// get the data
 		response = downloadData();
-		
+
 		cameraLock.unlock();
-		
+
 		out.write(reinterpret_cast<const char*>(response.data()), response.size());
-		
+
 #ifndef NDEBUG
 		std::cout << "response length " << response.size() << std::endl;
 		printbuf(response.data(), response.size());
 #endif
 	}
-	
+
 	Camera *camera;
 	Usbpp::MassStorage::MSDevice device;
-	
+
 	mutable std::mutex cameraAccessMutex;
 };
 
-Camera::Camera()
-{
+Camera::Camera() {
 
 }
 
-Camera::Camera(const Usbpp::MassStorage::MSDevice &device) : pimpl(std::make_unique<Impl>(this, device))
-{
+Camera::Camera(const Usbpp::MassStorage::MSDevice &device) : pimpl(std::make_unique<Impl>(this, device)) {
 
 }
 
-Camera::~Camera()
-{
+Camera::~Camera() {
 
 }
 
-Camera::Camera(Camera&& other) noexcept : pimpl(std::move(other.pimpl))
-{
+Camera::Camera(Camera&& other) noexcept : pimpl(std::move(other.pimpl)) {
 	pimpl->camera = this;
 }
 
-Camera& Camera::operator=(Camera&& other) noexcept
-{
+Camera& Camera::operator=(Camera&& other) noexcept {
 	if (this != &other) {
 		pimpl = std::move(other.pimpl);
 		pimpl->camera = this;
@@ -215,22 +209,19 @@ Camera& Camera::operator=(Camera&& other) noexcept
 }
 
 
-void Camera::waitReady()
-{
+void Camera::waitReady() {
 	while (! pimpl->isReady());
 }
 
-CameraInformation Camera::getCameraInformation() const
-{
+CameraInformation Camera::getCameraInformation() const {
 	assert(pimpl != nullptr);
-	
+
 	return pimpl->getCameraInformation();
 }
 
-Usbpp::ByteBuffer Camera::getPictureList()
-{
+Usbpp::ByteBuffer Camera::getPictureList() {
 	assert(pimpl != nullptr);
-	
+
 	return pimpl->getPictureList();
 }
 
@@ -244,9 +235,9 @@ Filesystem::FilesystemAccess Camera::getFilesystemAccess() {
 
 CameraList getCameras(Usbpp::Context &context) {
 	CameraList cameras;
-	
+
 	std::vector<Usbpp::Device> devices(context.getDevices());
-	
+
 	for (Usbpp::Device dev : devices) {
 		try {
 			libusb_device_descriptor descr(dev.getDescriptor());
@@ -260,7 +251,7 @@ CameraList getCameras(Usbpp::Context &context) {
 			continue;
 		}
 	}
-	
+
 	return cameras;
 }
 

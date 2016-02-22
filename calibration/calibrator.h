@@ -24,7 +24,7 @@
 
 namespace Lyli {
 namespace Image {
-	class Metadata;
+class Metadata;
 }
 }
 

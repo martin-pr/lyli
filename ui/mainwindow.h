@@ -25,18 +25,16 @@
 #include "cameraform.h"
 #include "viewerform.h"
 
-namespace Ui
-{
+namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow
-{
-    Q_OBJECT
+class MainWindow : public QMainWindow {
+	Q_OBJECT
 public:
-    MainWindow();
-    ~MainWindow();
-	
+	MainWindow();
+	~MainWindow();
+
 public slots:
 	void onProgressStart(int files);
 	void onProgress(int progress);
@@ -44,7 +42,7 @@ public slots:
 
 private:
 	Ui::MainWindow* ui;
-	
+
 	QProgressBar* m_progressBar;
 	CameraForm *m_cameraForm;
 	ViewerForm *m_viewerForm;

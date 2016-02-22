@@ -23,25 +23,24 @@
 
 class QImage;
 
-class LytroImage
-{
+class LytroImage {
 public:
 	LytroImage();
 	LytroImage(const char *file);
 	~LytroImage();
-	
+
 	LytroImage(const LytroImage &other);
 	LytroImage(LytroImage &&other);
 	LytroImage &operator=(const LytroImage &other);
 	LytroImage &operator=(LytroImage &&other);
-	
+
 	/** Initialize static members.
-	 * 
+	 *
 	 */
 	static void init();
-	
+
 	const QImage *getQImage() const;
-	
+
 private:
 	QImage *m_image;
 	static unsigned char m_gamma[4096];
