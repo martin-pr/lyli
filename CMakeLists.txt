@@ -8,13 +8,15 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wstrict-aliasing -Wextra")
 # Dependencies #
 ################
 
+# GUI (optional)
 find_package(Qt5Core)
 find_package(Qt5Widgets)
 
+# minimal dependencies
 find_package(JsonCpp REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(PkgConfig REQUIRED)
 find_package(TBB REQUIRED)
+find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBUSB REQUIRED libusb-1.0>=1.0.0)
 
 # libusbpp dependency - if it doesn't exists, clone it
@@ -34,9 +36,10 @@ include_directories("${CMAKE_BINARY_DIR}/libusbpp/install/include")
 
 set(CMAKE_CXX_FLAGS "-std=c++14")
 add_definitions(${TBB_DEFINITIONS})
-include_directories(${LIBUSB_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${JsonCpp_INCLUDE_DIRS})
 include_directories(${TBB_INCLUDE_DIRS})
+include_directories(${LIBUSB_INCLUDE_DIRS})
 
 #########
 # Build #
