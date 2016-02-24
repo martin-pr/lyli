@@ -13,7 +13,7 @@ find_package(Qt5Core)
 find_package(Qt5Widgets)
 
 # minimal dependencies
-find_package(JsonCpp REQUIRED)
+find_package(JsonCpp REQUIRED 1.4.0)
 find_package(OpenCV REQUIRED)
 find_package(TBB REQUIRED)
 find_package(PkgConfig REQUIRED)
