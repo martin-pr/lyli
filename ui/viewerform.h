@@ -31,6 +31,9 @@ class ViewerForm;
 class QFileSystemModel;
 class QModelIndex;
 
+/**
+ * An image viewer widget
+ */
 class ViewerForm : public QWidget {
 	Q_OBJECT
 

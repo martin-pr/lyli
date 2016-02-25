@@ -23,28 +23,27 @@
 #include <QtWidgets/QProgressBar>
 
 #include "cameraform.h"
+#include "progressbar.h"
 #include "viewerform.h"
 
 namespace Ui {
 class MainWindow;
 }
 
+/**
+ * Main window
+ */
 class MainWindow : public QMainWindow {
 	Q_OBJECT
 public:
 	MainWindow();
 	~MainWindow();
 
-public slots:
-	void onProgressStart(int files);
-	void onProgress(int progress);
-	void onProgressFinish();
-
 private:
 	Ui::MainWindow* ui;
 
-	QProgressBar* m_progressBar;
 	CameraForm *m_cameraForm;
+	ProgressBar *m_progressBar;
 	ViewerForm *m_viewerForm;
 };
 

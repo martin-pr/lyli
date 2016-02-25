@@ -35,29 +35,14 @@ MainWindow::MainWindow() {
 	viewerFormLayout->addWidget(m_viewerForm);
 	ui->tabViewer->setLayout(viewerFormLayout);
 
-	m_progressBar = new QProgressBar;
-	m_progressBar->setEnabled(false);
-	m_progressBar->setFormat(QStringLiteral("%v/%m"));
+	m_progressBar = new ProgressBar;
 	ui->statusbar->addPermanentWidget(m_progressBar);
 
-	connect(m_cameraForm, &CameraForm::progressStart, this, &MainWindow::onProgressStart);
-	connect(m_cameraForm, &CameraForm::progressRun, this, &MainWindow::onProgress);
-	connect(m_cameraForm, &CameraForm::progressFinish, this, &MainWindow::onProgressFinish);
+	connect(m_cameraForm, &CameraForm::progressStart, m_progressBar, &ProgressBar::onProgressStart);
+	connect(m_cameraForm, &CameraForm::progressRun, m_progressBar, &ProgressBar::onProgress);
+	connect(m_cameraForm, &CameraForm::progressFinish, m_progressBar, &ProgressBar::onProgressFinish);
 }
 
 MainWindow::~MainWindow() {
 	delete ui;
-}
-
-void MainWindow::onProgressStart(int files) {
-	m_progressBar->setEnabled(true);
-	m_progressBar->setMaximum(files);
-}
-
-void MainWindow::onProgress(int progress) {
-	m_progressBar->setValue(progress);
-}
-
-void MainWindow::onProgressFinish() {
-	m_progressBar->setEnabled(false);
 }
