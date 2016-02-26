@@ -22,9 +22,9 @@
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QProgressBar>
 
-#include "cameraform.h"
+#include "cameraview/cameraform.h"
+#include "imageview/viewerform.h"
 #include "progressbar.h"
-#include "viewerform.h"
 
 namespace Ui {
 class MainWindow;
