@@ -21,6 +21,7 @@
 #include <memory>
 
 #include <calibration/calibrationdata.h>
+#include <calibration/exception.h>
 
 namespace Lyli {
 namespace Image {
@@ -33,6 +34,16 @@ namespace Calibration {
 
 class PointGrid;
 
+class CameraDiffersException : public Exception {
+public:
+	explicit CameraDiffersException(const std::string& reason);
+	virtual ~CameraDiffersException();
+
+	virtual const char* what() const noexcept;
+
+private:
+	std::string m_reason;
+};
 
 /**
  * A class providing means to calibrate camera from a set of images.
@@ -45,8 +56,11 @@ public:
 	/**
 	 * Add a grid to the calibrator and process it.
 	 *
+	 * The metada must correspond to the same camera as all previously added metada.
+	 *
 	 * @param pointgrid grid with lens centroids
 	 * @param metadata of the image corresponding to the pointgrid
+	 * @throw CameraDiffersException in case the added metada are for a different camera
 	 */
 	void addGrid(const PointGrid &pointgrid, const Lyli::Image::Metadata &metadata);
 

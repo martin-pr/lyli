@@ -34,6 +34,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -264,8 +265,21 @@ cv::Vec2f calibrateTranslation(const PointGridList &gridList, double angle,
 namespace Lyli {
 namespace Calibration {
 
+CameraDiffersException::CameraDiffersException(const std::string& reason) : m_reason(reason) {
+
+}
+
+CameraDiffersException::~CameraDiffersException() {
+
+}
+
+const char* CameraDiffersException::what() const noexcept {
+	return m_reason.c_str();
+}
+
 class Calibrator::Impl {
 public:
+	std::string m_serial;
 	PointGridList pointGridList;
 	ClusterMap clusterMap;
 	/// Mutex to protect access to pointGridList and clusterMap
@@ -289,8 +303,17 @@ Calibrator::~Calibrator() {
 }
 
 void Calibrator::addGrid(const PointGrid &pointGrid, const Lyli::Image::Metadata &metadata) {
+	std::string serial = metadata.getPrivatemetadata().getCamera().getSerialnumber();
+	if (!pimpl->m_serial.empty() && pimpl->m_serial != serial) {
+		throw CameraDiffersException("Camera serial number differs");
+	}
+
 	// thread safe data access
 	tbb::spin_mutex::scoped_lock lock(pimpl->dataAccessMutex);
+
+	if (pimpl->m_serial.empty()) {
+		pimpl->m_serial = serial;
+	}
 
 	// store the point grid
 	pimpl->pointGridList.push_back(pointGrid);
@@ -334,7 +357,7 @@ CalibrationData Calibrator::calibrate() {
 		lensCalib.push_back(std::make_pair(LensConfiguration(cluster.first.getZoomstep(), cluster.first.getFocusstep()), lensParam));
 	}
 
-	return CalibrationData(arrayCalib, lensCalib);
+	return CalibrationData(pimpl->m_serial, arrayCalib, lensCalib);
 }
 
 }

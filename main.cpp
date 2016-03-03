@@ -195,35 +195,45 @@ void calibrate(const std::string& path, const std::string& out) {
 	// calibrate
 	Lyli::Calibration::Calibrator calibrator;
 	Lyli::Calibration::LensDetector lensDetector(std::make_unique<Lyli::Calibration::FFTPreprocessor>());
-	tbb::parallel_for_each(files, [&calibrator,&lensDetector](const auto &filebase) {
-		std::cout << filebase << " reading image..." << std::endl;
-		std::stringstream ss;
+	try {
+		tbb::parallel_for_each(files, [&calibrator,&lensDetector](const auto &filebase) {
+			std::cout << filebase << " reading image..." << std::endl;
+			std::stringstream ss;
 
-		// read image
-		ss << filebase << ".RAW";
-		std::fstream fin(ss.str(), std::fstream::in | std::fstream::binary);
-		ss.str("");
-		ss.clear();
-		Lyli::Image::RawImage rawimg(fin, 3280, 3280);
+			// read metadata
+			ss << filebase << ".TXT";
+			std::fstream finmeta(ss.str(), std::fstream::in | std::fstream::binary);
+			if (!finmeta.good()) {
+				std::cout << filebase << " missing metadata, skipping" << std::endl;
+				return;
+			}
+			ss.str("");
+			ss.clear();
+			Lyli::Image::Metadata metadata(finmeta);
 
-		// read metadata
-		ss << filebase << ".TXT";
-		std::fstream finmeta(ss.str(), std::fstream::in | std::fstream::binary);
-		ss.str("");
-		ss.clear();
-		Lyli::Image::Metadata metadata(finmeta);
-		// detect the lenses
-		std::cout << filebase << " processing image..." << std::endl;
+			// read image
+			ss << filebase << ".RAW";
+			std::fstream fin(ss.str(), std::fstream::in | std::fstream::binary);
+			ss.str("");
+			ss.clear();
+			Lyli::Image::RawImage rawimg(fin, 3280, 3280);
 
-		Lyli::Calibration::PointGrid pointGrid = lensDetector.detect(rawimg.getData());
-		if (pointGrid.isEmpty()) {
-			std::cout << filebase << " image is too flat, skipping" << std::endl;
-			return;
-		}
+			// detect the lenses
+			std::cout << filebase << " processing image..." << std::endl;
 
-		// add grid with the lenses to the calibrator
-		calibrator.addGrid(pointGrid, metadata);
-	});
+			Lyli::Calibration::PointGrid pointGrid = lensDetector.detect(rawimg.getData());
+			if (pointGrid.isEmpty()) {
+				std::cout << filebase << " image is too flat, skipping" << std::endl;
+				return;
+			}
+
+			// add grid with the lenses to the calibrator
+			calibrator.addGrid(pointGrid, metadata);
+		});
+	} catch (Lyli::Calibration::CameraDiffersException& e) {
+		std::cerr << e.what() << std::endl;
+		std::exit(EXIT_FAILURE);
+	}
 
 	// CALIBRATE!
 	std::cout << "calibrating images..." << std::endl;

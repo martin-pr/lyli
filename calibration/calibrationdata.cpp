@@ -260,7 +260,7 @@ public:
 	Impl() {
 
 	}
-	Impl(const ArrayParameters& array, const LensCalibration& lens) : m_array(array), m_lens(lens) {
+	Impl(const std::string& serial, const ArrayParameters& array, const LensCalibration& lens) : m_serial(serial), m_array(array), m_lens(lens) {
 		// sort the lens parameters
 		std::sort(m_lens.begin(), m_lens.end(),
 			[](const auto &a, const auto &b) {
@@ -272,6 +272,7 @@ public:
 			});
 	}
 
+	std::string m_serial;
 	ArrayParameters m_array;
 	LensCalibration m_lens;
 };
@@ -280,8 +281,8 @@ CalibrationData::CalibrationData() : pimpl(new Impl) {
 
 }
 
-CalibrationData::CalibrationData(const ArrayParameters& array, const LensCalibration& lens) :
-	pimpl(new Impl(array, lens)) {
+CalibrationData::CalibrationData(const std::string& serial, const ArrayParameters& array, const LensCalibration& lens) :
+	pimpl(new Impl(serial, array, lens)) {
 
 }
 
@@ -290,7 +291,7 @@ CalibrationData::~CalibrationData() {
 }
 
 CalibrationData::CalibrationData(const CalibrationData& other) :
-	pimpl(new Impl(other.pimpl->m_array, other.pimpl->m_lens)) {
+	pimpl(new Impl(other.pimpl->m_serial, other.pimpl->m_array, other.pimpl->m_lens)) {
 
 }
 
@@ -313,6 +314,10 @@ CalibrationData& CalibrationData::operator=(CalibrationData&& other) noexcept {
 	return *this;
 }
 
+const std::string CalibrationData::getSerial() const {
+	return pimpl->m_serial;
+}
+
 const ArrayParameters& CalibrationData::getArray() const {
 	return pimpl->m_array;
 }
@@ -323,6 +328,7 @@ const CalibrationData::LensCalibration& CalibrationData::getLens() const {
 
 Json::Value CalibrationData::serialize() const {
 	Json::Value root(Json::objectValue);
+	root["serial"] = pimpl->m_serial;
 	root["array"] = pimpl->m_array.serialize();
 	root["lens"] = Json::Value(Json::arrayValue);
 	for (std::size_t i = 0; i < pimpl->m_lens.size(); ++i) {
@@ -333,6 +339,7 @@ Json::Value CalibrationData::serialize() const {
 }
 
 void CalibrationData::deserialize(const Json::Value& value) {
+	pimpl->m_serial = value["serial"].asString();
 	pimpl->m_array.deserialize(value["array"]);
 	const Json::Value& lensRoot = value["lens"];
 	for (Json::Value::ArrayIndex i = 0, end = lensRoot.size(); i < end; ++i) {

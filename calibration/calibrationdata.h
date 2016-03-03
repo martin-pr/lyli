@@ -18,6 +18,7 @@
 #define LYLI_CALIBRATION_CALIBRATIONDATA_H_
 
 #include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -151,7 +152,13 @@ public:
 	using LensCalibration = std::vector<LensConfigPair>;
 
 	CalibrationData();
-	CalibrationData(const ArrayParameters& array, const LensCalibration& lens);
+	/**
+	 * A constructor.
+	 * \param serial camera serial number
+	 * \param array lens array parameters
+	 * \param lens camera lens parameters
+	 */
+	CalibrationData(const std::string& serial, const ArrayParameters& array, const LensCalibration& lens);
 	~CalibrationData();
 
 	CalibrationData(const CalibrationData& other);
@@ -159,6 +166,7 @@ public:
 	CalibrationData(CalibrationData&& other) noexcept;
 	CalibrationData& operator=(CalibrationData&& other) noexcept;
 
+	const std::string getSerial() const;
 	const ArrayParameters& getArray() const;
 	const LensCalibration& getLens() const;
 
