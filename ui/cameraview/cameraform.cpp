@@ -19,51 +19,48 @@
 #include "cameraform.h"
 #include "ui_cameraform.h"
 
-#include "cameralistmodel.h"
-#include "imagedownloader.h"
-#include "imagelistdelegate.h"
-#include "imagelistmodel.h"
-
 #include <QtCore/QDir>
 #include <QtCore/QModelIndex>
 #include <QtWidgets/QFileDialog>
 
-CameraForm::CameraForm(QWidget *parent) : QWidget(parent) {
-	ui = new Ui::CameraForm;
+#include "cameralistmodel.h"
+#include "context.h"
+#include "imagedownloader.h"
+#include "imagelistdelegate.h"
+#include "imagelistmodel.h"
+
+CameraForm::CameraForm(QWidget *parent) : QWidget(parent), m_context(new Context), ui(new Ui::CameraForm) {
 	ui->setupUi(this);
 
 	// set the models
-	ui->cameraList->setModel(new CameraListModel);
-	ui->imageList->setModel(new ImageListModel);
+	m_cameraListModel = new CameraListModel(m_context.get());
+	m_imageListModel = new ImageListModel(m_context.get());
+	ui->cameraList->setModel(m_cameraListModel);
+	ui->imageList->setModel(m_imageListModel);
 
 	// set the delegates
 	ui->imageList->setItemDelegate(new ImageListDelegate);
 
 	// connect signals & slots
-	connect(ui->cameraList, &QListView::activated, this, &CameraForm::onChangeCamera);
+	connect(ui->cameraList, &QListView::activated, this, &CameraForm::onCameraChanged);
 	connect(ui->buttonDownloadAll, &QToolButton::clicked, this, &CameraForm::onDownloadAll);
 	connect(ui->buttonDownloadSelected, &QToolButton::clicked, this, &CameraForm::onDownloadSelected);
+	connect(m_context.get(), &Context::cameraChanged, m_imageListModel, &ImageListModel::onCameraChanged);
 
 	// some default settings
 	if (ui->cameraList->model()->rowCount() > 0) {
 		ui->cameraList->setCurrentIndex(ui->cameraList->model()->index(0,0));
-		onChangeCamera(ui->cameraList->currentIndex());
+		onCameraChanged(ui->cameraList->currentIndex());
 	}
 }
 
 CameraForm::~CameraForm() {
 	m_downloadThread.quit();
 	m_downloadThread.wait();
-	delete ui;
 }
 
-void CameraForm::onChangeCamera(const QModelIndex &index) {
-	CameraListModel *model = static_cast<CameraListModel*>(ui->cameraList->model());
-	Lyli::Camera *camera = model->getCamera(index.row());
-	if (camera != nullptr) {
-		ImageListModel *imageModel = static_cast<ImageListModel*>(ui->imageList->model());
-		imageModel->changeCamera(camera);
-	}
+void CameraForm::onCameraChanged(const QModelIndex &index) {
+	m_context->changeCurrentCamera(index.row());
 }
 
 void CameraForm::onDownloadAll() {

@@ -26,11 +26,13 @@
 #include <camera.h>
 #include "imagelistitem.h"
 
+class Context;
+
 class ImageListModel : public QAbstractListModel {
 	Q_OBJECT
 
 public:
-	ImageListModel(QObject *parent = 0);
+	ImageListModel(Context* context, QObject *parent = 0);
 	~ImageListModel();
 
 	void downloadFile(const QModelIndex &index, const QString &outputDirectory);
@@ -40,11 +42,11 @@ public:
 	virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
 
 public slots:
-	void changeCamera(Lyli::Camera *camera);
+	void onCameraChanged();
 
 private:
+	Context* m_context;
 	using ModelFileList = QVector<ImageListItem>;
-	Lyli::Camera *m_camera;
 	ModelFileList m_fileList;
 };
 

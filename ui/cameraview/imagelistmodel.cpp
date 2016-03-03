@@ -32,7 +32,9 @@
 #include <algorithm>
 #include <fstream>
 
-ImageListModel::ImageListModel(QObject *parent) : QAbstractListModel(parent), m_camera(nullptr) {
+#include "context.h"
+
+ImageListModel::ImageListModel(Context* context, QObject *parent) : QAbstractListModel(parent), m_context(context) {
 
 }
 
@@ -57,23 +59,20 @@ int ImageListModel::rowCount(const QModelIndex& parent) const {
 	return m_fileList.size();
 }
 
-void ImageListModel::changeCamera(Lyli::Camera* camera) {
-	if (m_camera != camera) {
-		beginResetModel();
+void ImageListModel::onCameraChanged() {
+	beginResetModel();
 
-		m_camera = camera;
-		m_fileList.clear();
+	m_fileList.clear();
 
-		if (m_camera != nullptr) {
-			Lyli::Filesystem::PhotoList fileList = std::move(m_camera->getFilesystemAccess().getPictureList());
-			m_fileList.reserve(fileList.size());
-			for (auto entry : fileList) {
-				m_fileList.push_back(ImageListItem(m_camera, entry));
-			}
+	if (m_context->getCurrentCamera() != nullptr) {
+		Lyli::Filesystem::PhotoList fileList = std::move(m_context->getCurrentCamera()->getFilesystemAccess().getPictureList());
+		m_fileList.reserve(fileList.size());
+		for (auto entry : fileList) {
+			m_fileList.push_back(ImageListItem(m_context->getCurrentCamera(), entry));
 		}
-
-		endResetModel();
 	}
+
+	endResetModel();
 }
 
 void ImageListModel::downloadFile(const QModelIndex &index, const QString &outputDirectory) {

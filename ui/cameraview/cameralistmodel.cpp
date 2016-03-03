@@ -18,31 +18,24 @@
 
 #include "cameralistmodel.h"
 
-Usbpp::Context CameraListModel::m_context;
+#include "context.h"
 
-CameraListModel::CameraListModel(QObject* parent): QAbstractListModel(parent) {
-	m_cameraList = std::move(Lyli::getCameras(m_context));
+CameraListModel::CameraListModel(Context* context, QObject* parent): QAbstractListModel(parent), m_context(context) {
+
 }
 
 CameraListModel::~CameraListModel() {
 
 }
 
-Lyli::Camera* CameraListModel::getCamera(Lyli::CameraList::size_type index) {
-	if (index > 0 || index >= m_cameraList.size()) {
-		return nullptr;
-	}
-
-	return & (m_cameraList[index]);
-}
 
 QVariant CameraListModel::data(const QModelIndex& index, int role) const {
-	if (! index.isValid() || static_cast<Lyli::CameraList::size_type>(index.row()) >= m_cameraList.size()) {
+	if (! index.isValid() || static_cast<Lyli::CameraList::size_type>(index.row()) >= m_context->getCameraCount()) {
 		return QVariant();
 	}
 
 	if (role == Qt::DisplayRole) {
-		Lyli::CameraInformation info(m_cameraList[index.row()].getCameraInformation());
+		Lyli::CameraInformation info(m_context->getCamera(index.row())->getCameraInformation());
 		QString name = QString(info.vendor.c_str()).trimmed() + " "
 		               + QString(info.product.c_str()).trimmed() + " "
 		               + QString(info.revision.c_str()).trimmed();
@@ -54,5 +47,5 @@ QVariant CameraListModel::data(const QModelIndex& index, int role) const {
 
 int CameraListModel::rowCount(const QModelIndex& parent) const {
 	Q_UNUSED(parent);
-	return m_cameraList.size();
+	return m_context->getCameraCount();
 }

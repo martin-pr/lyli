@@ -19,6 +19,8 @@
 #ifndef CAMERAFORM_H
 #define CAMERAFORM_H
 
+#include <memory>
+
 #include <QtCore/QThread>
 #include <QtCore/QAbstractListModel>
 #include <QtWidgets/QWidget>
@@ -27,6 +29,10 @@ namespace Ui {
 class CameraForm;
 }
 class QModelIndex;
+
+class Context;
+class CameraListModel;
+class ImageListModel;
 
 class CameraForm : public QWidget {
 	Q_OBJECT
@@ -46,7 +52,7 @@ private:
 	};
 
 private slots:
-	void onChangeCamera(const QModelIndex& index);
+	void onCameraChanged(const QModelIndex& index);
 	void onDownloadAll();
 	void onDownloadSelected();
 
@@ -55,7 +61,12 @@ private slots:
 	void onDownloadFinished();
 
 private:
-	Ui::CameraForm* ui;
+	std::unique_ptr<Context> m_context;
+	std::unique_ptr<Ui::CameraForm> ui;
+
+	CameraListModel* m_cameraListModel;
+	ImageListModel* m_imageListModel;
+
 	QThread m_downloadThread;
 
 	/** Show the GUI for selecting the output directory and executes a download thread
