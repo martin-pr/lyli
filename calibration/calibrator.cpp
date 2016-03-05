@@ -173,7 +173,8 @@ double calibrateRotation(const PointGridList &gridList) {
 	tbb::concurrent_vector<double> angles;
 	angles.reserve(gridList.size());
 	tbb::parallel_for_each(
-		gridList,
+		std::begin(gridList),
+		std::end(gridList),
 		[&angles](const auto &grid) {
 			// compute rotation of each line
 			std::vector<double> localAngles;

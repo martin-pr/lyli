@@ -196,7 +196,10 @@ void calibrate(const std::string& path, const std::string& out) {
 	Lyli::Calibration::Calibrator calibrator;
 	Lyli::Calibration::LensDetector lensDetector(std::make_unique<Lyli::Calibration::FFTPreprocessor>());
 	try {
-		tbb::parallel_for_each(files, [&calibrator,&lensDetector](const auto &filebase) {
+		tbb::parallel_for_each(
+			std::begin(files),
+			std::end(files),
+			[&calibrator,&lensDetector](const auto &filebase) {
 			std::cout << filebase << " reading image..." << std::endl;
 			std::stringstream ss;
 
