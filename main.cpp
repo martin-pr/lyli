@@ -307,8 +307,10 @@ void process(const std::string& path, const std::string& in) {
 
 		// straighten etc.
 		Lyli::Image::LightfieldImage lightfieldimg(rawimg, metadata, calibration);
+		cv::Mat bgrImage;
+		cv::cvtColor(lightfieldimg.getData(), bgrImage, cv::COLOR_RGB2BGR);
 		ss << filebase << "-flat.png";
-		cv::imwrite(ss.str(), lightfieldimg.getData());
+		cv::imwrite(ss.str(), bgrImage);
 		ss.str("");
 		ss.clear();
 	});
