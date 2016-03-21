@@ -31,6 +31,7 @@
 #include <tbb/parallel_for_each.h>
 
 #include <calibration/calibrator.h>
+#include <calibration/exception.h>
 #include <calibration/fftpreprocessor.h>
 #include <calibration/lensdetector.h>
 #include <calibration/pointgrid.h>
@@ -171,7 +172,14 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 
-	calibrate(argv[1]);
+	try {
+		calibrate(argv[1]);
+	}
+	catch (const ::Lyli::Calibration::Exception& e) {
+		std::cerr << "caught exception: " << e.what() << std::endl;
+		std::cerr << "exitting" << std::endl;
+		return 1;
+	}
 	return 0;
 }
 

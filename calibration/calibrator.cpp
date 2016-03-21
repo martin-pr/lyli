@@ -34,6 +34,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -48,10 +49,6 @@
 
 #include <image/metadata.h>
 
-// BEGIN DEBUG
-#include <sstream>
-#include <opencv/highgui.h>
-// END DEBUG
 
 namespace {
 
@@ -66,25 +63,6 @@ static constexpr auto IMAGE_SIZE = 3280;
  * the sensor is 4.6 x 4.6 mm
  */
 static constexpr double SENSOR_SIZE = 0.0046;
-
-void drawLineGrid(const char* file, const Lyli::Calibration::LineGrid &lineGrid) {
-
-
-	cv::Mat dst(IMAGE_SIZE, IMAGE_SIZE, CV_8UC3);
-	dst = cv::Scalar(256, 256, 256);
-	const auto &linesHorizontal = lineGrid.getHorizontalLines();
-	for (const auto &line : linesHorizontal) {
-		cv::Scalar color = line.subgrid == Lyli::Calibration::SubGrid::SUBGRID_A ? cv::Scalar(255, 0, 0) : cv::Scalar(0, 255, 0);
-		cv::line(dst, cv::Point2f(0, line.position), cv::Point2f(IMAGE_SIZE, line.position), color);
-	}
-	const auto &linesVertical = lineGrid.getVerticalLines();
-	for (const auto &line : linesVertical) {
-		cv::Scalar color = line.subgrid == Lyli::Calibration::SubGrid::SUBGRID_A ? cv::Scalar(255, 0, 0) : cv::Scalar(0, 255, 0);
-		cv::line(dst, cv::Point2f(line.position, 0), cv::Point2f(line.position, IMAGE_SIZE), color);
-	}
-
-	cv::imwrite(file, dst);
-}
 
 class ZoomFocusHash {
 public:
@@ -306,7 +284,9 @@ Calibrator::~Calibrator() {
 void Calibrator::addGrid(const PointGrid &pointGrid, const Lyli::Image::Metadata &metadata) {
 	std::string serial = metadata.getPrivatemetadata().getCamera().getSerialnumber();
 	if (!pimpl->m_serial.empty() && pimpl->m_serial != serial) {
-		throw CameraDiffersException("Camera serial number differs");
+		std::stringstream ss;
+		ss << "Camera serial number differs, expected: " << pimpl->m_serial << ", got: " << serial << std::endl;
+		throw CameraDiffersException(ss.str());
 	}
 
 	// thread safe data access
@@ -328,21 +308,11 @@ void Calibrator::addGrid(const PointGrid &pointGrid, const Lyli::Image::Metadata
 CalibrationData Calibrator::calibrate() {
 	// create line grids for all point grids
 	std::vector<LineGrid> linegrids;
-	int i = 0;
 	for (const auto entry : pimpl->pointGridList) {
 		linegrids.push_back(LineGrid(entry));
-		/*// BEGIN DEBUG
-		std::stringstream ss;
-		ss << "grid_" << i++ << ".png";
-		drawLineGrid(ss.str().c_str(), linegrids.back());
-		// END DEBUG*/
 	}
 	// create a target line grid that is computed as an average of all line grids
 	auto target = averageGrids(linegrids);
-
-	/*// BEGIN DEBUG: store the target grid as image
-	drawLineGrid("target.png", target.first);
-	// END DEBUG*/
 
 	// the lens array calibration
 	double rotation = calibrateRotation(pimpl->pointGridList);
