@@ -36,11 +36,6 @@ public:
 	 */
 	Lyli::CameraList::size_type getCameraCount() const;
 	/**
-	 * Get the currecntly selected camera
-	 * \return Camera or nullptr if no cameras are available
-	 */
-	Lyli::Camera* getCurrentCamera();
-	/**
 	 * Get camera at the given index
 	 */
 	Lyli::Camera* getCamera(Lyli::CameraList::size_type index);
@@ -52,7 +47,11 @@ public slots:
 	void changeCurrentCamera(Lyli::CameraList::size_type index);
 
 signals:
-	void cameraChanged();
+	/**
+	 * Camera has changed
+	 * \param camera pointer to a new camera
+	 */
+	void cameraChanged(Lyli::Camera* camera);
 
 private:
 	static Usbpp::Context m_context;

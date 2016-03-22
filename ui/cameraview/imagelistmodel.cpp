@@ -59,16 +59,16 @@ int ImageListModel::rowCount(const QModelIndex& parent) const {
 	return m_fileList.size();
 }
 
-void ImageListModel::onCameraChanged() {
+void ImageListModel::onCameraChanged(Lyli::Camera* camera) {
 	beginResetModel();
 
 	m_fileList.clear();
 
-	if (m_context->getCurrentCamera() != nullptr) {
-		Lyli::Filesystem::PhotoList fileList = std::move(m_context->getCurrentCamera()->getFilesystemAccess().getPictureList());
+	if (camera != nullptr) {
+		Lyli::Filesystem::PhotoList fileList = std::move(camera->getFilesystemAccess().getPictureList());
 		m_fileList.reserve(fileList.size());
 		for (auto entry : fileList) {
-			m_fileList.push_back(ImageListItem(m_context->getCurrentCamera(), entry));
+			m_fileList.push_back(ImageListItem(camera, entry));
 		}
 	}
 

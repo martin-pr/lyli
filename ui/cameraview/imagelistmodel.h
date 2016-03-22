@@ -42,7 +42,7 @@ public:
 	virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
 
 public slots:
-	void onCameraChanged();
+	void onCameraChanged(Lyli::Camera* camera);
 
 private:
 	Context* m_context;

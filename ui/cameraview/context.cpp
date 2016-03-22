@@ -32,13 +32,6 @@ Lyli::CameraList::size_type Context::getCameraCount() const {
 	return m_cameraList.size();
 }
 
-Lyli::Camera * Context::getCurrentCamera() {
-	if (m_current > 0 || m_current >= m_cameraList.size()) {
-		return nullptr;
-	}
-	return &(m_cameraList[m_current]);
-}
-
 Lyli::Camera* Context::getCamera(Lyli::CameraList::size_type index) {
 	if (index > 0 || index >= m_cameraList.size()) {
 		return nullptr;
@@ -49,7 +42,7 @@ Lyli::Camera* Context::getCamera(Lyli::CameraList::size_type index) {
 void Context::changeCurrentCamera(Lyli::CameraList::size_type index) {
 	if (m_current != index) {
 		m_current = index;
-		emit cameraChanged();
+		emit cameraChanged(&(m_cameraList[m_current]));
 	}
 }
 
