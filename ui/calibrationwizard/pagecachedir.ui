@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PageCacheDir</class>
+ <widget class="QWizardPage" name="PageCacheDir">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>WizardPage</string>
+  </property>
+  <property name="title">
+   <string>Cache Direc&amp;tory</string>
+  </property>
+  <property name="subTitle">
+   <string>Specify where the calibration images are downloaded (about 1 GB of free space is required)</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QLineEdit" name="path"/>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pathSelect">
+     <property name="text">
+      <string>...</string>
+     </property>
+     <property name="flat">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

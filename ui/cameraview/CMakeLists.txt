@@ -5,7 +5,7 @@ include_directories(.. ../ ../../usbpp ${OpenCV_INCLUDE_DIRS})
 
 qt5_wrap_ui(LYLI_UI_CAMERA_SRCS cameraform.ui)
 add_library(lyliuicamera STATIC
-            cameraform.cpp cameralistmodel.cpp context.cpp
+            calibrationchecker.cpp cameraform.cpp cameralistmodel.cpp context.cpp
             imagelistmodel.cpp imagelistitem.cpp imagelistdelegate.cpp imagedownloader.cpp
             ${LYLI_UI_CAMERA_SRCS})
-target_link_libraries(lyliuicamera usbpp lyliiface Qt5::Core Qt5::Widgets)
+target_link_libraries(lyliuicamera lyliuicalibration usbpp lyliiface Qt5::Core Qt5::Widgets)

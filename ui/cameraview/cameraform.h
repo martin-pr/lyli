@@ -30,6 +30,7 @@ class CameraForm;
 }
 class QModelIndex;
 
+class CalibrationChecker;
 class Context;
 class CameraListModel;
 class ImageListModel;
@@ -62,6 +63,7 @@ private slots:
 
 private:
 	std::unique_ptr<Context> m_context;
+	std::unique_ptr<CalibrationChecker> m_calibchecker;
 	std::unique_ptr<Ui::CameraForm> ui;
 
 	CameraListModel* m_cameraListModel;

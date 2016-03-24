@@ -23,13 +23,18 @@
 #include <QtCore/QModelIndex>
 #include <QtWidgets/QFileDialog>
 
+#include "calibrationchecker.h"
 #include "cameralistmodel.h"
 #include "context.h"
 #include "imagedownloader.h"
 #include "imagelistdelegate.h"
 #include "imagelistmodel.h"
 
-CameraForm::CameraForm(QWidget *parent) : QWidget(parent), m_context(new Context), ui(new Ui::CameraForm) {
+CameraForm::CameraForm(QWidget *parent) : QWidget(parent) {
+	m_context = std::make_unique<Context>();
+	m_calibchecker = std::make_unique<CalibrationChecker>();
+
+	ui = std::make_unique<Ui::CameraForm>();
 	ui->setupUi(this);
 
 	// set the models
@@ -46,6 +51,7 @@ CameraForm::CameraForm(QWidget *parent) : QWidget(parent), m_context(new Context
 	connect(ui->buttonDownloadAll, &QToolButton::clicked, this, &CameraForm::onDownloadAll);
 	connect(ui->buttonDownloadSelected, &QToolButton::clicked, this, &CameraForm::onDownloadSelected);
 	connect(m_context.get(), &Context::cameraChanged, m_imageListModel, &ImageListModel::onCameraChanged);
+	connect(m_context.get(), &Context::cameraChanged, m_calibchecker.get(), &CalibrationChecker::onCameraChanged);
 
 	// some default settings
 	if (ui->cameraList->model()->rowCount() > 0) {

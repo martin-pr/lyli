@@ -56,7 +56,7 @@ signals:
 private:
 	static Usbpp::Context m_context;
 	Lyli::CameraList m_cameraList;
-	Lyli::CameraList::size_type m_current;
+	int m_current;
 };
 
 #endif // CONTEXT_H
