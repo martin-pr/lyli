@@ -94,14 +94,32 @@ public:
 		return result;
 	}
 
-	CameraInformation getCameraInformation() const {
-		CameraInformation info;
+	CameraInformation getCameraInformation() {
+		Usbpp::ByteBuffer inforesponse;
+
 		std::unique_lock<std::mutex> cameraLock(cameraAccessMutex);
-		Usbpp::MassStorage::SCSI::InquiryResponse response(device.sendInquiry(0x02, 0));
+
+		// do the SCSI inquiry
+		Usbpp::MassStorage::SCSI::InquiryResponse inquiryresponse(device.sendInquiry(0x02, 0));
+
+		// request the camera information list
+		Usbpp::MassStorage::CommandBlockWrapper cmdReqFilelist(0, 0, 0, {0xc2, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00});
+		device.sendCommand(LIBUSB_ENDPOINT_OUT | 0x02, cmdReqFilelist, &inforesponse);
+		// get the data
+		inforesponse = downloadData();
+
 		cameraLock.unlock();
-		info.vendor = std::string((const char*) response.getVendorIdentification().data(), response.getVendorIdentification().size());
-		info.product = std::string((const char*) response.getProductIdentification().data(), response.getProductIdentification().size());
-		info.revision = std::string((const char*) response.getProductRevisionLevel().data(), response.getProductRevisionLevel().size());
+
+		// parse response
+		CameraInformation info;
+		info.vendor = std::string(reinterpret_cast<const char*>(inquiryresponse.getVendorIdentification().data()),
+		                          inquiryresponse.getVendorIdentification().size());
+		info.product = std::string(reinterpret_cast<const char*>(inquiryresponse.getProductIdentification().data()),
+		                           inquiryresponse.getProductIdentification().size());
+		info.revision = std::string(reinterpret_cast<const char*>(inquiryresponse.getProductRevisionLevel().data()),
+		                            inquiryresponse.getProductRevisionLevel().size());
+		info.serial = std::string(reinterpret_cast<const char*>(inforesponse.data() + 0x0100));
+		info.firmware = std::string(reinterpret_cast<const char*>(inforesponse.data() + 0x0200));
 
 		return info;
 	}
@@ -180,7 +198,7 @@ void Camera::waitReady() {
 	while (! pimpl->isReady());
 }
 
-CameraInformation Camera::getCameraInformation() const {
+CameraInformation Camera::getCameraInformation() {
 	assert(pimpl != nullptr);
 
 	return pimpl->getCameraInformation();

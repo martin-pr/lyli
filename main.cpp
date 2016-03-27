@@ -81,6 +81,8 @@ void getCameraInformation(Lyli::Camera *camera) {
 	std::cout << "Vendor: " << info.vendor << std::endl;
 	std::cout << "Product: " << info.product << std::endl;
 	std::cout << "Revision: " << info.revision << std::endl;
+	std::cout << "Serial: " << info.serial << std::endl;
+	std::cout << "Firmware: " << info.firmware << std::endl;
 }
 
 void listFiles(Lyli::Camera *camera) {

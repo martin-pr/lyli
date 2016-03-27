@@ -48,6 +48,8 @@ struct CameraInformation {
 	std::string vendor;
 	std::string product;
 	std::string revision;
+	std::string serial;
+	std::string firmware;
 };
 
 /**
@@ -80,7 +82,7 @@ public:
 	 * Get basic camera inforamtion
 	 * \return the camera information
 	 */
-	CameraInformation getCameraInformation() const;
+	CameraInformation getCameraInformation();
 
 	/**
 	 * Get specific file from camera
