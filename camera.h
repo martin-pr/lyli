@@ -33,21 +33,13 @@ class MSDevice;
 }
 
 namespace Lyli {
-class Camera;
+class Context;
 namespace Filesystem {
 class FilesystemAccess;
 }
 }
 
 namespace Lyli {
-
-using CameraList = std::vector<Camera>;
-
-/**
- * Get list of cameras.
- * \param context USB context to use for detecting cameras
- */
-CameraList getCameras(Usbpp::Context &context);
 
 /**
  * Basic camera information
@@ -107,8 +99,8 @@ private:
 	class Impl;
 	std::unique_ptr<Impl> pimpl;
 
-	friend CameraList getCameras(Usbpp::Context &context);
-	friend class Filesystem::FilesystemAccess;;
+	friend class ::Lyli::Context;
+	friend class ::Lyli::Filesystem::FilesystemAccess;;
 
 	Camera(const Usbpp::MassStorage::MSDevice &device);
 

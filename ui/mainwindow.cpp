@@ -41,8 +41,15 @@ MainWindow::MainWindow() {
 	connect(m_cameraForm, &CameraForm::progressStart, m_progressBar, &ProgressBar::onProgressStart);
 	connect(m_cameraForm, &CameraForm::progressRun, m_progressBar, &ProgressBar::onProgress);
 	connect(m_cameraForm, &CameraForm::progressFinish, m_progressBar, &ProgressBar::onProgressFinish);
+
+	connect(this, &MainWindow::windowShown, m_cameraForm, &CameraForm::onInit, Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
 }
 
 MainWindow::~MainWindow() {
 	delete ui;
+}
+
+void MainWindow::showEvent(QShowEvent *event) {
+	QWidget::showEvent(event);
+	emit windowShown();
 }

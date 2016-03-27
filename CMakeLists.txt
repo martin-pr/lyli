@@ -49,7 +49,7 @@ add_subdirectory(calibration)
 add_subdirectory(filesystem)
 add_subdirectory(image)
 
-add_library(lyliiface STATIC camera.cpp)
+add_library(lyliiface STATIC camera.cpp context.cpp)
 target_link_libraries(lyliiface lylicalib lylifilesystem lyliimage usbpp ${OpenCV_LIBS} ${LIBUSB_LIBRARIES} ${JsonCpp_LIBRARIES})
 add_dependencies(lyliiface libusbpp_project)
 

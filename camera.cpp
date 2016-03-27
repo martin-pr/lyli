@@ -200,26 +200,4 @@ Filesystem::FilesystemAccess Camera::getFilesystemAccess() {
 	return Filesystem::FilesystemAccess(this);
 }
 
-CameraList getCameras(Usbpp::Context &context) {
-	CameraList cameras;
-
-	std::vector<Usbpp::Device> devices(context.getDevices());
-
-	for (Usbpp::Device dev : devices) {
-		try {
-			libusb_device_descriptor descr(dev.getDescriptor());
-			if (descr.idVendor == 0x24cf && descr.idProduct == 0x00a1) {
-				Camera camera(dev);
-				cameras.push_back(std::move(camera));
-			}
-		}
-		catch (const Usbpp::Exception &e) {
-			// just silently ignore the exception and try the next device
-			continue;
-		}
-	}
-
-	return cameras;
-}
-
 }

@@ -39,6 +39,12 @@ public:
 	MainWindow();
 	~MainWindow();
 
+signals:
+	void windowShown();
+
+protected:
+	virtual void showEvent(QShowEvent *event) override;
+
 private:
 	Ui::MainWindow* ui;
 

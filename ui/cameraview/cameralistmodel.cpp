@@ -18,10 +18,10 @@
 
 #include "cameralistmodel.h"
 
-#include "context.h"
+#include "cameracontext.h"
 
 CameraListModel::CameraListModel(Context* context, QObject* parent): QAbstractListModel(parent), m_context(context) {
-
+	connect(m_context, &Context::cameraListChanged, this, &CameraListModel::cameraListChanged);
 }
 
 CameraListModel::~CameraListModel() {
@@ -48,4 +48,8 @@ QVariant CameraListModel::data(const QModelIndex& index, int role) const {
 int CameraListModel::rowCount(const QModelIndex& parent) const {
 	Q_UNUSED(parent);
 	return m_context->getCameraCount();
+}
+
+void CameraListModel::cameraListChanged() {
+	emit dataChanged(index(0, 0), index(rowCount(), 0));
 }

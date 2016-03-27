@@ -37,6 +37,7 @@
 #include <json/writer.h>
 
 #include <camera.h>
+#include <context.h>
 #include <calibration/calibrator.h>
 #include <calibration/fftpreprocessor.h>
 #include <calibration/lensdetector.h>
@@ -330,8 +331,8 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 
-	Usbpp::Context context;
-	Lyli::CameraList cameras(Lyli::getCameras(context));
+	Lyli::Context context;
+	Lyli::CameraList cameras(context.getCameras());
 	Lyli::Camera *camera(0);
 
 	// first prepare camera if we are calling a function requiring camera to be operating

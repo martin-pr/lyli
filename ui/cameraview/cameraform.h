@@ -46,11 +46,8 @@ signals:
 	void progressRun(int progress);
 	void progressFinish();
 
-private:
-	enum class DownloadMode {
-		ALL,
-		SELECTED
-	};
+public slots:
+	void onInit();
 
 private slots:
 	void onCameraChanged(const QModelIndex& index);
@@ -62,6 +59,11 @@ private slots:
 	void onDownloadFinished();
 
 private:
+	enum class DownloadMode {
+		ALL,
+		SELECTED
+	};
+
 	std::unique_ptr<Context> m_context;
 	std::unique_ptr<CalibrationChecker> m_calibchecker;
 	std::unique_ptr<Ui::CameraForm> ui;

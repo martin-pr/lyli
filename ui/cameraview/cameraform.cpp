@@ -25,7 +25,7 @@
 
 #include "calibrationchecker.h"
 #include "cameralistmodel.h"
-#include "context.h"
+#include "cameracontext.h"
 #include "imagedownloader.h"
 #include "imagelistdelegate.h"
 #include "imagelistmodel.h"
@@ -52,17 +52,17 @@ CameraForm::CameraForm(QWidget *parent) : QWidget(parent) {
 	connect(ui->buttonDownloadSelected, &QToolButton::clicked, this, &CameraForm::onDownloadSelected);
 	connect(m_context.get(), &Context::cameraChanged, m_imageListModel, &ImageListModel::onCameraChanged);
 	connect(m_context.get(), &Context::cameraChanged, m_calibchecker.get(), &CalibrationChecker::onCameraChanged);
-
-	// some default settings
-	if (ui->cameraList->model()->rowCount() > 0) {
-		ui->cameraList->setCurrentIndex(ui->cameraList->model()->index(0,0));
-		onCameraChanged(ui->cameraList->currentIndex());
-	}
 }
 
 CameraForm::~CameraForm() {
 	m_downloadThread.quit();
 	m_downloadThread.wait();
+}
+
+void CameraForm::onInit() {
+	m_context->updateCameraList();
+	ui->cameraList->setCurrentIndex(ui->cameraList->model()->index(0,0));
+	onCameraChanged(ui->cameraList->currentIndex());
 }
 
 void CameraForm::onCameraChanged(const QModelIndex &index) {

@@ -23,6 +23,7 @@
 #include <QtCore/QObject>
 
 #include <camera.h>
+#include <context.h>
 #include <libusbpp/context.h>
 
 class Context : public QObject {
@@ -30,6 +31,8 @@ class Context : public QObject {
 public:
 	Context();
 	~Context();
+
+	void updateCameraList();
 
 	/**
 	 * Get the count of cameras.
@@ -53,8 +56,13 @@ signals:
 	 */
 	void cameraChanged(Lyli::Camera* camera);
 
+	/**
+	 * Camera list has changed.
+	 */
+	void cameraListChanged();
+
 private:
-	static Usbpp::Context m_context;
+	Lyli::Context m_context;
 	Lyli::CameraList m_cameraList;
 	int m_current;
 };
