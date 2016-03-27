@@ -16,28 +16,19 @@
  *
  */
 
-#ifndef CALIBRATIONCHECKER_H
-#define CALIBRATIONCHECKER_H
+#include "cameracalibrator.h"
 
-#include <QtCore/QObject>
+#include <calibrationwizard/calibrationwizard.h>
 
-namespace Lyli {
-class Camera;
+CameraCalibrator::CameraCalibrator(QObject *parent) : QObject(parent) {
+
 }
 
-/**
- * Checks whether a camera has been calibrated and opens calibration wizard if needed
- */
-class CalibrationChecker : public QObject {
-Q_OBJECT
-public:
-	CalibrationChecker(QObject *parent = nullptr);
-	~CalibrationChecker();
-	CalibrationChecker(const CalibrationChecker& other) = delete;
-	CalibrationChecker& operator=(const CalibrationChecker& other) = delete;
+CameraCalibrator::~CameraCalibrator() {
 
-public slots:
-	void onCameraChanged(Lyli::Camera* camera);
-};
+}
 
-#endif // CALIBRATIONCHECKER_H
+void CameraCalibrator::onCameraChanged(Lyli::Camera* camera) {
+	CalibrationWizard wizard;
+	wizard.exec();
+}

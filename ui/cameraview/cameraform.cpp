@@ -23,7 +23,7 @@
 #include <QtCore/QModelIndex>
 #include <QtWidgets/QFileDialog>
 
-#include "calibrationchecker.h"
+#include "cameracalibrator.h"
 #include "cameralistmodel.h"
 #include "cameracontext.h"
 #include "imagedownloader.h"
@@ -32,7 +32,7 @@
 
 CameraForm::CameraForm(QWidget *parent) : QWidget(parent) {
 	m_context = std::make_unique<Context>();
-	m_calibchecker = std::make_unique<CalibrationChecker>();
+	m_calibchecker = std::make_unique<CameraCalibrator>();
 
 	ui = std::make_unique<Ui::CameraForm>();
 	ui->setupUi(this);
@@ -51,7 +51,7 @@ CameraForm::CameraForm(QWidget *parent) : QWidget(parent) {
 	connect(ui->buttonDownloadAll, &QToolButton::clicked, this, &CameraForm::onDownloadAll);
 	connect(ui->buttonDownloadSelected, &QToolButton::clicked, this, &CameraForm::onDownloadSelected);
 	connect(m_context.get(), &Context::cameraChanged, m_imageListModel, &ImageListModel::onCameraChanged);
-	connect(m_context.get(), &Context::cameraChanged, m_calibchecker.get(), &CalibrationChecker::onCameraChanged);
+	connect(m_context.get(), &Context::cameraChanged, m_calibchecker.get(), &CameraCalibrator::onCameraChanged);
 }
 
 CameraForm::~CameraForm() {
