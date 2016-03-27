@@ -56,6 +56,8 @@ public:
 	CalibrationWizardPageCacheDir(const CalibrationWizardPageCacheDir& other) = delete;
 	CalibrationWizardPageCacheDir& operator=(const CalibrationWizardPageCacheDir& other) = delete;
 
+	virtual bool isComplete() const override;
+
 public slots:
 	void selectDirectory();
 

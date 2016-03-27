@@ -18,8 +18,11 @@
 
 #include "calibrationwizard.h"
 
+#include <QtCore/QDir>
+#include <QtCore/QFileInfo>
 #include <QtCore/QStandardPaths>
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QLineEdit>
 
 #include "ui_pagestart.h"
 #include "ui_pagecachedir.h"
@@ -44,16 +47,32 @@ CalibrationWizardPageCacheDir::CalibrationWizardPageCacheDir(QWidget *parent) : 
 	m_ui->path->setText(defaultCacheDir);
 
 	connect(m_ui->pathSelect, &QPushButton::clicked, this, &CalibrationWizardPageCacheDir::selectDirectory);
+	connect(m_ui->path, &QLineEdit::textChanged, this, &CalibrationWizardPageCacheDir::completeChanged);
 }
 
 CalibrationWizardPageCacheDir::~CalibrationWizardPageCacheDir() {
 
 }
 
+bool CalibrationWizardPageCacheDir::isComplete() const {
+	QDir dir(m_ui->path->text());
+	if (QFileInfo(dir.path()).isWritable()) {
+		return true;
+	}
+	dir.cdUp();
+	if (QFileInfo(dir.path()).isWritable()) {
+		return true;
+	}
+	return false;
+}
+
 void CalibrationWizardPageCacheDir::selectDirectory() {
 	QString defaultCacheDir = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
 	QString cacheDir = QFileDialog::getExistingDirectory(this, tr("Select Directory"), defaultCacheDir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-	m_ui->path->setText(cacheDir);
+	if (!cacheDir.isEmpty()) {
+		m_ui->path->setText(cacheDir);
+	}
+	emit completeChanged();
 }
 
 CalibrationWizardPageFinish::CalibrationWizardPageFinish(QWidget *parent) : QWizardPage(parent) {
