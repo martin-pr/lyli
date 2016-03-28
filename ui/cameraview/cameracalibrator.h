@@ -21,8 +21,17 @@
 
 #include <QtCore/QObject>
 
+#include <filesystem/filelist.h>
+
+class QDir;
+class QProgressDialog;
+
 namespace Lyli {
 class Camera;
+namespace Calibration {
+class CalibrationData;
+class Calibrator;
+}
 }
 
 /**
@@ -38,6 +47,11 @@ public:
 
 public slots:
 	void onCameraChanged(Lyli::Camera* camera);
+
+private:
+	bool downloadCalib(Lyli::Filesystem::ImageList &fileList, const QDir &dir, QProgressDialog *progress);
+	bool preprocess(Lyli::Calibration::Calibrator &calibrator, const QDir &dir, QProgressDialog *progress);
+	::Lyli::Calibration::CalibrationData calibrate(Lyli::Calibration::Calibrator &calibrator, QProgressDialog *progress);
 };
 
 #endif // CAMERACALIBRATOR_H

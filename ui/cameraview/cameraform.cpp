@@ -61,8 +61,10 @@ CameraForm::~CameraForm() {
 
 void CameraForm::onInit() {
 	m_context->updateCameraList();
-	ui->cameraList->setCurrentIndex(ui->cameraList->model()->index(0,0));
-	onCameraChanged(ui->cameraList->currentIndex());
+	if(ui->cameraList->model()->rowCount() > 0) {
+		ui->cameraList->setCurrentIndex(ui->cameraList->model()->index(0,0));
+		onCameraChanged(ui->cameraList->currentIndex());
+	}
 }
 
 void CameraForm::onCameraChanged(const QModelIndex &index) {
