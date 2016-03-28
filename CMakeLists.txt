@@ -18,6 +18,7 @@ find_package(OpenCV REQUIRED)
 find_package(TBB REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBUSB REQUIRED libusb-1.0>=1.0.0)
+find_package(Threads)
 
 # libusbpp dependency - if it doesn't exists, clone it
 include(ExternalProject)
@@ -54,7 +55,7 @@ target_link_libraries(lyliiface lylicalib lylifilesystem lyliimage usbpp ${OpenC
 add_dependencies(lyliiface libusbpp_project)
 
 add_executable(lyli main.cpp)
-target_link_libraries(lyli usbpp lyliiface)
+target_link_libraries(lyli usbpp lyliiface ${CMAKE_THREAD_LIBS_INIT})
 
 if (Qt5Core_FOUND AND Qt5Widgets_FOUND)
 	add_subdirectory(ui)
