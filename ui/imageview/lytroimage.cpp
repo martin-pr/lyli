@@ -27,8 +27,13 @@
 #include <cstdint>
 #include <fstream>
 
+#include <calibration/calibrationdata.h>
 #include <calibration/calibrator.h>
+#include <image/lightfieldimage.h>
+#include <image/metadata.h>
 #include <image/rawimage.h>
+
+#include <config/lyliconfig.h>
 
 namespace {
 
@@ -44,27 +49,39 @@ LytroImage::LytroImage() : m_image(nullptr) {
 }
 
 LytroImage::LytroImage(const char *file) {
-	m_image = new QImage(IMG_WIDTH, IMG_HEIGHT, QImage::Format_RGB32);
 	std::fstream fin(file, std::fstream::in | std::fstream::binary);
 
-	Lyli::Image::RawImage image(fin, IMG_WIDTH, IMG_HEIGHT);
+	Lyli::Image::RawImage rawimg(fin, IMG_WIDTH, IMG_HEIGHT);
 	fin.close();
 
-	// DEBUG: show prerocessed calibration image
-	/*Lyli::Calibrator calibrator;
-	calibrator.addImage(image.getData());
-	calibrator.calibrate();
-	uint16_t *rawImage = reinterpret_cast<uint16_t*>(calibrator.getcalibrationImage().data);*/
+	std::string metafile(file);
+	metafile = metafile.substr(0, metafile.find_last_of(".")) + ".TXT";
+	std::fstream finmeta(metafile, std::fstream::in | std::fstream::binary);
+	Lyli::Image::Metadata metadata(finmeta);
 
-	uint16_t *rawImage = reinterpret_cast<uint16_t*>(image.getData().data);
-	// combine the images
+	cv::Mat showImg;
+	std::string serial(metadata.getPrivatemetadata().getCamera().getSerialnumber());
+	std::unique_ptr<::Lyli::Calibration::CalibrationData> calibration = LyliConfig::readCalibrationData(serial);
+	if (calibration) {
+		// simple color img
+		Lyli::Image::LightfieldImage lightfieldimg(rawimg, metadata, *calibration);
+		showImg = lightfieldimg.getData();
+	}
+	else {
+		// fallback
+		showImg = rawimg.getData();
+	}
+
+	// show the image
+	uint16_t *rawImage = reinterpret_cast<uint16_t*>(showImg.data);
+	m_image = new QImage(showImg.cols, showImg.rows, QImage::Format_RGB32);
 	std::size_t pos(0);
-	for (std::size_t y = 0; y < IMG_HEIGHT; ++y) {
-		for (std::size_t x = 0; x < IMG_WIDTH; ++x) {
+	for (std::size_t y = 0; y < static_cast<std::size_t>(showImg.rows); ++y) {
+		for (std::size_t x = 0; x < static_cast<std::size_t>(showImg.cols); ++x) {
 			m_image->setPixel(x, y, qRgb(
-			                      m_gamma[rawImage[pos] >> 4],
-			                      m_gamma[rawImage[pos+1] >> 4],
-			                      m_gamma[rawImage[pos+2] >> 4]));
+								m_gamma[rawImage[pos] >> 4],
+								m_gamma[rawImage[pos+1] >> 4],
+								m_gamma[rawImage[pos+2] >> 4]));
 			pos += 3;
 		}
 	}
