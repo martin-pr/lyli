@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.1)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules)
-project(lyli CXX)
+project(lyli C CXX)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wstrict-aliasing -Wextra")
 
@@ -35,7 +35,7 @@ include_directories("${CMAKE_BINARY_DIR}/libusbpp/install/include")
 # Compiler flags #
 ##################
 
-set(CMAKE_CXX_FLAGS "-std=c++14")
+set(CMAKE_CXX_STANDARD 14)
 add_definitions(${TBB_DEFINITIONS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${JsonCpp_INCLUDE_DIRS})
