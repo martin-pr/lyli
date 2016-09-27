@@ -18,9 +18,12 @@
 
 #include "calibrationwizard.h"
 
+#include <memory>
+
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>
 #include <QtCore/QStandardPaths>
+#include <QtCore/QString>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QLineEdit>
 
