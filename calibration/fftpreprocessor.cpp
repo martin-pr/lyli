@@ -70,7 +70,7 @@ cv::Mat FFTPreprocessor::preprocess(const cv::Mat &gray) {
 	cv::idft(complexI, invDFT, cv::DFT_SCALE | cv::DFT_REAL_OUTPUT );
 
 	// normalize the values and convert to uint8 to ensure the values are in 0-255 scale
-	cv::normalize(invDFT, invDFT, 0, 1, CV_MINMAX);
+	cv::normalize(invDFT, invDFT, 0, 1, cv::NORM_MINMAX);
 	invDFT.convertTo(outMask, CV_8U, 255);
 
 	// apply threshold

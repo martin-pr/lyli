@@ -243,7 +243,7 @@ LensDetector::LensDetector(std::unique_ptr<PreprocessorInterface> preprocessor_)
 PointGrid LensDetector::detect(const cv::Mat& image) {
 	// convert to gray
 	cv::Mat gray;
-	cv::cvtColor(image, gray, CV_RGB2GRAY);
+	cv::cvtColor(image, gray, cv::COLOR_RGB2GRAY);
 	gray.convertTo(gray, CV_8U, 1.0/256.0);
 
 	// check whether the image is usefull at all

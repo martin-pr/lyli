@@ -51,7 +51,7 @@ add_subdirectory(filesystem)
 add_subdirectory(image)
 
 add_library(lyliiface STATIC camera.cpp context.cpp)
-target_link_libraries(lyliiface lylicalib lylifilesystem lyliimage usbpp ${OpenCV_LIBS} ${LIBUSB_LIBRARIES} ${JsonCpp_LIBRARIES})
+target_link_libraries(lyliiface lylicalib lylifilesystem lyliimage usbpp ${OpenCV_LIBS} ${LIBUSB_LIBRARIES} ${JsonCpp_LIBRARIES} pthread)
 add_dependencies(lyliiface libusbpp_project)
 
 add_executable(lyli main.cpp)
