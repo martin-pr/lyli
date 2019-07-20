@@ -1,5 +1,5 @@
 
-add_library(lylicalib STATIC
+add_library(lylicalib SHARED
 	exception.cpp
 	pointgrid.cpp linegrid.cpp gridmapper.cpp gridmath.cpp
 	calibrator.cpp lensdetector.cpp calibrationdata.cpp preprocessor.cpp fftpreprocessor.cpp serialization.cpp) # lensfilter.cpp

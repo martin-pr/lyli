@@ -2,7 +2,7 @@
 find_package(PkgConfig REQUIRED)
 pkg_search_module(USBPP REQUIRED usbpp)
 
-add_library(lylifilesystem STATIC
+add_library(lylifilesystem SHARED
 	filelist.cpp filesystemaccess.cpp image.cpp imageptr.cpp photo.cpp)
 
 target_link_libraries(lylifilesystem ${USBPP_LIBRARIES})

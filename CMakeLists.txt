@@ -43,9 +43,8 @@ add_subdirectory(calibration)
 add_subdirectory(filesystem)
 add_subdirectory(image)
 
-add_library(lyliiface STATIC camera.cpp context.cpp)
-target_link_libraries(lyliiface lylicalib lylifilesystem lyliimage usbpp ${OpenCV_LIBS} ${LIBUSB_LIBRARIES} ${JsonCpp_LIBRARIES} pthread)
-add_dependencies(lyliiface libusbpp_project)
+add_library(lyliiface SHARED camera.cpp context.cpp)
+target_link_libraries(lyliiface lylicalib lylifilesystem lyliimage ${USBPP_LIBRARIES} ${OpenCV_LIBS} ${LIBUSB_LIBRARIES} ${JsonCpp_LIBRARIES} pthread)
 
 add_executable(lyli main.cpp)
 target_link_libraries(lyli ${USBPP_LIBRARIES} lyliiface ${CMAKE_THREAD_LIBS_INIT})
@@ -56,6 +55,8 @@ target_compile_options(lyli PUBLIC ${USBPP_CFLAGS_OTHER})
 
 if (Qt5Core_FOUND AND Qt5Widgets_FOUND)
 	add_subdirectory(ui)
+else (Qt5Core_FOUND AND Qt5Widgets_FOUND)
+	message(ERROR Qt5 not found)
 endif()
 
 # aditional tools

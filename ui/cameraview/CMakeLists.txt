@@ -4,7 +4,7 @@ set(CMAKE_AUTOMOC ON)
 include_directories(.. ../ ../../usbpp ${OpenCV_INCLUDE_DIRS})
 
 qt5_wrap_ui(LYLI_UI_CAMERA_SRCS cameraform.ui)
-add_library(lyliuicamera STATIC
+add_library(lyliuicamera SHARED
             cameracontext.cpp cameracalibrator.cpp cameraform.cpp cameralistmodel.cpp
             imagelistmodel.cpp imagelistitem.cpp imagelistdelegate.cpp imagedownloader.cpp
             ${LYLI_UI_CAMERA_SRCS})
