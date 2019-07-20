@@ -8,3 +8,4 @@ add_library(lyliuicalibration SHARED
             calibrationwizard.cpp
             ${LYLI_UI_CALIBRATION_SRCS})
 target_link_libraries(lyliuicalibration lyliiface Qt5::Core Qt5::Widgets)
+install(TARGETS lyliuicalibration LIBRARY DESTINATION lib)

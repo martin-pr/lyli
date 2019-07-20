@@ -4,6 +4,7 @@ pkg_search_module(USBPP REQUIRED usbpp)
 
 add_library(lylifilesystem SHARED
 	filelist.cpp filesystemaccess.cpp image.cpp imageptr.cpp photo.cpp)
+install(TARGETS lylifilesystem LIBRARY DESTINATION lib)
 
 target_link_libraries(lylifilesystem ${USBPP_LIBRARIES})
 target_include_directories(lylifilesystem PUBLIC ${USBPP_INCLUDE_DIRS})

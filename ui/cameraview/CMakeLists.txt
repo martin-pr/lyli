@@ -9,3 +9,4 @@ add_library(lyliuicamera SHARED
             imagelistmodel.cpp imagelistitem.cpp imagelistdelegate.cpp imagedownloader.cpp
             ${LYLI_UI_CAMERA_SRCS})
 target_link_libraries(lyliuicamera lyliuicalibration usbpp lyliiface Qt5::Core Qt5::Widgets)
+install(TARGETS lyliuicamera LIBRARY DESTINATION lib)
