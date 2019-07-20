@@ -21,7 +21,11 @@
 #include <cmath>
 
 #include <opencv2/core/core.hpp>
+#if OPENCV_VERSION < 3
+#include <opencv2/imgproc/imgproc.hpp>
+#else
 #include <opencv2/imgproc.hpp>
+#endif
 
 #include <calibration/calibrationdata.h>
 #include <calibration/linegrid.h>

@@ -114,7 +114,11 @@ cv::Vec4f findLineParams(const Lyli::Calibration::PointGrid::Line& line) {
 
 	// fit line to points
 	cv::Vec4f lineParams;
+#if OPENCV_VERSION < 3
+	cv::fitLine(linePoints, lineParams, CV_DIST_L2, 0, 0.01, 0.001);
+#else
 	cv::fitLine(linePoints, lineParams, cv::DIST_L2, 0, 0.01, 0.001);
+#endif
 
 	return lineParams;
 }

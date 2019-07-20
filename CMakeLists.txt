@@ -20,6 +20,9 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBUSB REQUIRED libusb-1.0>=1.0.0)
 find_package(Threads)
 
+# pass the OpenCV version as a define (the included defines are not reliable for OpenCV 2)
+add_definitions(-DOPENCV_VERSION=${OpenCV_VERSION_MAJOR})
+
 # pkg-config to find libusbpp-1.0
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(USBPP REQUIRED usbpp)
