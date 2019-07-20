@@ -21,7 +21,7 @@
 #include <filesystem/image.h>
 #include <filesystem/photo.h>
 
-#include "libusbpp/buffer.h"
+#include <libusbpp/buffer.h>
 
 #include <ctime>
 #include <cstddef>

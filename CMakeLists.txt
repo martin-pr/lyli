@@ -20,16 +20,9 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBUSB REQUIRED libusb-1.0>=1.0.0)
 find_package(Threads)
 
-# libusbpp dependency - if it doesn't exists, clone it
-include(ExternalProject)
-ExternalProject_Add(libusbpp_project
-	HG_REPOSITORY https://bitbucket.org/stativ/libusbpp
-	PREFIX "libusbpp"
-	CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/libusbpp/install" "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
-)
-add_library(usbpp STATIC IMPORTED)
-set_property(TARGET usbpp PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/libusbpp/install/lib/libusbpp.a)
-include_directories("${CMAKE_BINARY_DIR}/libusbpp/install/include")
+# pkg-config to find libusbpp-1.0
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(USBPP REQUIRED usbpp)
 
 ##################
 # Compiler flags #
@@ -55,7 +48,11 @@ target_link_libraries(lyliiface lylicalib lylifilesystem lyliimage usbpp ${OpenC
 add_dependencies(lyliiface libusbpp_project)
 
 add_executable(lyli main.cpp)
-target_link_libraries(lyli usbpp lyliiface ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(lyli ${USBPP_LIBRARIES} lyliiface ${CMAKE_THREAD_LIBS_INIT})
+
+target_link_libraries(lyli ${USBPP_LIBRARIES})
+target_include_directories(lyli PUBLIC ${USBPP_INCLUDE_DIRS})
+target_compile_options(lyli PUBLIC ${USBPP_CFLAGS_OTHER})
 
 if (Qt5Core_FOUND AND Qt5Widgets_FOUND)
 	add_subdirectory(ui)
