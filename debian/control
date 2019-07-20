@@ -1,0 +1,14 @@
+Source: lyli
+Section: libs
+Priority: optional
+Maintainer: Martin Prazak <martin.prazak@gmail.com>
+Build-Depends: debhelper (>= 9), cmake, libusbpp, libboost-all-dev, libjsoncpp-dev, libusb-1.0-0-dev, libtbb-dev, qtbase5-dev
+Standards-Version: 4.1.2
+Homepage: https://github.com/martin-pr/lyli
+Vcs-Git: https://github.com/martin-pr/lyli
+Vcs-Browser: https://github.com/martin-pr/lyli
+
+Package: lyli
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Lyli (Lytro Linux) aims to provide an open source alternative to the Lytro Desktop.
