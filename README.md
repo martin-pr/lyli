@@ -1,9 +1,8 @@
 # Lyli
 
-Lyli (*Ly*tro *Li*nux) aims to provide an open source alternative to the Lytro Desktop.
+Lyli (*Ly*tro *Li*nux) aims to provide an open source alternative to the Lytro Desktop. Currently, it allows to download images from the camera (in their .raw and .json form), and perform basic calibration.
 
-The application has been tested only with the original Lytro camera, although the Lytro Illum
-may work, too.
+The application has been tested only with the 1st generation Lytro camera.
 
 ## Compiling
 ### Requirements
@@ -27,6 +26,11 @@ If everything goes well, there should be a *lyli* executable in the build direct
 
 ## Usage
 Lyli requires direct access to the USB bus. This can be achieved either by running Lyli as root (not recommended), or by putting the provided `51-lytro.rules` to `/etc/udev/rules.d/` which enables non-root access to the camera.
+
+```
+sudo cp 51-lytro.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules
+```
 
 There are two binaries build:
 
