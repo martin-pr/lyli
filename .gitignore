@@ -1,1 +1,5 @@
 build/*
+obj-*-linux-gnu/*
+debian/.debhelper/*
+debian/lyli*
+debian/files
