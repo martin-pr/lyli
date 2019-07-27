@@ -23,10 +23,10 @@
 namespace Lyli {
 namespace Calibration {
 
-class LensFilter : public LensFilterInterface {
-public:
-	virtual PointGrid filter(const PointGrid &lines) override;
-};
+// class LensFilter : public LensFilterInterface {
+// public:
+// 	virtual PointGrid filter(const PointGrid &lines) override;
+// };
 
 }
 }

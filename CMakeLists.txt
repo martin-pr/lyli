@@ -37,6 +37,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${JsonCpp_INCLUDE_DIRS})
 include_directories(${TBB_INCLUDE_DIRS})
 include_directories(${LIBUSB_INCLUDE_DIRS})
+include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(lib)
 
 #########
