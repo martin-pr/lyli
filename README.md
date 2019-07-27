@@ -4,6 +4,8 @@ Lyli (*Ly*tro *Li*nux) aims to provide an open source alternative to the Lytro D
 
 The application has been tested only with the 1st generation Lytro camera.
 
+[![Build Status](https://travis-ci.org/martin-pr/lyli.svg?branch=master)](https://travis-ci.org/martin-pr/lyli) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/85803e0b79d64c749038696d4e4512ad)](https://www.codacy.com/app/martin.prazak/lyli?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=martin-pr/lyli&amp;utm_campaign=Badge_Grade)
+
 ## Compiling
 ### Requirements
 * c++14 enabled compiler - tested with gcc 4.9
