@@ -1,0 +1,40 @@
+# Basic parameters of the build
+sudo: required
+dist: xenial
+group: edge
+language: cpp
+compiler: gcc
+
+# Environment variables
+env:
+  global:
+    - GH_REPO_NAME: lyli
+    - GH_REPO_REF: github.com/martin-pr/lyli.git
+    - COMPILER: g++-5
+
+# Install dependencies
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - sourceline: 'ppa:martin-prazak/lyli'
+    packages:
+      - libboost-all-dev
+      - libjsoncpp-dev
+      - libusbpp
+      - libusb-1.0-0-dev
+      - qt5-default
+      - qtdeclarative5-dev
+      - libqt5opengl5-dev
+      - libopencv-dev
+      - libtbb-dev
+
+# Run build
+script:
+  - export CXX=g++-5
+  - export CC=gcc-5
+  - cd $TRAVIS_BUILD_DIR
+  - mkdir build
+  - cd build
+  - cmake .. -DCMAKE_BUILD_TYPE=Debug
+  - make -j
