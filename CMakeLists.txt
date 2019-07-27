@@ -37,27 +37,17 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${JsonCpp_INCLUDE_DIRS})
 include_directories(${TBB_INCLUDE_DIRS})
 include_directories(${LIBUSB_INCLUDE_DIRS})
+include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories(lib)
 
 #########
 # Build #
 #########
 
-add_subdirectory(calibration)
-add_subdirectory(filesystem)
-add_subdirectory(image)
+# liblyli
+add_subdirectory(lib)
 
-add_library(lyliiface SHARED camera.cpp context.cpp)
-target_link_libraries(lyliiface lylicalib lylifilesystem lyliimage ${USBPP_LIBRARIES} ${OpenCV_LIBS} ${LIBUSB_LIBRARIES} ${JsonCpp_LIBRARIES} pthread)
-install(TARGETS lyliiface LIBRARY DESTINATION lib)
-
-add_executable(lyli main.cpp)
-target_link_libraries(lyli ${USBPP_LIBRARIES} lyliiface ${CMAKE_THREAD_LIBS_INIT})
-install(TARGETS lyli RUNTIME DESTINATION bin)
-
-target_link_libraries(lyli ${USBPP_LIBRARIES})
-target_include_directories(lyli PUBLIC ${USBPP_INCLUDE_DIRS})
-target_compile_options(lyli PUBLIC ${USBPP_CFLAGS_OTHER})
-
+# ui part
 if (Qt5Core_FOUND AND Qt5Widgets_FOUND)
 	add_subdirectory(ui)
 else (Qt5Core_FOUND AND Qt5Widgets_FOUND)

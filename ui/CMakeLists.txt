@@ -12,6 +12,6 @@ qt5_wrap_ui(LYLI_UI_SRCS mainwindow.ui)
 add_executable(lyli-qt main.cpp mainwindow.cpp progressbar.cpp
                ${LYLI_UI_SRCS})
 install(TARGETS lyli-qt RUNTIME DESTINATION bin)
-target_link_libraries(lyli-qt lyliuicalibration lyliuicamera lyliuiconfig lyliuiimage lyliiface
+target_link_libraries(lyli-qt lyliuicalibration lyliuicamera lyliuiconfig lyliuiimage lyli
                       usbpp ${CMAKE_THREAD_LIBS_INIT}
                       Qt5::Core Qt5::Widgets)
